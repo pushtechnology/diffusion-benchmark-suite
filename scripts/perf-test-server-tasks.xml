@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="perf-test-server-tasks" basedir=".">
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
+		<classpath>
+			<pathelement location="lib/ant-contrib-1.0b3.jar" />
+		</classpath>
+	</taskdef>
+
+	<property name="dir.main.lib" value="lib" />
+	<property name="diffusion.dir" value="${env.DIFFUSION_HOME}" />
+	<path id="test.runtime.classpath">
+		<filelist>
+			<file name="${dir.main.lib}/diffusionbenchmark.jar" />
+			<file name="${diffusion.dir}/lib/diffusion.jar" />
+			<file name="${diffusion.dir}/lib/diffusionclient.jar" />
+		</filelist>
+	</path>
+	<macrodef name="assert-no-diffusion-running">
+		<sequential>
+		 	<exec executable="jps" output="pid.out.file" />
+			<loadfile srcfile="pid.out.file" property="pid.out">
+				<filterchain>
+					<linecontains>
+						<contains value="Diffusion" />
+					</linecontains>
+					<tokenfilter>
+						<deletecharacters chars="Diffusion" />
+						<trim />
+						<ignoreblank />
+					</tokenfilter>
+					<striplinebreaks />
+				</filterchain>
+			</loadfile>
+			<fail if="pid.out" message="Diffusion server already running: ${pid.out}" />
+			<var name="pid.out" unset="true" />			
+		</sequential>
+	</macrodef>
+	<macrodef name="kill-diffusion">
+		<sequential>
+			<exec executable="jps" output="pid.out.file" />
+			<loadfile srcfile="pid.out.file" property="pid.out">
+				<filterchain>
+					<linecontains>
+						<contains value="Diffusion" />
+					</linecontains>
+					<tokenfilter>
+						<deletecharacters chars="Diffusion" />
+						<trim />
+						<ignoreblank />
+					</tokenfilter>
+					<striplinebreaks />
+				</filterchain>
+			</loadfile>
+			<echo>Killing Diffusion server with PID - "${pid.out}"</echo>
+			<exec executable="kill">
+				<arg value="-9" />
+				<arg value="${pid.out}" />
+			</exec>
+			<delete file="pid.out.file" />
+			<var name="pid.out" unset="true" />
+		</sequential>
+	</macrodef>
+	<macrodef name="start-diffusion">
+		<sequential>
+			<echo>Starting Diffusion server</echo>
+			<exec executable="./diffusion.sh" dir="${diffusion.dir}/bin" spawn="yes" id="">
+			</exec>
+			<waitfor>
+				<socket server="localhost" port="8080" />
+			</waitfor>
+		</sequential>
+	</macrodef>
+	<macrodef name="clean-diffusion">
+		<sequential>
+			<delete dir="${diffusion.dir}/deploy"/>
+			<mkdir dir="${diffusion.dir}/deploy" />
+			<delete dir="${diffusion.dir}/logs" />
+			<mkdir dir="${diffusion.dir}/logs" />
+		</sequential>
+	</macrodef>
+	<macrodef name="deploy-dar">
+		<attribute name="dar.name" />
+		<sequential>
+			<copy file="@{dar.name}" tofile="${diffusion.dir}/deploy/@{dar.name}" />
+		</sequential>
+	</macrodef>
+	<macrodef name="undeploy-dar">
+		<attribute name="dar.name" />
+		<sequential>
+			<delete file="${diffusion.dir}/deploy/${dar.name}" />
+		</sequential>
+	</macrodef>
+	<macrodef name="dar">
+		<attribute name="publisher.name" />
+		<sequential>
+			<mkdir dir="deploy/@{publisher.name}" />
+			<copy file="etc/@{publisher.name}.xml" tofile="deploy/@{publisher.name}/etc/Publishers.xml" />
+			<copy tofile="deploy/@{publisher.name}/ext/diffusionbenchmark.jar" file="lib/diffusionbenchmark.jar" />
+			<jar jarfile="@{publisher.name}.dar" includes="@{publisher.name}/**" basedir="deploy" manifest="META-INF/MANIFEST.MF" />
+			<delete dir="deploy/@{publisher.name}" />
+		</sequential>
+	</macrodef>
+
+	<!-- TODO:
+		- Configure diffusion
+	 -->
+
+
+</project>

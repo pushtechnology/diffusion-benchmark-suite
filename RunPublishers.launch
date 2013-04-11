@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="com.pushtechnology.diffusion.launch.DiffusionConfiguration">
+<stringAttribute key="com.pushtechnology.diffusion.development.aliases" value=""/>
+<stringAttribute key="com.pushtechnology.diffusion.development.configDir" value="${workspace_loc:/load-runner/etc/eclipse}"/>
+<booleanAttribute key="com.pushtechnology.diffusion.development.noautodeploy" value="true"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="com.pushtechnology.diffusion.Diffusion"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="load-runner"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xms4g -Xmx4g -XX:MaxPermSize=64m -XX:PermSize=64m"/>
+</launchConfiguration>

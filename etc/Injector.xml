@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<publishers>
+	<publisher name="InjectionPublisher">
+		<class>publishers.InjectionPublisher
+		</class>
+		<enabled>true</enabled>
+		<start>true</start>
+        <property name="intervalPauseSeconds">@pauseSeconds@</property>
+        <property name="conflationMode">@conflationMode@</property>
+		<property name="messageSize">@messageSize@</property>
+		<property name="initialMessages">@initialMessages@</property>
+		<property name="messageIncrementIntervalInPauses">@messageIncrementIntervalInPauses@</property>
+		<property name="messageIncrement">@messageIncrement@</property>
+		<property name="initialTopicNum">@initialTopicNum@</property>
+		<property name="topicIncrementIntervalInPauses">@topicIncrementIntervalInPauses@</property>
+		<property name="topicIncrement">@topicIncrement@</property>
+	</publisher>
+</publishers>

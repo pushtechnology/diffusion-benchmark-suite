@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<server>
+	<max-message-size>32k</max-message-size>
+	<charset>UTF-8</charset>
+
+	<multiplexers>
+		<client>client</client>
+		<multiplexer-definition name="client">
+			<size>1</size>
+			<thread-priority>6</thread-priority>
+			<load-balancer>RoundRobin</load-balancer>
+			<latency-warning>1s</latency-warning>
+		</multiplexer-definition>
+	</multiplexers>
+	
+	<security>
+		<authorisation-handler-class></authorisation-handler-class>
+	</security>
+
+	<client-queues>
+		<default-queue-definition>default</default-queue-definition>
+		<queue-definition name="default">
+			<max-depth>200</max-depth>
+			<auto-fragment>false</auto-fragment>
+		</queue-definition>
+	</client-queues>
+	
+	<connection-timeouts>
+		<write-timeout>3s</write-timeout>
+		<connection-timeout>5s</connection-timeout>
+	</connection-timeouts>
+	
+	<date-formats>
+		<date>yyyy-MM-dd</date>
+		<time>HH:mm:ss</time>
+		<date-time>yyyy-MM-dd HH:mm:ss</date-time>
+		<timestamp>yyyy-MM-dd HH:mm:ss.SSS</timestamp>
+	</date-formats>
+
+	<thread-pools>
+		<inbound>InboundThreadPool</inbound>		
+		<outbound>OutboundThreadPool</outbound>
+		<background-thread-size>1</background-thread-size>
+		<writer-selectors>20</writer-selectors>		
+		<thread-pool-definition name="InboundThreadPool">
+		    <core-size>1</core-size>
+			<max-size>1</max-size>
+			<queue-size>10000</queue-size>
+			<keep-alive>0</keep-alive>
+			<priority>8</priority>
+		</thread-pool-definition>	
+		<thread-pool-definition name="OutboundThreadPool">
+		    <core-size>1</core-size>
+			<max-size>1</max-size>
+			<queue-size>1</queue-size>
+			<keep-alive>0</keep-alive>
+			<priority>1</priority>
+		</thread-pool-definition>
+	</thread-pools>
+	
+	<whois>
+		<provider>com.pushtechnology.diffusion.api.whois.WhoIsDefaultProvider</provider>
+		<threads>2</threads>
+		<host>whois.ripe.net</host>
+		<port>43</port>
+		<whois-cache>
+			<maximum>1000</maximum>
+			<retention>0</retention>
+		</whois-cache>
+	</whois>
+
+	<auto-deployment>
+		<directory>deploy</directory>
+		<scan-frequency>10s</scan-frequency>
+	</auto-deployment>
+
+	<!-- 
+	<usr-lib>
+		<directory>/opt/something</directory>
+	</usr-lib>
+	 -->
+	 
+	 <!-- 
+	 	<hooks>
+	 		<startup-hook>com.pushtechnology.diffusion.test.api.SystemStartupHook</startup-hook>
+	 		<shutdown-hook>com.pushtechnology.diffusion.test.api.SystemShutdownHook</shutdown-hook>
+	 	</hooks>
+	  -->
+</server>

@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="throughput-suite" default="perf-suite" basedir=".">
+	<property environment="env"/>
+    <property name="suite.ant.file" value="${throughput-suite.xml}"/>
+	<import file="perf-test-server-tasks.xml" />
+	<import file="perf-test-suite-common.xml" />
+<!--
+	<target name="run-ramping-client-manual">
+		<run-ramping-throughput-test client.jvm.memory="1g" test.name="manual"
+					threads="1"
+					message.size="1000" publish.pause.seconds="1"
+					initial.messages="100" message.increment="0"
+					initial.topic.num="100"  topic.increment="0"/>
+	</target> -->
+	<target name="perfTest-1000b-100++-clients-50t">
+		<run-ramping-throughput-test test.name="1000b-100++-4M-50T" 
+			message.size="1000" publish.pause.seconds="0.25"
+			initial.clients="10000" max.clients="100000"
+			clients.increment="500"
+			initial.messages="1" message.increment="0"
+			initial.topic.num="50"  topic.increment="0"/>
+	</target>
+	<target name="perfTest-100b-100++-clients-50t">
+		<run-ramping-throughput-test test.name="100b-100++-4M-50T" 
+			message.size="100" publish.pause.seconds="0.25"
+			initial.clients="10000" max.clients="100000"
+			clients.increment="500"
+			initial.messages="1" message.increment="0"
+			initial.topic.num="50"  topic.increment="0"/>
+	</target>
+	<target name="perfTest-10b-100++-clients-50t">
+		<run-ramping-throughput-test test.name="10b-100++-4M-50T" 
+			message.size="10" publish.pause.seconds="0.25"
+			initial.clients="10000" max.clients="100000"
+			clients.increment="500"
+			initial.messages="1" message.increment="0"
+			initial.topic.num="50"  topic.increment="0"/>
+	</target>
+	<target name="perfTest-1000b-ramping-clients-Kt">
+		<run-ramping-throughput-test test.name="100b-xC-1000M-1000T" 
+			message.size="1000" publish.pause.seconds="1"
+			initial.messages="1000" message.increment="0"
+			initial.topic.num="1000"  topic.increment="0"/>
+	</target>
+	<target name="perfTest-100b-ramping-clients-Kt">
+		<run-ramping-throughput-test test.name="100b-xC-1000M-1000T" 
+			message.size="100" publish.pause.seconds="1"
+			initial.messages="1000" message.increment="0"
+			initial.topic.num="1000"  topic.increment="0"/>
+	</target>
+	<target name="perfTest-10b-ramping-clients-Kt">
+		<run-ramping-throughput-test test.name="10b-xC-1000M-1000T" 
+			message.size="10" publish.pause.seconds="1"
+			initial.messages="1000" message.increment="0"
+			initial.topic.num="1000"  topic.increment="0"/>
+	</target>
+
+	<target name="perfTest-1000b-ramping-clients-100t">
+		<run-ramping-throughput-test test.name="1000b-xC-1000M-100T" 
+			message.size="1000" publish.pause.seconds="1"
+			initial.messages="1000" message.increment="0"
+			initial.topic.num="100"  topic.increment="0"/>
+	</target>
+	<target name="perfTest-100b-ramping-clients-100t">
+		<run-ramping-throughput-test test.name="100b-xC-1000M-100T" 
+			message.size="100" publish.pause.seconds="1"
+			initial.messages="1000" message.increment="0"
+			initial.topic.num="100"  topic.increment="0"/>
+	</target>
+	<target name="perfTest-10b-ramping-clients-100t">
+		<run-ramping-throughput-test test.name="10b-xC-1000M-100T" 
+			message.size="10" publish.pause.seconds="1"
+			initial.messages="1000" message.increment="0"
+			initial.topic.num="100"  topic.increment="0"/>
+	</target>
+	
+	<target name="perfTest-1000b-ramping-topics-10C-KM">
+		<run-ramping-throughput-test test.name="1000b-10C-1000M-xT" 
+			max.clients="10" threads="10"
+			message.size="1000" publish.pause.seconds="0.1"
+			initial.messages="100" message.increment="0"
+			initial.topic.num="100"  topic.increment="10"/>
+	</target>
+	<target name="perfTest-100b-ramping-topics-10C-KM">
+		<run-ramping-throughput-test test.name="100b-10C-1000M-xT" 
+			max.clients="10" threads="10"
+			message.size="100" publish.pause.seconds="0.1"
+			initial.messages="100" message.increment="0"
+			initial.topic.num="100"  topic.increment="10"/>
+	</target>
+	<target name="perfTest-10b-ramping-topics-10C-KM">
+		<run-ramping-throughput-test test.name="10b-10C-1000M-xT" 
+			max.clients="10" threads="10"
+			message.size="10" publish.pause.seconds="0.1"
+			initial.messages="100" message.increment="0"
+			initial.topic.num="100"  topic.increment="10"/>
+	</target>
+
+	<target name="perfTest-1000b-ramping-topics-10C-100M">
+		<run-ramping-throughput-test test.name="1000b-10C-100M-xT" 
+			max.clients="10" threads="10"
+			message.size="1000" publish.pause.seconds="0.1"
+			initial.messages="10" message.increment="0"
+			initial.topic.num="100"  topic.increment="10"/>
+	</target>
+	<target name="perfTest-100b-ramping-topics-10C-100M">
+		<run-ramping-throughput-test test.name="100b-10C-100M-xT" 
+			max.clients="10" threads="10"
+			message.size="100" publish.pause.seconds="0.1"
+			initial.messages="10" message.increment="0"
+			initial.topic.num="100"  topic.increment="10"/>
+	</target>
+	<target name="perfTest-10b-ramping-topics-10C-100M">
+		<run-ramping-throughput-test test.name="10b-10C-100M-xT" 
+			max.clients="10" threads="10"
+			message.size="10" publish.pause.seconds="0.1"
+			initial.messages="10" message.increment="0"
+			initial.topic.num="100"  topic.increment="10"/>
+	</target>
+	
+	<target name="perfTest-1000b-ramping-messages-10C-KT">
+		<run-ramping-throughput-test test.name="1000b-10C-xM-1000T" 
+			max.clients="10" threads="10"
+			message.size="1000" publish.pause.seconds="0.1"
+			initial.messages="10" message.increment="10"
+			initial.topic.num="1000"  topic.increment="0"/>
+	</target>
+	<target name="perfTest-100b-ramping-messages-10C-KT">
+		<run-ramping-throughput-test test.name="100b-10C-xM-1000T" 
+			max.clients="10" threads="10"
+			message.size="100" publish.pause.seconds="0.1"
+			initial.messages="10" message.increment="10"
+			initial.topic.num="1000"  topic.increment="0"/>
+	</target>
+	<target name="perfTest-10b-ramping-messages-10C-KT">
+		<run-ramping-throughput-test test.name="10b-10C-xM-1000T" 
+			max.clients="10" threads="10"
+			message.size="10" publish.pause.seconds="0.1"
+			initial.messages="10" message.increment="10"
+			initial.topic.num="1000"  topic.increment="0"/>
+	</target>
+	
+	<target name="perfTest-1000b-ramping-messages-10C-100T">
+		<run-ramping-throughput-test test.name="1000b-10C-xM-100T" 
+			max.clients="10" threads="10"
+			message.size="1000" publish.pause.seconds="0.1"
+			initial.messages="10" message.increment="10"
+			initial.topic.num="100"  topic.increment="0"/>
+	</target>
+	<target name="perfTest-100b-ramping-messages-10C-100T">
+		<run-ramping-throughput-test test.name="100b-10C-xM-100T" 
+			max.clients="10" threads="10"
+			message.size="100" publish.pause.seconds="0.1"
+			initial.messages="10" message.increment="10"
+			initial.topic.num="100"  topic.increment="0"/>
+	</target>
+	<target name="perfTest-10b-ramping-messages-10C-100T">
+		<run-ramping-throughput-test test.name="10b-10C-xM-100T" 
+			max.clients="10" threads="10"
+			message.size="10" publish.pause.seconds="0.1"
+			initial.messages="10" message.increment="10"
+			initial.topic.num="100"  topic.increment="0"/>
+	</target>
+
+	<macrodef name="run-ramping-throughput-test">
+		<!-- Client attributes -->
+		<attribute name="client.jvm.memory" default="8g"/>
+		<attribute name="initial.clients" default="1"/>
+		<attribute name="max.clients" default="2000"/>
+		<attribute name="clients.increment" default="1"/>
+		<attribute name="client.create.pause.seconds" default="1.0"/>
+		<attribute name="threads" default="10"/>
+		<attribute name="max.test.time.minutes" default="5.0"/>
+		<!-- Server attributes -->
+		<attribute name="publish.pause.seconds" default="0.1" />
+		<attribute name="message.size" default="100" />
+		<attribute name="initial.messages" default="10" />
+		<attribute name="message.increment.interval" default="10" />
+		<attribute name="message.increment" default="10" />
+		<attribute name="initial.topic.num" default="100" />
+		<attribute name="topic.increment.interval" default="10" />
+		<attribute name="topic.increment" default="10" />
+		<attribute name="test.name" />
+		<sequential>
+			<echo file="@{test.name}.settings">
+Test settings:
+publish.pause.seconds="@{publish.pause.seconds}"
+message.size="@{message.size}" 
+initial.messages="@{initial.messages}"
+message.increment.interval="@{message.increment.interval}"
+message.increment="@{message.increment}"
+initial.topic.num="@{initial.topic.num}"
+topic.increment.interval="@{topic.increment.interval}"
+topic.increment="@{topic.increment}"
+initial.clients="@{initial.clients}"
+max.clients="@{max.clients}"
+clients.increment="@{clients.increment}"
+client.create.pause.seconds="@{client.create.pause.seconds}"
+threads="@{threads}"
+client.jvm.memory="@{client.jvm.memory}"
+--------------
+			</echo>
+			<if>
+			 <equals arg1="${diffusion.host}" arg2="localhost" />
+			 <then>
+			 	<!-- Create publisher configuration -->
+			 	<configure-injector output="@{test.name}.xml"
+ 					publish.pause.seconds="@{publish.pause.seconds}"
+ 					message.size="@{message.size}" 
+ 					initial.messages="@{initial.messages}"
+ 					message.increment.interval="@{message.increment.interval}"
+ 					message.increment="@{message.increment}"
+ 					initial.topic.num="@{initial.topic.num}"
+ 					topic.increment.interval="@{topic.increment.interval}"
+ 					topic.increment="@{topic.increment}" />
+			 	<!-- package and deliver to diffusion server to be auto-deployed -->
+ 				<dar publisher.name="@{test.name}" />
+ 				<deploy-dar dar.name="@{test.name}.dar" />
+			 </then>
+			 <else>
+				<sshexec host="${diffusion.host}"
+					username="${ssh.username}"
+					password="${ssh.password}" 
+                    command="cd benchmark-server;ant -Dtest.name=@{test.name} -Dpublish.pause.seconds=@{publish.pause.seconds} -Dmessage.size=@{message.size} -Dinitial.messages=@{initial.messages} -Dmessage.increment.interval=@{message.increment.interval} -Dmessage.increment=@{message.increment} -Dinitial.topic.num=@{initial.topic.num} -Dtopic.increment.interval=@{topic.increment.interval} -Dtopic.increment=@{topic.increment} start-injector" />
+
+			 </else>
+			</if>
+			<!-- Start Client -->
+			<run-ramping-client output="@{test.name}-${diffusion.protocol}.out"
+				initial.clients="@{initial.clients}" 
+				max.clients="@{max.clients}"
+				clients.increment="@{clients.increment}"
+				client.create.pause.seconds="@{client.create.pause.seconds}"
+			 	threads="@{threads}" client.jvm.memory="@{client.jvm.memory}"
+				max.test.time.minutes="@{max.test.time.minutes}"/>
+			
+			<!-- Cleanup server deployment -->
+			<if>
+			 <equals arg1="${diffusion.host}" arg2="localhost" />
+			 <then>
+			 	<undeploy-dar dar.name="@{test.name}.dar" />
+ 				<delete file="@{test.name}.dar"/>
+			 </then>
+			 <else>
+				<sshexec host="${diffusion.host}"
+					username="${ssh.username}"
+					password="${ssh.password}" 
+					command="cd benchmark-server;ant -Dtest.name=@{test.name} stop-injector" />
+			 </else>
+			</if>
+		</sequential>
+	</macrodef>
+	<target name="start-injector">
+		<configure-injector output="${test.name}.xml"
+				publish.pause.seconds="${publish.pause.seconds}"
+				message.size="${message.size}" 
+				initial.messages="${initial.messages}"
+				message.increment.interval="${message.increment.interval}"
+				message.increment="${message.increment}"
+				initial.topic.num="${initial.topic.num}"
+				topic.increment.interval="${topic.increment.interval}"
+				topic.increment="${topic.increment}" />
+		<dar publisher.name="${test.name}" />
+		<deploy-dar dar.name="${test.name}.dar" />
+	</target>
+	<target name="stop-injector">
+		<undeploy-dar dar.name="${test.name}.dar" />
+		<delete file="${test.name}.dar"/>
+	</target>
+	<macrodef name="run-ramping-client">
+		<attribute name="client.jvm.memory" default="8g"/>
+		<attribute name="initial.clients" default="1"/>
+		<attribute name="max.clients" default="2000"/>
+		<attribute name="clients.increment" default="1"/>
+		<attribute name="max.test.time.minutes" default="5"/>
+		<attribute name="client.create.pause.seconds" default="0.1"/>
+		<attribute name="threads" default="10"/>
+		<attribute name="output" />
+		<sequential>
+			<java classname="com.pushtechnology.loadrunner.clients.RampingConnectionTestClient" fork="true" 
+				  failonerror="true" output="@{output}">
+				<jvmarg value="-server" />
+				<jvmarg value="-Xmx@{client.jvm.memory}" />
+				<jvmarg value="-Xms@{client.jvm.memory}" />
+				<jvmarg value="-XX:NewRatio=1" />
+<!--				<jvmarg value="-agentpath:/root/yjp-11.0.8/bin/linux-x86-64/libyjpagent.so"/> -->
+				<sysproperty key="com.diffusion.UseAsyncLogging" value="false" />
+				<sysproperty key="connect.string" value="${diffusion.url}" />
+				<sysproperty key="initial.clients" value="@{initial.clients}" />
+				<sysproperty key="max.clients" value="@{max.clients}" />
+				<sysproperty key="clients.increment" value="@{clients.increment}" />
+				<sysproperty key="client.create.pause.seconds" value="@{client.create.pause.seconds}" />
+				<sysproperty key="inbound.threadpool.max.size" value="@{threads}" />
+				<sysproperty key="inbound.threadpool.core.size" value="@{threads}" />
+				<sysproperty key="local.interfaces" value="${diffusion.client.nics}" />
+				<sysproperty key="max.test.time.minutes" value="@{max.test.time.minutes}" />
+				<classpath refid="test.runtime.classpath" />
+			</java>
+		</sequential>
+	</macrodef>
+	<macrodef name="configure-injector">
+		<!-- 10 times a second -->
+		<attribute name="publish.pause.seconds" default="0.1" />
+		<attribute name="message.size" default="100" />
+		<attribute name="initial.messages" default="10" />
+		<attribute name="message.increment.interval" default="10" />
+		<attribute name="message.increment" default="10" />
+		<attribute name="initial.topic.num" default="100" />
+		<attribute name="topic.increment.interval" default="10" />
+		<attribute name="topic.increment" default="10" />
+		<attribute name="output" />
+		<sequential>
+			<copy file="etc/Injector.xml" tofile="etc/@{output}">
+				<filterset begintoken="@" endtoken="@">
+					<filter token="pauseSeconds" value="@{publish.pause.seconds}" />
+					<filter token="messageSize" value="@{message.size}" />
+					<filter token="initialMessages" value="@{initial.messages}" />
+					<filter token="messageIncrementIntervalInPauses" value="@{message.increment.interval}" />
+					<filter token="messageIncrement" value="@{message.increment}" />
+					<filter token="initialTopicNum" value="@{initial.topic.num}" />
+					<filter token="topicIncrementIntervalInPauses" value="@{topic.increment.interval}" />
+					<filter token="topicIncrement" value="@{topic.increment}" />
+				</filterset>
+			</copy>
+		</sequential>
+	</macrodef>
+</project>

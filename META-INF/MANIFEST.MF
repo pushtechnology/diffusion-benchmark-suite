@@ -1,0 +1,2 @@
+Manifest-Version: 1.0
+Diffusion-Version: 4.1.0

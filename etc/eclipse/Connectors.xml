@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<connectors>
+	<!-- General Connector -->
+	<connector name="HTTP Connector">
+		<!-- The type of connection supported. By default 'all' types are supported 
+			but the connector can be restricted to one of the following specific types 
+			- 'client' (Clients only), 'event' (Event Publishers only), 'policy' (Policy 
+			File Requests only) or 'rtmp' (RTMP only). -->
+		<type>all</type>
+		<!-- The port on which the connector will accept connections -->
+		<port>8080</port>
+		<!-- The name or the IP Address that the connector will bind to -->
+		<!-- <host></host> -->
+		<!-- The number of acceptors for this connector -->
+		<acceptors>1</acceptors>
+		<!-- The maximum queue length for incoming clients. If a connection indication 
+			arrives when the queue is full, the connection is refused -->
+		<backlog>10000</backlog>
+		<socket-conditioning>
+			<!-- This value changes the input buffer, this must be as big as the biggest 
+				inbound message. Changing this value from the default 64K which is normally 
+				allocated to a socket to something smaller will free up memory for each connection -->
+			<input-buffer-size>32k</input-buffer-size>
+			<!-- This value changes the size of the output buffer. It is important 
+				that this is bigger than the biggest message that is to be sent -->
+			<output-buffer-size>32k</output-buffer-size>
+			<!-- Enable / disable TCP Keep alive -->
+			<keep-alive>true</keep-alive>
+			<!-- Enable/disable TCP_NODELAY (disable/enable Nagle's algorithm) -->
+			<no-delay>true</no-delay>
+			<!-- hen a TCP connection is closed the connection may remain in a timeout 
+				state for a period of time after the connection is closed (typically known 
+				as the TIME_WAIT state or 2MSL wait state). For applications using a well 
+				known socket address or port it may not be possible to bind a socket to the 
+				required SocketAddress if there is a connection in the timeout state involving 
+				the socket address or port. This feature allows the socket to be bound even 
+				though a previous connection is in a timeout state -->
+			<reuse-address>true</reuse-address>
+			<!-- Performance preferences are described by three integers whose values 
+				indicate the relative importance of short connection time, low latency, and 
+				high bandwidth. The absolute values of the integers are irrelevant; in order 
+				to choose a protocol the values are simply compared, with larger values indicating 
+				stronger preferences. Negative values represent a lower priority than positive 
+				values. If the application prefers short connection time over both low latency 
+				and high bandwidth, for example, then it could invoke this method with the 
+				values (1, 0, 0). If the application prefers high bandwidth above low latency, 
+				and low latency above short connection time, then it could invoke this method 
+				with the values (0, 1, 2) -->
+			<performance-preferences>
+				<connection-time>0</connection-time>
+				<latency>2</latency>
+				<bandwidth>1</bandwidth>
+			</performance-preferences>
+		</socket-conditioning>
+		<!-- If this connector is required to serve HTTP requests then a valid 
+			web-server entry in WebServer.xml must exist -->
+		<web-server>default</web-server>
+		<!-- The location / name of the policy file, if this connector is required 
+			to act as a policy file server (type='all') or type='policy' -->
+		<policy-file>../etc/FlashPolicy.xml</policy-file>
+		<!-- This is the idle time (no inbound messages) before a client will 
+			be pinged by the server. A response must be received by Diffusion before 
+			the next interval, else the client is considered to be disconnected. -->
+		<system-ping-frequency>90s</system-ping-frequency>
+	</connector>
+
+	<!-- SSL Connector -->
+	<connector name="SSL Connector">
+		<type>client</type>
+		<port>8443</port>
+		<acceptors>1</acceptors>
+		<backlog>1000</backlog>
+		<socket-conditioning>
+			<input-buffer-size>64k</input-buffer-size>
+			<output-buffer-size>64k</output-buffer-size>
+		</socket-conditioning>
+		<web-server>default</web-server>
+		<!-- Key store details for any connector that is to support secure (SSL) 
+			connections -->
+		<key-store>
+			<file>../etc/keystore</file>
+			<password>OB:0dm9lGVslzTpQ72S</password>
+		</key-store>
+		<system-ping-frequency>90s</system-ping-frequency>
+	</connector>
+
+	<!-- Silverlight socket connector has restrictive ports, so a new connector 
+		is required -->
+	<connector name="Silverlight Connector">
+		<type>client</type>
+		<port>4503</port>
+		<acceptors>1</acceptors>
+		<backlog>1000</backlog>
+		<socket-conditioning>
+			<input-buffer-size>32k</input-buffer-size>
+			<output-buffer-size>32k</output-buffer-size>
+		</socket-conditioning>
+		<system-ping-frequency>90s</system-ping-frequency>
+	</connector>
+
+	<connector name="Publisher Client Connector">
+		<type>client</type>
+		<port>3099</port>
+		<acceptors>1</acceptors>
+		<socket-conditioning>
+			<input-buffer-size>32k</input-buffer-size>
+			<output-buffer-size>32k</output-buffer-size>
+		</socket-conditioning>
+		<system-ping-frequency>90s</system-ping-frequency>
+	</connector>
+
+	<!-- Flash socket connections require port 843 to be open, otherwise there 
+		will be a 2 second delay -->
+	<connector name="Flash Policy Connector">
+		<type>policy</type>
+		<port>843</port>
+		<acceptors>1</acceptors>
+		<backlog>1000</backlog>
+		<socket-conditioning>
+			<input-buffer-size>32k</input-buffer-size>
+			<output-buffer-size>32k</output-buffer-size>
+		</socket-conditioning>
+		<!-- The location / name of the policy file, if this connector is required 
+			to act as a policy file server (type='all') or type='policy' -->
+		<policy-file>../etc/FlashMasterPolicy.xml</policy-file>
+	</connector>
+
+	<!-- For Silverlight socket connections, this must be active -->
+	<connector name="Silverlight Policy Connector">
+		<type>policy</type>
+		<port>943</port>
+		<acceptors>1</acceptors>
+		<backlog>1000</backlog>
+		<socket-conditioning>
+			<input-buffer-size>32k</input-buffer-size>
+			<output-buffer-size>32k</output-buffer-size>
+		</socket-conditioning>
+		<policy-file>../html/clientaccesspolicy.xml</policy-file>
+	</connector>
+
+	<!-- Definition of a separate Event Publisher connector -->
+	<connector name="Event Connector">
+		<type>event</type>
+		<port>3098</port>
+		<acceptors>1</acceptors>
+		<backlog>1000</backlog>
+		<socket-conditioning>
+			<input-buffer-size>32k</input-buffer-size>
+			<output-buffer-size>32k</output-buffer-size>
+		</socket-conditioning>
+		<system-ping-frequency>90s</system-ping-frequency>
+	</connector>
+</connectors>

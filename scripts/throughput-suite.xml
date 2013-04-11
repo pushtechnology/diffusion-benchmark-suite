@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="throughput-suite" default="perf-suite" basedir=".">
+	<!-- Use this property to control the conflation mode:
+	   REPLACE - conflate in place(like normal people do)
+	   APPEND - conflate and re-order to end of queue(default old behaviour, daft)
+	   NONE - no conflation
+	   COMPARE - conflation using the now deprecated comparator facility
+	-->
+    <property name="conflationMode" value="NONE"/>
+	
+	<!-- if you set gentile to true the client will stop loading the server
+	   when adding clients stops increasing the precieved throughput -->
+	<condition property="client.type"
+        value="clients.GentleDiffusionBenchmark"
+        else="clients.DiffusionBenchmark">
+        <equals arg1="${gentile}" arg2="true" />
+    </condition>
+    <property environment="env"/>
+    <property name="suite.ant.file" value="throughput-suite.xml"/>
+	
+	
+	<import file="perf-test-server-tasks.xml" />
+	<!-- Further common settings are available in the test-suite-common file
+	-->
+	<import file="perf-test-suite-common.xml" />
+	
+	<!-- This will run the suite for all transports using all conflation modes -->
+	<target name="full-run">
+	   <for list="NONE,APPEND,REPLACE,COMPARE" param="mode">
+	   	<sequential>
+	   		<var name="conflationMode" unset="true"/>
+	   		<property name="conflationMode" value="@{mode}"/>
+	   		<for list="ws,dpt,http" param="protocol">
+	   			<sequential>
+	   				<set-protocol protocol="@{protocol}"/>
+	   			    <antcall target="perf-suite"/>
+	   			</sequential>
+	   		</for>
+	   	</sequential>
+	   </for>
+	</target>
+	<target name="perfTest-2000b-50t">
+        <run-ramping-throughput-test test.name="2000b-xC-4M-50T" 
+            message.size="2000" publish.pause.seconds="0.25"
+            initial.clients="0" max.clients="100000"
+            clients.increment="750"
+            initial.messages="1" message.increment="0"
+            initial.topic.num="50"  topic.increment="0"/>
+    </target>
+
+	<target name="perfTest-1000b-50t">
+		<run-ramping-throughput-test test.name="1000b-xC-4M-50T" 
+			message.size="1000" publish.pause.seconds="0.25"
+			initial.clients="0" max.clients="100000"
+			clients.increment="750"
+			initial.messages="1" message.increment="0"
+			initial.topic.num="50"  topic.increment="0"/>
+	</target>
+    <target name="perfTest-500b-50t">
+            <run-ramping-throughput-test test.name="500b-xC-4M-50T" 
+                message.size="500" publish.pause.seconds="0.25"
+                initial.clients="0" max.clients="100000"
+                clients.increment="750"
+                initial.messages="1" message.increment="0"
+                initial.topic.num="50"  topic.increment="0"/>
+        </target>
+    <target name="perfTest-250b-50t">
+            <run-ramping-throughput-test test.name="250b-xC-4M-50T" 
+                message.size="250" publish.pause.seconds="0.25"
+                initial.clients="0" max.clients="100000"
+                clients.increment="750"
+                initial.messages="1" message.increment="0"
+                initial.topic.num="50"  topic.increment="0"/>
+        </target>
+	<target name="perfTest-125b-50t">
+		<run-ramping-throughput-test test.name="125b-xC-4M-50T" 
+			message.size="125" publish.pause.seconds="0.25"
+			initial.clients="0" max.clients="100000"
+			clients.increment="750"
+			initial.messages="1" message.increment="0"
+			initial.topic.num="50"  topic.increment="0"/>
+	</target>
+
+	<macrodef name="run-ramping-throughput-test">
+		<!-- Client attributes -->
+		<attribute name="client.jvm.memory" default="8g"/>
+		<attribute name="initial.clients" default="1"/>
+		<attribute name="max.clients" default="2000"/>
+		<attribute name="clients.increment" default="1"/>
+		<attribute name="client.create.pause.seconds" default="0"/>
+		<attribute name="client.create.interval.seconds" default="5"/>
+		<attribute name="threads" default="10"/>
+		<attribute name="max.test.time.minutes" default="5"/>
+		<!-- Server attributes -->
+		<attribute name="publish.pause.seconds" default="0.1" />
+		<attribute name="message.size" default="100" />
+		<attribute name="initial.messages" default="10" />
+		<attribute name="message.increment.interval" default="10" />
+		<attribute name="message.increment" default="10" />
+		<attribute name="initial.topic.num" default="100" />
+		<attribute name="topic.increment.interval" default="10" />
+		<attribute name="topic.increment" default="10" />
+		<attribute name="test.name" />
+		<sequential>
+			<var name="full-test-name" value="@{test.name}-${diffusion.protocol}-${conflationMode}"/>
+			<echo file="${full-test-name}.settings">
+Test settings:
+publish.pause.seconds="@{publish.pause.seconds}"
+message.size="@{message.size}" 
+initial.messages="@{initial.messages}"
+message.increment.interval="@{message.increment.interval}"
+message.increment="@{message.increment}"
+initial.topic.num="@{initial.topic.num}"
+topic.increment.interval="@{topic.increment.interval}"
+topic.increment="@{topic.increment}"
+initial.clients="@{initial.clients}"
+max.clients="@{max.clients}"
+clients.increment="@{clients.increment}"
+client.create.pause.seconds="@{client.create.pause.seconds}"
+client.create.interval.seconds=@{client.create.interval.seconds}
+threads="@{threads}"
+client.jvm.memory="@{client.jvm.memory}"
+diffusion.url="${diffusion.url}"
+--------------
+			</echo>
+			<if>
+			 <equals arg1="${diffusion.host}" arg2="localhost" />
+			 <then>
+			 	<!-- Create publisher configuration -->
+			 	<configure-injector output="@{test.name}.xml"
+ 					publish.pause.seconds="@{publish.pause.seconds}"
+ 					message.size="@{message.size}" 
+ 					initial.messages="@{initial.messages}"
+ 					message.increment.interval="@{message.increment.interval}"
+ 					message.increment="@{message.increment}"
+ 					initial.topic.num="@{initial.topic.num}"
+ 					topic.increment.interval="@{topic.increment.interval}"
+ 					topic.increment="@{topic.increment}" />
+			 	<!-- package and deliver to diffusion server to be auto-deployed -->
+ 				<dar publisher.name="@{test.name}" />
+ 				<deploy-dar dar.name="@{test.name}.dar" />
+			 </then>
+			 <else>
+				<sshexec host="${diffusion.host}"
+					username="${ssh.username}"
+					password="${ssh.password}" 
+                    command="cd benchmark-server;ant -f ${suite.ant.file} -Dtest.name=@{test.name} -Dpublish.pause.seconds=@{publish.pause.seconds} -Dmessage.size=@{message.size} -Dinitial.messages=@{initial.messages} -Dmessage.increment.interval=@{message.increment.interval} -Dmessage.increment=@{message.increment} -Dinitial.topic.num=@{initial.topic.num} -Dtopic.increment.interval=@{topic.increment.interval} -Dtopic.increment=@{topic.increment} -DconflationMode=${conflationMode} start-injector" />
+
+			 </else>
+			</if>
+			<!-- Start Client -->
+			<run-ramping-client output="${full-test-name}.out"
+				initial.clients="@{initial.clients}" 
+				max.clients="@{max.clients}"
+				clients.increment="@{clients.increment}"
+				client.create.pause.seconds="@{client.create.pause.seconds}"
+				client.create.interval.seconds="@{client.create.interval.seconds}"
+			 	threads="@{threads}" client.jvm.memory="@{client.jvm.memory}"
+				max.test.time.minutes="@{max.test.time.minutes}"/>
+			
+			<!-- Cleanup server deployment -->
+			<if>
+			 <equals arg1="${diffusion.host}" arg2="localhost" />
+			 <then>
+			 	<undeploy-dar dar.name="@{test.name}.dar" />
+ 				<delete file="@{test.name}.dar"/>
+			 </then>
+			 <else>
+				<sshexec host="${diffusion.host}"
+					username="${ssh.username}"
+					password="${ssh.password}" 
+					command="cd benchmark-server;ant -f ${suite.ant.file} -Dtest.name=@{test.name} stop-injector" />
+			 </else>
+			</if>
+		</sequential>
+	</macrodef>
+	<target name="start-injector">
+		<configure-injector output="${test.name}.xml"
+				publish.pause.seconds="${publish.pause.seconds}"
+				message.size="${message.size}" 
+				initial.messages="${initial.messages}"
+				message.increment.interval="${message.increment.interval}"
+				message.increment="${message.increment}"
+				initial.topic.num="${initial.topic.num}"
+				topic.increment.interval="${topic.increment.interval}"
+				topic.increment="${topic.increment}" />
+		<dar publisher.name="${test.name}" />
+		<deploy-dar dar.name="${test.name}.dar" />
+	</target>
+	<target name="stop-injector">
+		<undeploy-dar dar.name="${test.name}.dar" />
+		<delete file="${test.name}.dar"/>
+	</target>
+	<macrodef name="run-ramping-client">
+		<attribute name="client.jvm.memory" default="8g"/>
+		<attribute name="initial.clients" default="1"/>
+		<attribute name="max.clients" default="2000"/>
+		<attribute name="clients.increment" default="1"/>
+		<attribute name="max.test.time.minutes" default="5"/>
+        <attribute name="client.create.pause.seconds" default="0.001"/>
+        <attribute name="client.create.interval.seconds" default="3"/>
+		<attribute name="threads" default="10"/>
+		<attribute name="output" />
+		<sequential>
+			<echo message="Starting test client..."/>
+			<java classname="${client.type}" fork="true" 
+				  failonerror="true" output="@{output}">
+				<jvmarg value="-server" />
+				<jvmarg value="-Xmx@{client.jvm.memory}" />
+				<jvmarg value="-Xms@{client.jvm.memory}" />
+                <sysproperty key="log.exception" value="false" />
+				<sysproperty key="connect.string" value="${diffusion.url}" />
+				<sysproperty key="initial.clients" value="@{initial.clients}" />
+				<sysproperty key="max.clients" value="@{max.clients}" />
+				<sysproperty key="clients.increment" value="@{clients.increment}" />
+				<sysproperty key="client.create.pause.seconds" value="@{client.create.pause.seconds}" />
+				<sysproperty key="inbound.threadpool.max.size" value="@{threads}" />
+				<sysproperty key="inbound.threadpool.core.size" value="@{threads}" />
+				<sysproperty key="local.interfaces" value="${diffusion.client.nics}" />
+				<sysproperty key="max.test.time.minutes" value="@{max.test.time.minutes}" />
+				<classpath refid="test.runtime.classpath" />
+			</java>
+	        <echo message="Test client finished..."/>
+		</sequential>
+	</macrodef>
+	<macrodef name="configure-injector">
+		<!-- 10 times a second -->
+		<attribute name="publish.pause.seconds" default="0.1" />
+		<attribute name="message.size" default="100" />
+		<attribute name="initial.messages" default="10" />
+		<attribute name="message.increment.interval" default="10" />
+		<attribute name="message.increment" default="10" />
+		<attribute name="initial.topic.num" default="100" />
+		<attribute name="topic.increment.interval" default="10" />
+		<attribute name="topic.increment" default="10" />
+		<attribute name="output" />
+		<sequential>
+			<copy file="etc/Injector.xml" tofile="etc/@{output}" overwrite="true">
+				<filterset begintoken="@" endtoken="@">
+                    <filter token="conflationMode" value="${conflationMode}" />
+                    <filter token="pauseSeconds" value="@{publish.pause.seconds}" />
+					<filter token="messageSize" value="@{message.size}" />
+					<filter token="initialMessages" value="@{initial.messages}" />
+					<filter token="messageIncrementIntervalInPauses" value="@{message.increment.interval}" />
+					<filter token="messageIncrement" value="@{message.increment}" />
+					<filter token="initialTopicNum" value="@{initial.topic.num}" />
+					<filter token="topicIncrementIntervalInPauses" value="@{topic.increment.interval}" />
+					<filter token="topicIncrement" value="@{topic.increment}" />
+				</filterset>
+			</copy>
+		</sequential>
+	</macrodef>
+</project>

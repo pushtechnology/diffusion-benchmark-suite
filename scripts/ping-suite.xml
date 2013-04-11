@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="ping-suite" default="perf-suite" basedir=".">
+	<property environment="env"/>
+    <property name="suite.ant.file" value="latency-suite.xml"/>
+	<import file="perf-test-server-tasks.xml" />
+	<import file="perf-test-suite-common.xml" />
+	<target name="before" />
+	<target name="after" />
+	<target name="before-suite">
+		<if>
+			<equals arg1="${diffusion.host}" arg2="localhost" />
+			<then>
+				<assert-no-diffusion-running />
+				<clean-diffusion />
+				<antcall target="start-echo"/>
+				<start-diffusion />
+			</then>
+			<else>
+				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd benchmark-server;ant -f latency-suite.xml before-suite" />
+			</else>
+		</if>
+	</target>
+	<target name="after-suite">
+		<if>
+			<equals arg1="${diffusion.host}" arg2="localhost" />
+			<then>
+				<kill-diffusion />
+			</then>
+			<else>
+				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd benchmark-server;ant -f latency-suite.xml after-suite" />
+			</else>
+		</if>
+	</target>
+	<target name="perfTest-1000b-ping-latency">
+		<for list="ws,dpt,http" param="protocol">
+            <sequential>
+            	<set-protocol protocol="@{protocol}"/>
+                <run-ping-test test.name="1000b-ping-latency" threads="1" message.size="1000" />
+            </sequential>
+        </for>
+	</target>
+    <target name="perfTest-2000b-ping-latency">
+        <for list="ws,dpt,http" param="protocol">
+            <sequential>
+                <set-protocol protocol="@{protocol}"/>
+                <run-ping-test test.name="2000b-ping-latency" threads="1" message.size="2000" />
+            </sequential>
+        </for>
+    </target>
+    <target name="perfTest-500b-ping-latency">
+        <for list="ws,dpt,http" param="protocol">
+            <sequential>
+                <set-protocol protocol="@{protocol}"/>
+                <run-ping-test test.name="500b-ping-latency" threads="1" message.size="500" />
+            </sequential>
+        </for>
+    </target>
+    <target name="perfTest-250b-ping-latency">
+        <for list="ws,dpt,http" param="protocol">
+            <sequential>
+                <set-protocol protocol="@{protocol}"/>
+                <run-ping-test test.name="250b-ping-latency" threads="1" message.size="250" />
+            </sequential>
+        </for>
+    </target>
+    <target name="perfTest-250b-ping-throughput">
+        <for list="ws,dpt,http" param="protocol">
+            <sequential>
+                <set-protocol protocol="@{protocol}"/>
+                <run-ping-test test.name="250b-ping-latency" threads="10" message.size="250"  />
+            </sequential>
+        </for>
+    </target>
+	<target name="perfTest-125b-ping-latency">
+        <for list="ws,dpt,http" param="protocol">
+            <sequential>
+                <set-protocol protocol="@{protocol}"/>
+                <run-ping-test test.name="125b-ping-latency" threads="1" message.size="125" />
+            </sequential>
+        </for>
+	</target>
+
+	<macrodef name="run-ping-test">
+		<!-- Client attributes -->
+		<attribute name="client.jvm.memory" default="8g" />
+		<attribute name="initial.clients" default="1" />
+		<attribute name="max.clients" default="1" />
+		<attribute name="client.create.pause.seconds" default="1.0" />
+		<attribute name="threads" default="10" />
+		<attribute name="message.size" default="10" />
+		<attribute name="max.test.time.minutes" default="5.0" />
+		<attribute name="test.name" />
+		<sequential>
+			<echo file="@{test.name}-${diffusion.protocol}.settings">
+				Test settings:
+				message.size="@{message.size}" 
+				initial.clients="@{initial.clients}"
+				max.clients="@{max.clients}"
+				client.create.pause.seconds="@{client.create.pause.seconds}"
+			 	threads="@{threads}"
+				client.jvm.memory="@{client.jvm.memory}"
+				--------------
+			</echo>
+			<!-- Start Client -->
+			<echo message="Running latency test ${diffusion.url}"/>
+			<java classname="clients.PingLatencyBenchmark" fork="true" failonerror="true" output="@{test.name}-${diffusion.protocol}.out">
+				<jvmarg value="-server" />
+				<jvmarg value="-Xmx@{client.jvm.memory}" />
+				<jvmarg value="-Xms@{client.jvm.memory}" />
+				<jvmarg value="-XX:NewRatio=1" />
+				<sysproperty key="com.diffusion.UseAsyncLogging" value="false" />
+				<sysproperty key="connect.string" value="${diffusion.url}" />
+				<sysproperty key="initial.clients" value="@{initial.clients}" />
+				<sysproperty key="max.clients" value="@{max.clients}" />
+				<sysproperty key="client.create.pause.seconds" value="@{client.create.pause.seconds}" />
+				<sysproperty key="inbound.threadpool.max.size" value="@{threads}" />
+				<sysproperty key="inbound.threadpool.core.size" value="@{threads}" />
+				<sysproperty key="message.size" value="@{message.size}" />
+				<sysproperty key="local.interfaces" value="${diffusion.client.nics}" />
+				<sysproperty key="max.test.time.minutes" value="@{max.test.time.minutes}" />
+				<classpath refid="test.runtime.classpath" />
+			</java>
+		</sequential>
+	</macrodef>
+	<target name="start-echo">
+		<dar publisher.name="Ping" />
+		<deploy-dar dar.name="Ping.dar" />
+	</target>
+	<target name="stop-echo">
+		<undeploy-dar dar.name="Ping.dar" />
+		<delete file="Ping.dar" />
+	</target>
+</project>

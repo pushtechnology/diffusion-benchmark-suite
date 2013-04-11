@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="load-runner" default="all" basedir=".">
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
+		<classpath>
+			<pathelement location="lib/ant-contrib-1.0b3.jar" />
+		</classpath>
+	</taskdef>
+	<property environment="env"/>
+	<property name="diffusion.dir" value="${env.DIFFUSION_HOME}" />
+	<property name="dir.main.src" value="src" />
+	<property name="dir.main.lib" value="lib" />
+	<property name="dir.main.build" value="target/java/classes" />
+	<property name="dir.main.dist" value="target/dist" />
+	<path id="test.classpath">
+        <pathelement location="${dir.main.build}" />
+		<fileset dir="${diffusion.dir}/lib">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<target name="clean" description="Remove the generated files">
+		<delete dir="target" />
+	</target>
+
+	<target name="prepare">
+		<mkdir dir="${dir.main.build}" />
+	</target>
+
+	<target name="build" depends="prepare" description="Build main source code">
+		<echo message="${diffusion.dir}"/>
+		<javac source="1.6" target="1.6" destdir="${dir.main.build}" includeAntRuntime="false" debug="true" nowarn="true">
+			<src path="${dir.main.src}" />
+			<classpath refid="test.classpath" />
+		</javac>
+	</target>
+
+	<target name="dist" depends="build" description="Build a distribution">
+		<jar basedir="${dir.main.build}" destfile="${dir.main.dist}/lib/diffusionbenchmark.jar" />
+		<copy todir="${dir.main.dist}/lib">
+			<fileset dir="${dir.main.lib}">
+				<include name="*.jar" />
+			</fileset>
+		</copy>
+		<copy file="scripts/perf-test-server-tasks.xml" todir="${dir.main.dist}" />
+		<copy file="scripts/perf-test-suite-common.xml" todir="${dir.main.dist}" />
+		<copy file="scripts/ping-suite.xml" todir="${dir.main.dist}" />
+        <copy file="scripts/throughput-suite.xml" todir="${dir.main.dist}" />
+        <copy file="scripts/merge-fx-suite.xml" todir="${dir.main.dist}" />
+		<copydir src="etc" dest="${dir.main.dist}/etc" />
+		<copydir src="META-INF" dest="${dir.main.dist}/META-INF" />
+		<zip destfile="benchmark-server.zip">
+			<fileset dir="${dir.main.dist}">
+			</fileset>
+		</zip>
+	</target>
+
+	<target name="all" depends="clean, build, dist" />
+</project>

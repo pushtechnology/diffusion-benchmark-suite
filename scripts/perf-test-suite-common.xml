@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="perf-test-suite-common" default="perf-suite" basedir=".">
+	<!-- the protocol to use: ws, dpt, http, wss, dpts, https-->
+	<property name="diffusion.protocol" value="ws" />
+    <!-- the diffusion host -->
+	<property name="diffusion.host" value="localhost" />
+	<property name="diffusion.port" value="8080" />
+	<condition property="diffusion.port" value="8443" else="8080">
+		<or>
+			<equals arg1="${diffusion.protocol}" arg2="https" />
+			<equals arg1="${diffusion.protocol}" arg2="dpts" />
+			<equals arg1="${diffusion.protocol}" arg2="wss" />
+		</or>
+	</condition>
+	<property name="diffusion.url" value="${diffusion.protocol}://${diffusion.host}:${diffusion.port}"/>
+	<property name="diffusion.client.nics" value="" />
+
+	<property name="ssh.username" value="root" />
+	<property name="ssh.password" value="ds10hd" />
+	<property name="test.name.contains" value="perfTest" />
+
+	<import file="perf-test-server-tasks.xml" />
+    <macrodef name="set-protocol">
+        <attribute name="protocol"/>
+        <sequential>
+            <var name="new.protocol" unset="true"/>
+        	<property name="new.protocol" value="@{protocol}"/>
+        	<script language="javascript">
+        	    var oldUrl = project.getProperty("diffusion.url");
+        		var oldProtocol = project.getProperty("diffusion.protocol");
+                var oldPort = project.getProperty("diffusion.port");
+                var newProtocol = project.getProperty("new.protocol");
+        		var newPort = "8080";
+        		if(newProtocol.endsWith("s") &amp;&amp; !newProtocol.equals("ws"))
+        		  newPort = "8443";
+        		var newUrl = oldUrl.replaceAll(oldPort,newPort).replaceAll(oldProtocol+"://", newProtocol+"://");
+        		project.setProperty("new.url", newUrl);
+        		project.setProperty("new.port", newPort);
+        	</script>
+        	<var name="diffusion.url" unset="true"/>
+            <var name="diffusion.protocol" unset="true"/>
+            <var name="diffusion.port" unset="true"/>
+            <property name="diffusion.url" value="${new.url}"/>
+            <property name="diffusion.protocol" value="${new.protocol}"/>
+            <property name="diffusion.port" value="${new.port}"/>
+        	<var name="new.url" unset="true"/>
+            <var name="new.protocol" unset="true"/>
+            <var name="new.port" unset="true"/>
+        </sequential>
+    </macrodef>
+
+	<target name="before-suite" />
+	<target name="after-suite" />
+	<target name="before">
+		<if>
+		 <equals arg1="${diffusion.host}" arg2="localhost" />
+		 <then>
+			<assert-no-diffusion-running />
+			<clean-diffusion />
+			<start-diffusion />
+		 </then>
+		 <else>
+			<sshexec host="${diffusion.host}"
+				username="${ssh.username}"
+				password="${ssh.password}" 
+				command="cd benchmark-server;ant -f ${suite.ant.file} before" />
+		 </else>
+		</if>
+	</target>
+	<target name="after">
+		<if>
+		 <equals arg1="${diffusion.host}" arg2="localhost" />
+		 <then>
+			<kill-diffusion />
+		 </then>
+		 <else>
+			<sshexec host="${diffusion.host}"
+				username="${ssh.username}"
+				password="${ssh.password}" 
+				command="cd benchmark-server;ant -f ${suite.ant.file} after" />
+		 </else>
+		</if>
+	</target>
+	<target name="perf-suite">
+		<script language="javascript">
+			<![CDATA[
+		    importClass( java.util.Vector );
+		    importClass( java.util.Collections );
+
+		    targets = new Vector( project.getTargets().keySet() );
+			testNameContains = project.getProperty("test.name.contains");
+			Collections.sort(targets);
+		    perfTargets = new Vector();
+			perfTargets.add("before-suite");
+			for(i=0;i<targets.size();i++){
+				testName = targets.get(i);
+				if(testName.startsWith("perfTest")
+					&& testName.contains(testNameContains)){
+					perfTargets.add("before");
+					perfTargets.add(testName);
+					perfTargets.add("after");
+				}
+			}
+			perfTargets.add("after-suite");
+		    project.executeTargets( perfTargets );
+		]]>
+		</script>
+	</target>
+</project>
