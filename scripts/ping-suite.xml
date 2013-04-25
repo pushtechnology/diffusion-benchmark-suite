@@ -16,7 +16,7 @@
 				<start-diffusion />
 			</then>
 			<else>
-				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd benchmark-server;ant -f latency-suite.xml before-suite" />
+				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd benchmark-server;ant -f ping-suite.xml before-suite" />
 			</else>
 		</if>
 	</target>
@@ -27,7 +27,7 @@
 				<kill-diffusion />
 			</then>
 			<else>
-				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd benchmark-server;ant -f latency-suite.xml after-suite" />
+				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd benchmark-server;ant -f ping-suite.xml after-suite" />
 			</else>
 		</if>
 	</target>
