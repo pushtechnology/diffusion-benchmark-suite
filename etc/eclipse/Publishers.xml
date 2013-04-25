@@ -10,29 +10,29 @@
 		<topic-aliasing>true</topic-aliasing>
 	</publisher> -->
 	
-	<publisher name="InjectionPublisher">
-		<class>publishers.InjectionPublisher
+	<publisher name="BroadcastPublisher">
+		<class>publishers.BroadcastPublisher
 		</class>
 		<enabled>true</enabled>
 		<start>true</start>
 		<property name="intervalPauseSeconds">1</property>
 		<property name="conflationMode">NONE</property>
-		<property name="messageSize">125</property>
+		<property name="messageSize">25</property>
 		<property name="initialMessages">1</property>
 		<property name="messageIncrementIntervalInPauses">1</property>
-		<property name="messageIncrement">0</property>
-		<property name="initialTopicNum">50</property>
+		<property name="messageIncrement">1</property>
+		<property name="initialTopicNum">10</property>
 		<property name="topicIncrementIntervalInPauses">1</property>
-		<property name="topicIncrement">0</property>
+		<property name="topicIncrement">1</property>
 	</publisher>
-    <!--
+    
     <publisher name="ChatterPublisher">
         <class>publishers.ChatterPublisher
         </class>
         <enabled>true</enabled>
         <start>true</start>
     </publisher>
-
+<!--
     <publisher name="PingPublisher">
         <class>publishers.PingPublisher
         </class>

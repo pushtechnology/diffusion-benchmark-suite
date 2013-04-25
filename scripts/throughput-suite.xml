@@ -104,7 +104,7 @@
 		<sequential>
 			<var name="full-test-name" value="@{test.name}-${diffusion.protocol}-${conflationMode}"/>
 			<echo file="${full-test-name}.settings">
-Test settings:
+#Publisher settings:
 publish.pause.seconds="@{publish.pause.seconds}"
 message.size="@{message.size}" 
 initial.messages="@{initial.messages}"
@@ -113,11 +113,12 @@ message.increment="@{message.increment}"
 initial.topic.num="@{initial.topic.num}"
 topic.increment.interval="@{topic.increment.interval}"
 topic.increment="@{topic.increment}"
+#Client settings:
 initial.clients="@{initial.clients}"
 max.clients="@{max.clients}"
 clients.increment="@{clients.increment}"
 client.create.pause.seconds="@{client.create.pause.seconds}"
-client.create.interval.seconds=@{client.create.interval.seconds}
+client.increment.pause.seconds=@{client.increment.pause.seconds}
 threads="@{threads}"
 client.jvm.memory="@{client.jvm.memory}"
 diffusion.url="${diffusion.url}"
@@ -154,7 +155,7 @@ diffusion.url="${diffusion.url}"
 				max.clients="@{max.clients}"
 				clients.increment="@{clients.increment}"
 				client.create.pause.seconds="@{client.create.pause.seconds}"
-				client.create.interval.seconds="@{client.create.interval.seconds}"
+				client.increment.pause.seconds="@{client.increment.pause.seconds}"
 			 	threads="@{threads}" client.jvm.memory="@{client.jvm.memory}"
 				max.test.time.minutes="@{max.test.time.minutes}"/>
 			
@@ -198,7 +199,7 @@ diffusion.url="${diffusion.url}"
 		<attribute name="clients.increment" default="1"/>
 		<attribute name="max.test.time.minutes" default="5"/>
         <attribute name="client.create.pause.seconds" default="0.001"/>
-        <attribute name="client.create.interval.seconds" default="3"/>
+        <attribute name="client.increment.pause.seconds" default="3"/>
 		<attribute name="threads" default="10"/>
 		<attribute name="output" />
 		<sequential>
@@ -213,7 +214,8 @@ diffusion.url="${diffusion.url}"
 				<sysproperty key="initial.clients" value="@{initial.clients}" />
 				<sysproperty key="max.clients" value="@{max.clients}" />
 				<sysproperty key="clients.increment" value="@{clients.increment}" />
-				<sysproperty key="client.create.pause.seconds" value="@{client.create.pause.seconds}" />
+                <sysproperty key="client.create.pause.seconds" value="@{client.create.pause.seconds}" />
+                <sysproperty key="client.increment.pause.seconds" value="@{client.increment.pause.seconds}" />
 				<sysproperty key="inbound.threadpool.max.size" value="@{threads}" />
 				<sysproperty key="inbound.threadpool.core.size" value="@{threads}" />
 				<sysproperty key="local.interfaces" value="${diffusion.client.nics}" />

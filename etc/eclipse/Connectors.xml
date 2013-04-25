@@ -145,8 +145,8 @@
 		<acceptors>1</acceptors>
 		<backlog>1000</backlog>
 		<socket-conditioning>
-			<input-buffer-size>32k</input-buffer-size>
-			<output-buffer-size>32k</output-buffer-size>
+			<input-buffer-size>64k</input-buffer-size>
+			<output-buffer-size>64k</output-buffer-size>
 		</socket-conditioning>
 		<system-ping-frequency>90s</system-ping-frequency>
 	</connector>

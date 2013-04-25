@@ -13,7 +13,7 @@
  * limitations under the License.
  *
  */
-package clients;
+package eventpub;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,179 +37,190 @@ import com.pushtechnology.diffusion.api.threads.RunnableTask;
 import com.pushtechnology.diffusion.api.threads.ThreadService;
 
 /**
- * eventPub:
- * connection config: buff sizes, queue size, timeout
- * message config: size distribution(1*1K,3*200b,5*100b), fragmentation(size,delay), freq
- * topic tree: number of topics, levels, add/remove freq/proportion
+ * eventPub.
+ * <p> connection config: buff sizes, queue size, timeout
+ * <p>message config:
+ * size distribution(1*1K,3*200b,5*100b), fragmentation(size,delay), freq
+ * <p>topic tree: number of topics, levels, add/remove freq/proportion
  * 
  * @author nwakart
- *
+ * 
  */
 public class TopicChurnEventPublisher implements EventPublisherListener {
 
     // Topic settings
-    private static final int topics = 1000000;
-    private static final int subTopicLayers = 3; 
-    
+    private static final int TOPICS = 1000000;
+    private static final int TOPIC_TREE_LEVELS = 3;
+
     // Connection settings
-    private static final int connectionBufferSize = 32 * 1024;
-    private static final int connectionTimeout = 10*1000;
+    private static final int EVPUB_CONNECTION_BUFFER_SIZE = 32 * 1024;
+    private static final int EVPUB_CONNECTION_TIMEOUT = 10 * 1000;
     private static final int messageQueueSize = 1000000;
-    
+
     // Message settings
     private static final int messageFrequency = 500;
     private static final int messageSize = 600;
     private static final int messageCapacity = 1024;
     private static final int messageSizeRange = 100;
-    
+
     private static final int fragementSize = 6 * 1024;
-    
+
     private volatile EventPublisherConnection evpubConnection;
 
     private static AtomicLong maxActionTime = new AtomicLong();
-    private final List<List<String>> layerTopicsList = new ArrayList<List<String>>(subTopicLayers);
-    private final AtomicLong[] layerCounters = new AtomicLong[subTopicLayers];
-    private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor();
+    private final List<List<String>> layerTopicsList = new ArrayList<List<String>>(
+            TOPIC_TREE_LEVELS);
+    private final AtomicLong[] layerCounters = new AtomicLong[TOPIC_TREE_LEVELS];
+    private final ScheduledExecutorService timer = Executors
+            .newSingleThreadScheduledExecutor();
 
     /**
      * 
      * Create a connection
-     *
+     * 
      * @return
      * @throws APIException
      * @since n.n
      */
     public EventPublisherConnection createConnection() throws APIException {
-        EventPublisherConnection theConnection = new EventPublisherConnection("localhost",3098,this);
-        theConnection.getServerDetails().setOutputBufferSize(connectionBufferSize);
-        theConnection.getServerDetails().setInputBufferSize(connectionBufferSize);
-        theConnection.getServerDetails().setConnectionTimeout(connectionTimeout);
+        EventPublisherConnection theConnection = new EventPublisherConnection(
+                "localhost", 3098, this);
+        theConnection.getServerDetails().setOutputBufferSize(
+                EVPUB_CONNECTION_BUFFER_SIZE);
+        theConnection.getServerDetails().setInputBufferSize(
+                EVPUB_CONNECTION_BUFFER_SIZE);
+        theConnection.getServerDetails()
+                .setConnectionTimeout(EVPUB_CONNECTION_TIMEOUT);
         theConnection.setMessageQueueSize(messageQueueSize);
         theConnection.connect();
         return theConnection;
     }
-    
+
     public TopicChurnEventPublisher() throws APIException, IOException {
-        for(int i=0;i<subTopicLayers;i++){
+        for (int i = 0; i < TOPIC_TREE_LEVELS; i++) {
             layerCounters[i] = new AtomicLong(0L);
             layerTopicsList.add(new ArrayList<String>());
         }
-        
+
         evpubConnection = createConnection();
-        
+
         removeTopic("E");
         createTopic("E/E_1/E");
-        for (int i = 0;i<topics;i++) {
-            if(i % 10 == 0)
+        for (int i = 0; i < TOPICS; i++) {
+            if (i % 10 == 0)
                 createTopic(0);
-            else if(i%10 < 3)
+            else if (i % 10 < 3)
                 createTopic(1);
             else
                 createTopic(2);
         }
         timer.scheduleAtFixedRate(new Runnable() {
             Random random = new Random();
+
             @Override
             public void run() {
                 try {
-                    for (int i = 0;i<50;i++) {
-                        if(random.nextFloat() <= 0.01){
-                            if(random.nextBoolean()){
+                    for (int i = 0; i < 50; i++) {
+                        if (random.nextFloat() <= 0.01) {
+                            if (random.nextBoolean()) {
                                 createTopic(0);
-                                for (int j = 0;j<10;j++) {
+                                for (int j = 0; j < 10; j++) {
                                     createTopic(1);
-                                    for (int z = 0;z<2;z++) {
+                                    for (int z = 0; z < 2; z++) {
                                         createTopic(2);
                                     }
                                 }
-                            }else{
-                                removeTopic(random,0);
+                            } else {
+                                removeTopic(random, 0);
                                 continue;
                             }
                         }
-                        for (int j = 0;j<10;j++) {
-                            if(random.nextFloat() <= 0.05){
-                                if(random.nextBoolean()){
+                        for (int j = 0; j < 10; j++) {
+                            if (random.nextFloat() <= 0.05) {
+                                if (random.nextBoolean()) {
                                     createTopic(1);
-                                    for (int z = 0;z<2;z++) {
+                                    for (int z = 0; z < 2; z++) {
                                         createTopic(2);
                                     }
-                                }else{
-                                    removeTopic(random,1);
+                                } else {
+                                    removeTopic(random, 1);
                                     continue;
                                 }
                             }
-                            for (int z = 0;z<2;z++) {
-                                if(random.nextFloat() <= 0.1){
-                                    if(random.nextBoolean()){
+                            for (int z = 0; z < 2; z++) {
+                                if (random.nextFloat() <= 0.1) {
+                                    if (random.nextBoolean()) {
                                         createTopic(2);
-                                    }else{
-                                        removeTopic(random,2);
+                                    } else {
+                                        removeTopic(random, 2);
                                     }
                                 }
                             }
                         }
                     }
-                }
-                catch (APIException e) {
+                } catch (APIException e) {
                     e.printStackTrace();
                 }
             }
-        },1000,1000,TimeUnit.MILLISECONDS);
+        }, 1000, 1000, TimeUnit.MILLISECONDS);
         timer.scheduleAtFixedRate(new Runnable() {
             Random random = new Random();
+
             @Override
             public void run() {
                 try {
-                    for (int i = 0;i<10;i++) {
-                        publishTopic(random,2);
+                    for (int i = 0; i < 10; i++) {
+                        publishTopic(random, 2);
                     }
                 } catch (Exception e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
-                
+
             }
-        },10,100,TimeUnit.MILLISECONDS);
-                
+        }, 10, 100, TimeUnit.MILLISECONDS);
+
         // Start threads sending small messages
-        ThreadService.schedule(new RunnableTask(){
+        ThreadService.schedule(new RunnableTask() {
             @Override
             public void run() {
                 try {
-                    publish(messageSize,messageSizeRange,messageCapacity);
-                }
-                catch (APIException e)
-                {
-                    Logs.warning("Message",e);
+                    publish(messageSize, messageSizeRange, messageCapacity);
+                } catch (APIException e) {
+                    Logs.warning("Message", e);
                 }
             }
-        },5,messageFrequency,TimeUnit.MILLISECONDS,false);
+        }, 5, messageFrequency, TimeUnit.MILLISECONDS, false);
     }
-    
-    private void removeTopic(Random randy,int layer) throws MessageException, APIException{
-        String remove = layerTopicsList.get(layer).remove(randy.nextInt(layerTopicsList.get(layer).size()));
-        if(layer < 1){
+
+    private void removeTopic(Random randy, int layer) throws MessageException,
+            APIException {
+        String remove = layerTopicsList.get(layer).remove(
+                randy.nextInt(layerTopicsList.get(layer).size()));
+        if (layer < 1) {
             Iterator<String> iterator = layerTopicsList.get(1).iterator();
-            while (iterator.hasNext()){
-                if(iterator.next().startsWith(remove))
+            while (iterator.hasNext()) {
+                if (iterator.next().startsWith(remove))
                     iterator.remove();
             }
         }
-        if(layer < 2){
+        if (layer < 2) {
             Iterator<String> iterator = layerTopicsList.get(2).iterator();
-            while (iterator.hasNext()){
-                if(iterator.next().startsWith(remove))
+            while (iterator.hasNext()) {
+                if (iterator.next().startsWith(remove))
                     iterator.remove();
             }
         }
         removeTopic(remove);
     }
-    private void publishTopic(Random randy,int layer) throws MessageException, APIException{
+
+    private void publishTopic(Random randy, int layer) throws MessageException,
+            APIException {
         List<String> layerTopics = layerTopicsList.get(layer);
-        if(layerTopics.size() > 0){
+        if (layerTopics.size() > 0) {
             String topic = layerTopics.get(randy.nextInt(layerTopics.size()));
-            TopicMessage message = evpubConnection.createDeltaMessage("ROOT/DATA/" +topic,20);
+            TopicMessage message = evpubConnection.createDeltaMessage(
+                    "ROOT/DATA/" + topic, 20);
             message.put(new byte[500]);
             evpubConnection.send(message);
         }
@@ -217,6 +228,7 @@ public class TopicChurnEventPublisher implements EventPublisherListener {
 
     /**
      * Send a message of a given size, variation, capacity
+     * 
      * @param size
      * @param range
      * @param capacity
@@ -225,11 +237,12 @@ public class TopicChurnEventPublisher implements EventPublisherListener {
      */
     private void publish(int size, int range, int capacity) throws APIException {
         // Pick a connection to use
-        publish("ROOT/DATA",size,range,capacity);
+        publish("ROOT/DATA", size, range, capacity);
     }
-    
+
     /**
      * Send a message of a given size, variation, capacity, topic and connection
+     * 
      * @param topic
      * @param connectionIndex
      * @param size
@@ -238,18 +251,20 @@ public class TopicChurnEventPublisher implements EventPublisherListener {
      * @throws APIException
      * @since n.n
      */
-    private void publish(String topic,int size, int range, int capacity) throws APIException {
+    private void publish(String topic, int size, int range, int capacity)
+            throws APIException {
         TopicMessage message;
-        message = evpubConnection.createDeltaMessage(topic,capacity);
+        message = evpubConnection.createDeltaMessage(topic, capacity);
         message.setFragmentSize(fragementSize);
         message.setFragmentedMessageLifecycle(new FragmentedMessageLifecycle(50));
-        byte[] bytes = generateBytes(size,range);
+        byte[] bytes = generateBytes(size, range);
         message.put(bytes);
         evpubConnection.send(message);
     }
-    
+
     /**
      * Get the bytes to send
+     * 
      * @param size
      * @param range
      * @return
@@ -257,60 +272,59 @@ public class TopicChurnEventPublisher implements EventPublisherListener {
      */
     private byte[] generateBytes(int size, int range) {
         Random random = new Random();
-        int targetMessageSize = size + (range - random.nextInt(2*range));
+        int targetMessageSize = size + (range - random.nextInt(2 * range));
         byte[] bytes = new byte[targetMessageSize];
         return bytes;
     }
-    
+
     private void createTopic(int layer) throws MessageException, APIException {
         layerCounters[layer].incrementAndGet();
         String topic = "E/E_1/E/E_" + layerCounters[0].get();
-        if(layer > 0){
-            topic += "/"+layerCounters[1].get();
+        if (layer > 0) {
+            topic += "/" + layerCounters[1].get();
         }
-        if(layer > 1){
-            topic += "/"+layerCounters[2].get();
+        if (layer > 1) {
+            topic += "/" + layerCounters[2].get();
         }
         layerTopicsList.get(layer).add(topic);
         createTopic(topic);
     }
 
     protected void createTopic(String topic) throws APIException,
-    MessageException {
-        TopicMessage message = evpubConnection.createDeltaMessage("ROOT/META",20);
-        message.putFields("ADD",topic,"load data");
+            MessageException {
+        TopicMessage message = evpubConnection.createDeltaMessage("ROOT/META",
+                20);
+        message.putFields("ADD", topic, "load data");
         evpubConnection.send(message);
-        for(int i=0;i<100;i++)
+        for (int i = 0; i < 100; i++)
             Thread.yield();
     }
 
     protected void removeTopic(String topic) throws APIException,
-    MessageException {
-        TopicMessage message = evpubConnection.createDeltaMessage("ROOT/META",20);
-        message.putFields("REMOVE",topic);
+            MessageException {
+        TopicMessage message = evpubConnection.createDeltaMessage("ROOT/META",
+                20);
+        message.putFields("REMOVE", topic);
         evpubConnection.send(message);
         LockSupport.parkNanos(TimeUnit.MICROSECONDS.toNanos(100));
     }
 
-    public void messageFromServer(
-    EventPublisherConnection connection,TopicMessage message) {
+    public void messageFromServer(EventPublisherConnection connection,
+            TopicMessage message) {
         try {
-            long newValue = Long.parseLong(message.asFields().get(1)) ;
-            if(newValue > maxActionTime.get())
+            long newValue = Long.parseLong(message.asFields().get(1));
+            if (newValue > maxActionTime.get())
                 maxActionTime.set(newValue);
-        }
-        catch (MessageException e) {
+        } catch (MessageException e) {
             e.printStackTrace();
         }
     }
 
     public void serverDisconnected(EventPublisherConnection connection) {
-        System.out.println(
-            "Event Publisher Connection Closed "+connection);
+        System.out.println("Event Publisher Connection Closed " + connection);
         try {
             connection = createConnection();
-        }
-        catch (APIException e) {
+        } catch (APIException e) {
             e.printStackTrace();
         }
     }
@@ -319,5 +333,4 @@ public class TopicChurnEventPublisher implements EventPublisherListener {
         new TopicChurnEventPublisher();
     }
 
-    
 }

@@ -32,52 +32,22 @@
 		</if>
 	</target>
 	<target name="perfTest-1000b-ping-latency">
-		<for list="ws,dpt,http" param="protocol">
-            <sequential>
-            	<set-protocol protocol="@{protocol}"/>
-                <run-ping-test test.name="1000b-ping-latency" threads="1" message.size="1000" />
-            </sequential>
-        </for>
+        <run-ping-test test.name="1000b-ping-latency" threads="1" message.size="1000" />
 	</target>
     <target name="perfTest-2000b-ping-latency">
-        <for list="ws,dpt,http" param="protocol">
-            <sequential>
-                <set-protocol protocol="@{protocol}"/>
-                <run-ping-test test.name="2000b-ping-latency" threads="1" message.size="2000" />
-            </sequential>
-        </for>
+        <run-ping-test test.name="2000b-ping-latency" threads="1" message.size="2000" />
     </target>
     <target name="perfTest-500b-ping-latency">
-        <for list="ws,dpt,http" param="protocol">
-            <sequential>
-                <set-protocol protocol="@{protocol}"/>
-                <run-ping-test test.name="500b-ping-latency" threads="1" message.size="500" />
-            </sequential>
-        </for>
+        <run-ping-test test.name="500b-ping-latency" threads="1" message.size="500" />
     </target>
     <target name="perfTest-250b-ping-latency">
-        <for list="ws,dpt,http" param="protocol">
-            <sequential>
-                <set-protocol protocol="@{protocol}"/>
-                <run-ping-test test.name="250b-ping-latency" threads="1" message.size="250" />
-            </sequential>
-        </for>
+        <run-ping-test test.name="250b-ping-latency" threads="1" message.size="250" />
     </target>
     <target name="perfTest-250b-ping-throughput">
-        <for list="ws,dpt,http" param="protocol">
-            <sequential>
-                <set-protocol protocol="@{protocol}"/>
-                <run-ping-test test.name="250b-ping-latency" threads="10" message.size="250"  />
-            </sequential>
-        </for>
+        <run-ping-test test.name="250b-ping-latency" threads="10" message.size="250"  />
     </target>
 	<target name="perfTest-125b-ping-latency">
-        <for list="ws,dpt,http" param="protocol">
-            <sequential>
-                <set-protocol protocol="@{protocol}"/>
-                <run-ping-test test.name="125b-ping-latency" threads="1" message.size="125" />
-            </sequential>
-        </for>
+        <run-ping-test test.name="125b-ping-latency" threads="1" message.size="125" />
 	</target>
 
 	<macrodef name="run-ping-test">
@@ -107,8 +77,6 @@
 				<jvmarg value="-server" />
 				<jvmarg value="-Xmx@{client.jvm.memory}" />
 				<jvmarg value="-Xms@{client.jvm.memory}" />
-				<jvmarg value="-XX:NewRatio=1" />
-				<sysproperty key="com.diffusion.UseAsyncLogging" value="false" />
 				<sysproperty key="connect.string" value="${diffusion.url}" />
 				<sysproperty key="initial.clients" value="@{initial.clients}" />
 				<sysproperty key="max.clients" value="@{max.clients}" />

@@ -41,7 +41,7 @@
 		<inbound>InboundThreadPool</inbound>		
 		<outbound>OutboundThreadPool</outbound>
 		<background-thread-size>1</background-thread-size>
-		<writer-selectors>20</writer-selectors>		
+		<writer-selectors>1</writer-selectors>		
 		<thread-pool-definition name="InboundThreadPool">
 		    <core-size>1</core-size>
 			<max-size>1</max-size>

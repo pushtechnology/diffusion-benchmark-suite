@@ -4,14 +4,7 @@
     <property name="suite.ant.file" value="${throughput-suite.xml}"/>
 	<import file="perf-test-server-tasks.xml" />
 	<import file="perf-test-suite-common.xml" />
-<!--
-	<target name="run-ramping-client-manual">
-		<run-ramping-throughput-test client.jvm.memory="1g" test.name="manual"
-					threads="1"
-					message.size="1000" publish.pause.seconds="1"
-					initial.messages="100" message.increment="0"
-					initial.topic.num="100"  topic.increment="0"/>
-	</target> -->
+
 	<target name="perfTest-1000b-100++-clients-50t">
 		<run-ramping-throughput-test test.name="1000b-100++-4M-50T" 
 			message.size="1000" publish.pause.seconds="0.25"

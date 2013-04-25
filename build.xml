@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <project name="load-runner" default="all" basedir=".">
-	<taskdef resource="net/sf/antcontrib/antlib.xml">
-		<classpath>
-			<pathelement location="lib/ant-contrib-1.0b3.jar" />
-		</classpath>
-	</taskdef>
+	<taskdef resource="net/sf/antcontrib/antlib.xml"
+		classpath="lib/ant-contrib-1.0b3.jar" />
+	<taskdef resource="checkstyletask.properties"
+	         classpath="lib/checkstyle-5.6-all.jar"/>
 	<property environment="env"/>
 	<property name="diffusion.dir" value="${env.DIFFUSION_HOME}" />
 	<property name="dir.main.src" value="src" />
@@ -26,14 +25,22 @@
 		<mkdir dir="${dir.main.build}" />
 	</target>
 
-	<target name="build" depends="prepare" description="Build main source code">
+	<target name="build" depends="prepare,checkstyle" description="Build main source code">
 		<echo message="${diffusion.dir}"/>
 		<javac source="1.6" target="1.6" destdir="${dir.main.build}" includeAntRuntime="false" debug="true" nowarn="true">
 			<src path="${dir.main.src}" />
 			<classpath refid="test.classpath" />
 		</javac>
 	</target>
+	<target name="checkstyle"
+	        description="Generates a report of code convention violations.">
 
+	  <checkstyle config="formatter/sun_checks.xml"
+	              failureProperty="checkstyle.failure"
+	              failOnViolation="false">
+	    <fileset dir="src" includes="**/*.java"/>
+	  </checkstyle>
+	</target>
 	<target name="dist" depends="build" description="Build a distribution">
 		<jar basedir="${dir.main.build}" destfile="${dir.main.dist}/lib/diffusionbenchmark.jar" />
 		<copy todir="${dir.main.dist}/lib">

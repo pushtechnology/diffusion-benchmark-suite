@@ -2,9 +2,9 @@
 <project name="perf-test-suite-common" default="perf-suite" basedir=".">
 	<!-- the protocol to use: ws, dpt, http, wss, dpts, https-->
 	<property name="diffusion.protocol" value="ws" />
-    <!-- the diffusion host -->
+    <!-- the diffusion host, will also determine how server is launched -->
 	<property name="diffusion.host" value="localhost" />
-	<property name="diffusion.port" value="8080" />
+	<!-- port is 8080 for non-secure protocols, 8443 for secure -->
 	<condition property="diffusion.port" value="8443" else="8080">
 		<or>
 			<equals arg1="${diffusion.protocol}" arg2="https" />
@@ -12,43 +12,23 @@
 			<equals arg1="${diffusion.protocol}" arg2="wss" />
 		</or>
 	</condition>
+	<!-- url is a protocol://host:port
+	   This property supports a comma separated list of values for connecting
+	   clients to several hosts or protocols -->
 	<property name="diffusion.url" value="${diffusion.protocol}://${diffusion.host}:${diffusion.port}"/>
+	<!-- this is a comma separated list of local interfaces to bind clients
+	   to. -->
 	<property name="diffusion.client.nics" value="" />
 
+	<!-- SSH user/pass to login to the host. Required if host is not
+	   localhost. -->
 	<property name="ssh.username" value="root" />
 	<property name="ssh.password" value="ds10hd" />
+	<!-- This property allows filtering tests from test suites-->
 	<property name="test.name.contains" value="perfTest" />
 
 	<import file="perf-test-server-tasks.xml" />
-    <macrodef name="set-protocol">
-        <attribute name="protocol"/>
-        <sequential>
-            <var name="new.protocol" unset="true"/>
-        	<property name="new.protocol" value="@{protocol}"/>
-        	<script language="javascript">
-        	    var oldUrl = project.getProperty("diffusion.url");
-        		var oldProtocol = project.getProperty("diffusion.protocol");
-                var oldPort = project.getProperty("diffusion.port");
-                var newProtocol = project.getProperty("new.protocol");
-        		var newPort = "8080";
-        		if(newProtocol.endsWith("s") &amp;&amp; !newProtocol.equals("ws"))
-        		  newPort = "8443";
-        		var newUrl = oldUrl.replaceAll(oldPort,newPort).replaceAll(oldProtocol+"://", newProtocol+"://");
-        		project.setProperty("new.url", newUrl);
-        		project.setProperty("new.port", newPort);
-        	</script>
-        	<var name="diffusion.url" unset="true"/>
-            <var name="diffusion.protocol" unset="true"/>
-            <var name="diffusion.port" unset="true"/>
-            <property name="diffusion.url" value="${new.url}"/>
-            <property name="diffusion.protocol" value="${new.protocol}"/>
-            <property name="diffusion.port" value="${new.port}"/>
-        	<var name="new.url" unset="true"/>
-            <var name="new.protocol" unset="true"/>
-            <var name="new.port" unset="true"/>
-        </sequential>
-    </macrodef>
-
+	
 	<target name="before-suite" />
 	<target name="after-suite" />
 	<target name="before">

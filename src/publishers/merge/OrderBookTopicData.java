@@ -29,14 +29,18 @@ import com.pushtechnology.diffusion.api.topic.TopicClient;
 import com.pushtechnology.diffusion.api.topic.TopicTreeNode;
 import com.pushtechnology.diffusion.data.TopicDataImpl;
 
-final class OrderBookTopicData extends TopicDataImpl implements OrderMatcherMonitor{
+final class OrderBookTopicData extends TopicDataImpl implements
+        OrderMatcherMonitor {
     private final String _conflationMode;
+
     public OrderBookTopicData(String conflationMode) {
         super();
         this._conflationMode = conflationMode;
     }
+
     // Create the order matcher with associated publisher
     final OrderMatcher om = new OrderMatcher(this);
+
     @Override
     public TopicDataType getType() {
         return TopicDataType.CUSTOM;
@@ -44,48 +48,49 @@ final class OrderBookTopicData extends TopicDataImpl implements OrderMatcherMoni
 
     @Override
     public TopicMessage getLoadMessage(TopicClient client)
-    throws TimeoutException, APIException {
+            throws TimeoutException, APIException {
         return getLoadMessage();
     }
 
     @Override
-    public TopicMessage getLoadMessage() throws TimeoutException,
-    APIException {
-        NavigableMap<Long,Orderlist> bids = om.bidSide.orderBook;
-        NavigableMap<Long,Orderlist> asks = om.askSide.orderBook;
-        TopicMessage loadMessage = getTopic().createLoadMessage(20*(bids.size()+asks.size()));
-        OrderBookSerializer.serializeImageMessage(bids,asks,loadMessage);
+    public TopicMessage getLoadMessage() throws TimeoutException, APIException {
+        NavigableMap<Long, Orderlist> bids = om.bidSide.orderBook;
+        NavigableMap<Long, Orderlist> asks = om.askSide.orderBook;
+        TopicMessage loadMessage = getTopic().createLoadMessage(
+                20 * (bids.size() + asks.size()));
+        OrderBookSerializer.serializeImageMessage(bids, asks, loadMessage);
         return loadMessage;
     }
 
     @Override
-    protected void attachedToTopic(String topicName,
-        TopicTreeNode parent) throws APIException {
+    protected void attachedToTopic(String topicName, TopicTreeNode parent)
+            throws APIException {
     }
-    public void orderBookChanges(List<Trade> trades, 
-                                 List<OrderbookChange> bidChanges,
-                                 List<OrderbookChange> askChanges, OrderMatcher om) {
+
+    public void orderBookChanges(List<Trade> trades,
+            List<OrderbookChange> bidChanges, List<OrderbookChange> askChanges,
+            OrderMatcher om) {
         try {
             // Create new delta
-            if(!_conflationMode.equals("REPLACE")){
-                TopicMessage tm = getTopic().createDeltaMessage(20*(bidChanges.size()+askChanges.size()));
-                OrderBookSerializer.serializeUpdateMessage(bidChanges,askChanges,tm);
-    
+            if (!_conflationMode.equals("REPLACE")) {
+                TopicMessage tm = getTopic().createDeltaMessage(
+                        20 * (bidChanges.size() + askChanges.size()));
+                OrderBookSerializer.serializeUpdateMessage(bidChanges,
+                        askChanges, tm);
+
                 // Publish it to the topic
                 getTopic().publishMessage(tm);
+            } else {
+                NavigableMap<Long, Orderlist> bids = om.bidSide.orderBook;
+                NavigableMap<Long, Orderlist> asks = om.askSide.orderBook;
+                TopicMessage tm = getTopic().createDeltaMessage(
+                        20 * (bids.size() + asks.size()));
+                OrderBookSerializer.serializeImageMessage(bids, asks, tm);
             }
-            else{
-                NavigableMap<Long,Orderlist> bids = om.bidSide.orderBook;
-                NavigableMap<Long,Orderlist> asks = om.askSide.orderBook;
-                TopicMessage tm = getTopic().createDeltaMessage(20*(bids.size()+asks.size()));
-                OrderBookSerializer.serializeImageMessage(bids,asks,tm);
-            }
-        }
-        catch (TimeoutException e) {
-            Logs.severe("Timed out publishing",e);
-        }
-        catch (APIException e) {
-            Logs.severe("Exception publishing",e);
+        } catch (TimeoutException e) {
+            Logs.severe("Timed out publishing", e);
+        } catch (APIException e) {
+            Logs.severe("Exception publishing", e);
         }
     }
 
