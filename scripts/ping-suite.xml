@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <project name="ping-suite" default="perf-suite" basedir=".">
 	<property environment="env"/>
+    <property name="client.jvm.args" value="-server -Xms2g -Xmx2g"/>
     <property name="suite.ant.file" value="latency-suite.xml"/>
 	<import file="perf-test-server-tasks.xml" />
 	<import file="perf-test-suite-common.xml" />
@@ -62,32 +63,46 @@
 		<attribute name="max.test.time.minutes" default="5.0" />
 		<attribute name="test.name" />
 		<sequential>
-			<echo file="@{test.name}-${diffusion.protocol}.settings">
-				Test settings:
-				message.size=@{message.size}"
-				initial.clients=@{initial.clients}
-				max.clients=@{max.clients}
-				client.create.pause.seconds=@{client.create.pause.seconds}
-			 	threads=@{threads}
-				client.jvm.memory=@{client.jvm.memory}
-			</echo>
 			<!-- Start Client -->
-			<echo message="Running latency test ${diffusion.url}"/>
-			<java classname="clients.PingLatencyBenchmark" fork="true" failonerror="true" output="@{test.name}-${diffusion.protocol}.out">
-				<jvmarg value="-server" />
-				<jvmarg value="-Xmx@{client.jvm.memory}" />
-				<jvmarg value="-Xms@{client.jvm.memory}" />
-				<sysproperty key="connect.string" value="${diffusion.url}" />
-				<sysproperty key="initial.clients" value="@{initial.clients}" />
-				<sysproperty key="max.clients" value="@{max.clients}" />
-				<sysproperty key="client.create.pause.seconds" value="@{client.create.pause.seconds}" />
-				<sysproperty key="inbound.threadpool.max.size" value="@{threads}" />
-				<sysproperty key="inbound.threadpool.core.size" value="@{threads}" />
-				<sysproperty key="message.size" value="@{message.size}" />
-				<sysproperty key="local.interfaces" value="${diffusion.client.nics}" />
-				<sysproperty key="max.test.time.minutes" value="@{max.test.time.minutes}" />
-				<classpath refid="test.runtime.classpath" />
-			</java>
+			<var name="full-test-name" value="@{test.name}-${diffusion.protocol}"/>
+            <if>
+             <equals arg1="${skip.client}" arg2="true" />
+                <then><input>Press Return key to continue...</input></then>
+                <else>
+                    <if>
+                        <available file="${full-test-name}.settings"/>
+                        <then>
+                            <echo message="Using existing settings file: ${full-test-name}.settings"/>
+                        </then>
+                        <else>
+                            <echo file="${full-test-name}.settings">
+#Client settings:
+initial.clients=@{initial.clients}
+max.clients=@{max.clients}
+clients.increment=@{clients.increment}
+client.create.pause.seconds=@{client.create.pause.seconds}
+client.increment.pause.seconds=@{client.increment.pause.seconds}
+inbound.threadpool.core.size=@{threads}
+inbound.threadpool.max.size=@{threads}
+client.jvm.args=${client.jvm.args}
+diffusion.url=${diffusion.url}
+local.interfaces=${diffusion.client.nics}
+experiment.output=${full-test-name}.csv
+clients.output=${full-test-name}-clients.log
+                            </echo>
+                        </else>
+                    </if>
+                    <echo message="...Starting test client..."/>
+                    <java classname="experiments.ExperimentRunner" fork="true" 
+                          failonerror="true" jvmargs="${client.jvm.args}">
+                        <sysproperty key="log.connection.exception" value="false" />
+                        <arg value="experiments.PingLatencyExperiment"/>
+                        <arg value="${full-test-name}.settings"/>
+                        <classpath refid="test.runtime.classpath" />
+                    </java>
+                    <echo message="...Test client finished..."/>
+                </else>
+            </if>           
 		</sequential>
 	</macrodef>
 	<target name="start-echo">

@@ -67,7 +67,7 @@ public class ExperimentMonitor implements Runnable {
     public final void run() {
         SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss.SSS");
 
-        out.println("Time, MessagesPerSecond, ClientsConnected, Topics,"
+        getOutput().println("Time, MessagesPerSecond, ClientsConnected, Topics,"
                 + " InSample, Cpu, ClientDisconnects, ConnectionRefusals, "
                 + "ConnectionAttempts, BytesPerSecond");
         long deadline = System.currentTimeMillis();
@@ -86,7 +86,7 @@ public class ExperimentMonitor implements Runnable {
                     * TimeUnit.SECONDS.toNanos(1) / intervalNanos;
             long bytesPerSecond = (long) intervalBytes
                     * TimeUnit.SECONDS.toNanos(1) / intervalNanos;
-            out.format("%s, %d, %d, %d, %b, %s, %d, %d, %d, %d\n",
+            getOutput().format("%s, %d, %d, %d, %b, %s, %d, %d, %d, %d\n",
                     format.format(new Date()), messagesPerSecond,
                     experimentCounters.getCurrentlyConnected(),
                     experimentCounters.getTopicsCounter(),
@@ -103,8 +103,8 @@ public class ExperimentMonitor implements Runnable {
             // Single writer to this counter, so lazy set is fine
             experimentCounters.setLastMessagesPerSecond(messagesPerSecond);
         }
-        out.println("-------");
-        out.println(messageThroughputHistogram.toThrouphputString(true));
+        getOutput().println("-------");
+        getOutput().println(messageThroughputHistogram.toThrouphputString(true));
     }
 
     /**
@@ -167,5 +167,9 @@ public class ExperimentMonitor implements Runnable {
         } finally {
             monitorThread = null;
         }
+    }
+
+    public PrintStream getOutput() {
+        return out;
     }
 }

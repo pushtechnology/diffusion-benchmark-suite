@@ -15,22 +15,7 @@
 	<!-- Further common settings are available in the test-suite-common file
 	-->
 	<import file="perf-test-suite-common.xml" />
-	
-	<!-- This will run the suite for all transports using all conflation modes -->
-	<target name="full-run">
-	   <for list="NONE,APPEND,REPLACE,COMPARE" param="mode">
-	   	<sequential>
-	   		<var name="conflationMode" unset="true"/>
-	   		<property name="conflationMode" value="@{mode}"/>
-	   		<for list="ws,dpt,http" param="protocol">
-	   			<sequential>
-	   				<set-protocol protocol="@{protocol}"/>
-	   			    <antcall target="perf-suite"/>
-	   			</sequential>
-	   		</for>
-	   	</sequential>
-	   </for>
-	</target>
+
 	<target name="perfTest-2000b-50t">
         <run-ramping-throughput-test test.name="2000b-xC-4M-50T" 
             message.size="2000" publish.pause.seconds="0.25"
@@ -203,7 +188,6 @@ clients.output=${full-test-name}-clients.log
 	
 	<macrodef name="run-ramping-client">
 		<attribute name="testname" />
-		<attribute name="client.jvm.memory" default="1g" />
         <sequential>
 			<echo message="...Starting test client..."/>
 			<java classname="experiments.ExperimentRunner" fork="true" 

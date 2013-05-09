@@ -2,6 +2,8 @@ package experiments;
 
 import java.io.FileOutputStream;
 import java.lang.reflect.Constructor;
+import java.util.Date;
+import java.util.Properties;
 
 import util.PropertiesUtil;
 
@@ -24,15 +26,31 @@ public final class ExperimentRunner {
      * @throws Exception on grrr
      */
     public static void main(final String[] args) throws Exception {
+        Class<?> experimentClass = Class.forName(args[0]);
+        Class<?> settingsClass = CommonExperimentSettings.class;
+        try {
+            String settingsClassName = args[0] + "$Settings";
+            settingsClass = Class.forName(settingsClassName);
+            System.out.println(new Date()
+                    + " - Using " + settingsClassName + " settings class...");
+        } catch (ClassNotFoundException e) {
+            System.out.println(new Date()
+                    + " - Using default settings class...");
+            e.printStackTrace();
+        }
+        Properties experimentProperties = PropertiesUtil.load(args[1]);
         CommonExperimentSettings settings =
-                new CommonExperimentSettings(PropertiesUtil.load(args[1]));
+                (CommonExperimentSettings) settingsClass.getConstructor(
+                        Properties.class).newInstance(
+                        experimentProperties);
         FileOutputStream out = new FileOutputStream(args[1]);
         settings.getFinalSettings().store(out, "");
         out.close();
-        Constructor<?> constructor = 
-                Class.forName(args[0]).
-                getConstructor(CommonExperimentSettings.class);
-        
+
+        Constructor<?> constructor =
+                experimentClass.
+                        getConstructor(settingsClass);
+
         Runnable experiment = (Runnable) constructor.newInstance(settings);
         experiment.run();
         System.exit(0);

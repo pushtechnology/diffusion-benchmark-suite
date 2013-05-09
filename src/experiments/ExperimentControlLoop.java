@@ -15,6 +15,8 @@
  */
 package experiments;
 
+import java.io.PrintStream;
+import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -72,7 +74,7 @@ public class ExperimentControlLoop implements Runnable {
     public ExperimentControlLoop(CommonExperimentSettings settings) {
         clientSettings = settings;
         experimentMonitor =
-                new ExperimentMonitor(getExperimentCounters(), 
+                new ExperimentMonitor(getExperimentCounters(),
                         settings.getOutputFile());
     }
 
@@ -100,12 +102,14 @@ public class ExperimentControlLoop implements Runnable {
             setUp();
             // GO!
             long testStartTime = System.currentTimeMillis();
+            System.out.println(new Date() + " - Starting experiment");
             ExecutorService connectThread =
                     Executors.newSingleThreadExecutor();
             // generate initial load
             for (int i = 0; i < getClientSettings().getInitialClients(); i++) {
                 connectThread.execute(createClientTask);
             }
+            System.out.println(new Date() + " - Initial load created");
             postInitialLoadCreated();
             experimentMonitor.startSampling();
             long lastIncrementTime = System.currentTimeMillis();
@@ -118,6 +122,10 @@ public class ExperimentControlLoop implements Runnable {
                     int maxConns = getClientSettings().getMaxClients();
                     int incBy = getClientSettings().getClientIncrement();
                     incBy = (int) Math.min(incBy, maxConns - currConns);
+                    if (incBy > 0) {
+                        System.out.println(new Date()
+                                + " - increasing load by:" + incBy);
+                    }
                     for (int i = 0; i < incBy; i++) {
                         connectThread.execute(createClientTask);
                     }
@@ -128,10 +136,11 @@ public class ExperimentControlLoop implements Runnable {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        System.out.println(new Date() + " - time is up, wrapping up");
         experimentMonitor.stop();
         connector.close();
         wrapupAndReport();
+        System.out.println(new Date() + " - experiment finished");
     }
 
     /**
@@ -182,4 +191,14 @@ public class ExperimentControlLoop implements Runnable {
     public final ExperimentCounters getExperimentCounters() {
         return experimentCounters;
     }
+
+    /**
+     * Only to be used in the wrapup phase...
+     * 
+     * @return the experiment output stream
+     */
+    protected final PrintStream getOutput() {
+        return experimentMonitor.getOutput();
+    }
+
 }
