@@ -15,7 +15,6 @@
  */
 package experiments;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -71,7 +70,7 @@ public final class PingLatencyExperiment implements Runnable {
             }
 
             @Override
-            public void close() throws IOException {
+            public void close() {
                 for (PingClient connection : clients) {
                     connection.disconnect();
                 }
