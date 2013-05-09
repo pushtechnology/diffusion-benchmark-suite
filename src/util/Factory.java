@@ -1,6 +1,5 @@
 package util;
 
-import java.io.Closeable;
 
 /**
  * A factory interface...
@@ -8,10 +7,15 @@ import java.io.Closeable;
  *
  * @param <T>
  */
-public interface Factory<T> extends Closeable {
+public interface Factory<T> {
     
     /**
      * @return a new T instance.
      */
     T create();
+    
+    /**
+     * cleanup. 
+     */
+    void close();
 }

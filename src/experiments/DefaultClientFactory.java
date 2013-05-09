@@ -15,8 +15,6 @@
  */
 package experiments;
 
-import java.io.IOException;
-
 import monitoring.ExperimentCounters;
 import util.Factory;
 import clients.ExperimentClient;
@@ -58,6 +56,6 @@ public class DefaultClientFactory implements
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
     }
 }

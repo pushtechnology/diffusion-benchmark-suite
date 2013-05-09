@@ -17,7 +17,6 @@ package clients;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
@@ -211,7 +210,7 @@ public class ClientConnectionFactory implements
     }
 
     @Override
-    public final void close() throws IOException {
+    public final void close() {
         clientFactory.close();
     }
 }

@@ -15,7 +15,6 @@
  */
 package experiments;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -131,11 +130,7 @@ public class ExperimentControlLoop implements Runnable {
         }
 
         experimentMonitor.stop();
-        try {
-            connector.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        connector.close();
         wrapupAndReport();
     }
 
