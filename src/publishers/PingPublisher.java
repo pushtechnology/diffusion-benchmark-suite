@@ -15,73 +15,43 @@
  */
 package publishers;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 import com.pushtechnology.diffusion.api.APIException;
 import com.pushtechnology.diffusion.api.data.TopicDataFactory;
-import com.pushtechnology.diffusion.api.data.custom.SimpleCustomTopicDataHandler;
+import com.pushtechnology.diffusion.api.data.metadata.MDataType;
+import com.pushtechnology.diffusion.api.data.single.SingleValueTopicData;
 import com.pushtechnology.diffusion.api.message.TopicMessage;
 import com.pushtechnology.diffusion.api.publisher.Client;
-import com.pushtechnology.diffusion.api.publisher.EventConnection;
 import com.pushtechnology.diffusion.api.publisher.Publisher;
 import com.pushtechnology.diffusion.api.topic.Topic;
 
+/**
+ * An echo/ping/repeater publisher for benchmarking client RTT.
+ * 
+ * @author nitsanw
+ */
 public final class PingPublisher extends Publisher {
-
-    // Name of the Echo Topic
-    public static final String TOPIC = "PING";
-    private Topic rootTopic;
-    AtomicLong pingCounter = new AtomicLong(0L);
+    /** the ping topic. Messages sent here will be sent back. */
+    public static final String ROOT_TOPIC = "PING";
 
     @Override
     protected void initialLoad() throws APIException {
-        System.out.println("InjectionPublisher.initialLoad");
-        rootTopic = addTopic(TOPIC,
-                TopicDataFactory
-                        .newCustomData(new SimpleCustomTopicDataHandler() {
-
-                            @Override
-                            public void populateTopicLoad(TopicMessage topicLoad)
-                                    throws APIException {
-                            }
-
-                            @Override
-                            public void populateDelta(TopicMessage delta)
-                                    throws APIException {
-                            }
-
-                            @Override
-                            public String asString() {
-                                return "";
-                            }
-
-                        }));
+        SingleValueTopicData pingTopicData = 
+                TopicDataFactory.newSingleValueData(MDataType.STRING);
+        pingTopicData.initialise("Welcome");
+        Topic rootTopic = addTopic(ROOT_TOPIC,
+                pingTopicData);
         rootTopic.setAutoSubscribe(true);
     }
 
-    @Override
-    protected void publisherStopped() throws APIException {
-    }
-
-    /**
-     * @see Publisher#messageFromClient(TopicMessage,Client)
-     */
     @Override
     protected void messageFromClient(TopicMessage message, Client client) {
         try {
             // As this is echo, send a message back to the same client and not
             // broadcast
             client.send(message);
-            pingCounter.incrementAndGet();
         } catch (APIException ex) {
             logWarning("Unable to process message from client", ex);
         }
-    }
-
-    @Override
-    protected void subscription(Client client, Topic topic, boolean loaded)
-            throws APIException {
-        super.subscription(client, topic, loaded);
     }
 
     @Override

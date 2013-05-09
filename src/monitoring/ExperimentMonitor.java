@@ -104,7 +104,9 @@ public class ExperimentMonitor implements Runnable {
             experimentCounters.setLastMessagesPerSecond(messagesPerSecond);
         }
         getOutput().println("-------");
-        getOutput().println(messageThroughputHistogram.toThrouphputString(true));
+        String throuphputString =
+                messageThroughputHistogram.toThrouphputString(true);
+        getOutput().println(throuphputString);
     }
 
     /**
@@ -169,7 +171,10 @@ public class ExperimentMonitor implements Runnable {
         }
     }
 
-    public PrintStream getOutput() {
+    /**
+     * @return the output stream used by this monitor
+     */
+    public final PrintStream getOutput() {
         return out;
     }
 }

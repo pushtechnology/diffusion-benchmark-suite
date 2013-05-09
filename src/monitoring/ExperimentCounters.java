@@ -22,6 +22,9 @@ public final class ExperimentCounters {
 
     // CHECKSTYLE:ON
     /**
+     * NOTE this is an inaccurate measure reflecting recent values from the
+     * connect and disconnect counters.
+     * 
      * @return number of currently connected (connected - disconnected)
      */
     public long getCurrentlyConnected() {

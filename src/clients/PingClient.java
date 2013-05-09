@@ -27,7 +27,7 @@ public final class PingClient extends MessageCountingClient {
     public PingClient(ExperimentCounters experimentCountersP, int size) {
         // CHECKSTYLE:ON
         super(experimentCountersP, true,
-                PingPublisher.TOPIC);
+                PingPublisher.ROOT_TOPIC);
         message = new byte[size];
         messageBuffer = ByteBuffer.wrap(message);
     }
@@ -45,7 +45,8 @@ public final class PingClient extends MessageCountingClient {
     private void ping() {
         try {
             TopicMessage m = connection
-                    .createDeltaMessage(PingPublisher.TOPIC, message.length);
+                    .createDeltaMessage(PingPublisher.ROOT_TOPIC, 
+                            message.length);
             messageBuffer.clear();
             messageBuffer.putLong(System.nanoTime());
             m.put(message);
@@ -59,8 +60,13 @@ public final class PingClient extends MessageCountingClient {
     public void onMessage(final ServerConnection serverConnection,
             final TopicMessage topicMessage) {
         // TODO: hack, should be made available via a read only BB.
+        byte[] externalData = 
+                ((DataMessageImpl) topicMessage).getExternalData();
+        if (externalData.length != message.length) {
+            return;
+        }
         long sent = ByteBuffer.wrap(
-                ((DataMessageImpl) topicMessage).getExternalData())
+                externalData)
                 .getLong();
         long rtt = System.nanoTime() - sent;
         if (experimentCounters.getMessageCounter() > WARMUP_MESSAGES) {
