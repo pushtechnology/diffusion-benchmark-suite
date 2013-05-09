@@ -15,6 +15,8 @@
  */
 package util;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -31,43 +33,99 @@ public final class PropertiesUtil {
     }
 
     /**
-     * Compensating for the lack of Double.getDouble method. This method is the
-     * same as {@link Integer.getInteger}
-     * 
-     * @param sysPropertyName ...
-     * @param defaultVal ...
-     * @return the value of the property or default value should parsing fail
+     * Loads a properties from a file name.
+     * @param filename ...
+     * @return the initialized properties
+     * @throws IOException ...
      */
-    public static double getSysPropertyVal(String sysPropertyName,
-            double defaultVal) {
-        return valueOf(System.getProperty(sysPropertyName), defaultVal);
+    public static Properties load(String filename)
+            throws IOException {
+        Properties p = new Properties();
+        FileInputStream inStream = new FileInputStream(filename);
+        p.load(inStream);
+        inStream.close();
+        return p;
     }
 
     /**
-     * Similar to getSysPropertyVal, but for Properties.
+     * Similar to Integer.getInteger, but for Properties.
      * 
      * @param props ...
-     * @param propertyName ...
-     * @param defaultVal ...
+     * @param pName ...
+     * @param dVal ...
      * @return the value of the property or default value should parsing fail
      */
-    public static double getPropertyVal(Properties props, String propertyName,
-            double defaultVal) {
-        return valueOf(props.getProperty(propertyName), defaultVal);
+    public static double getProperty(Properties props, String pName,
+            double dVal) {
+        double pVal = valueOf(props.getProperty(pName), dVal);
+        props.setProperty(pName, String.valueOf(pVal));
+        return pVal;
     }
 
     /**
      * Value of double with default fall back value.
      * 
      * @param stringVal ...
-     * @param defaultVal ...
-     * @return the value of stringVal or defaultVal if it fails
+     * @param dVal ...
+     * @return the value of stringVal or dVal if it fails
      */
-    public static double valueOf(String stringVal, double defaultVal) {
+    public static double valueOf(String stringVal, double dVal) {
         try {
             return Double.valueOf(stringVal);
         } catch (Exception e) {
-            return defaultVal;
+            return dVal;
         }
     }
+
+    // CHECKSTYLE:OFF
+    public static long getProperty(Properties props, String pName, long dVal) {
+        long pVal = valueOf(props.getProperty(pName), dVal);
+        props.setProperty(pName, String.valueOf(pVal));
+        return pVal;
+    }
+
+    public static long valueOf(String stringVal, long dVal) {
+        try {
+            return Long.valueOf(stringVal);
+        } catch (Exception e) {
+            return dVal;
+        }
+    }
+
+    public static int getProperty(Properties props, String pName, int dVal) {
+        int pVal = valueOf(props.getProperty(pName), dVal);
+        props.setProperty(pName, String.valueOf(pVal));
+        return pVal;
+    }
+
+    public static int valueOf(String stringVal, int dVal) {
+        try {
+            return Integer.valueOf(stringVal);
+        } catch (Exception e) {
+            return dVal;
+        }
+    }
+
+    public static boolean getProperty(Properties props, String pName,
+            boolean dVal) {
+        boolean pVal = valueOf(props.getProperty(pName), dVal);
+        props.setProperty(pName, String.valueOf(pVal));
+        return pVal;
+    }
+
+    public static boolean valueOf(String stringVal, boolean dVal) {
+        try {
+            return Boolean.valueOf(stringVal);
+        } catch (Exception e) {
+            return dVal;
+        }
+    }
+
+    public static String getProperty(Properties props, String pName,
+            String dVal) {
+        String pVal = props.getProperty(pName, dVal);
+        props.setProperty(pName, pVal);
+        return pVal;
+    }
+    // CHECKSYLE:ON
 }

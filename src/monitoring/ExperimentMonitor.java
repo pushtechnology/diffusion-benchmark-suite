@@ -15,69 +15,96 @@
  */
 package monitoring;
 
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
 
+/**
+ * This is a background thread for monitoring an experiment and output the
+ * experiment metrics every second.
+ * 
+ * @author nitsanw
+ */
 public class ExperimentMonitor implements Runnable {
+    // CHECKSTYLE:OFF
+    private static final int MILLIS_IN_SECOND = 1000;
     private final ExperimentCounters experimentCounters;
-    private final Histogram histogram;
+    private final Histogram messageThroughputHistogram = new Histogram(500,
+            100000);
     private final CpuMonitor cpuMonitor = System.getProperty("java.vendor")
             .startsWith("Oracle") ? new CpuMonitor() : null;
+    private final PrintStream out;
 
-    private volatile boolean running = true;
+    private volatile boolean isRunning = true;
     private volatile boolean isSampling = false;
     private Thread monitorThread;
 
-    public ExperimentMonitor(ExperimentCounters experimentCountersP) {
+    @SuppressWarnings("resource")
+    public ExperimentMonitor(ExperimentCounters experimentCountersP,
+            String outputFilename) {
         this.experimentCounters = experimentCountersP;
-        histogram = new Histogram(500, 100000);
+        
+        if (outputFilename == null || outputFilename.isEmpty()) {
+            out = System.out;
+        } else {
+            PrintStream o;
+            try {
+                o = new PrintStream(outputFilename);
+            } catch (FileNotFoundException e) {
+                System.out.println("failed to create output file: "
+                        + outputFilename + " will use sysout instead.");
+                o = System.out;
+            }
+            out = o;
+        }
     }
 
+    // CHECKSTYLE:ON
     @Override
     public final void run() {
         SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss.SSS");
-        System.out.println("Time, MessagesPerSecond, ClientsConnected, Topics,"
+
+        out.println("Time, MessagesPerSecond, ClientsConnected, Topics,"
                 + " InSample, Cpu, ClientDisconnects, ConnectionRefusals, "
                 + "ConnectionAttempts, BytesPerSecond");
         long deadline = System.currentTimeMillis();
-        while (running) {
-            long messagesBefore = experimentCounters.messageCounter.get();
-            long bytesBefore = experimentCounters.bytesCounter.get();
+        while (isRunning) {
+            long messagesBefore = experimentCounters.getMessageCounter();
+            long bytesBefore = experimentCounters.getBytesCounter();
             long timeBefore = System.nanoTime();
-            deadline += 1000;
+            deadline += MILLIS_IN_SECOND;
             LockSupport.parkUntil(deadline);
-            long intervalMessages = experimentCounters.messageCounter.get()
+            long intervalMessages = experimentCounters.getMessageCounter()
                     - messagesBefore;
-            long intervalBytes = experimentCounters.bytesCounter.get()
+            long intervalBytes = experimentCounters.getBytesCounter()
                     - bytesBefore;
             long intervalNanos = System.nanoTime() - timeBefore;
             long messagesPerSecond = (long) intervalMessages
                     * TimeUnit.SECONDS.toNanos(1) / intervalNanos;
             long bytesPerSecond = (long) intervalBytes
                     * TimeUnit.SECONDS.toNanos(1) / intervalNanos;
-            System.out.format("%s, %d, %d, %d, %b, %s, %d, %d, %d, %d\n",
+            out.format("%s, %d, %d, %d, %b, %s, %d, %d, %d, %d\n",
                     format.format(new Date()), messagesPerSecond,
-                    experimentCounters.getNumberCurrentlyConnected(),
-                    experimentCounters.topicsCounter.get(),
+                    experimentCounters.getCurrentlyConnected(),
+                    experimentCounters.getTopicsCounter(),
                     isSampling, getCpu(),
-                    experimentCounters.clientDisconnectCounter.get(),
-                    experimentCounters.connectionRefusedCounter.get(),
-                    experimentCounters.connectionAttemptsCounter.get(),
+                    experimentCounters.getClientDisconnectCounter(),
+                    experimentCounters.getConnectionRefusedCounter(),
+                    experimentCounters.getConnectionAttemptsCounter(),
                     bytesPerSecond);
             if (isSampling) {
-                histogram.addObservation(messagesPerSecond);
+                messageThroughputHistogram.addObservation(messagesPerSecond);
             } else {
-                histogram.clear();
+                messageThroughputHistogram.clear();
             }
             // Single writer to this counter, so lazy set is fine
-            experimentCounters.lastMessagesPerSecond.lazySet(messagesPerSecond);
-
+            experimentCounters.setLastMessagesPerSecond(messagesPerSecond);
         }
-        System.out.println("-------");
-        System.out.println(histogram.toThrouphputString(true));
+        out.println("-------");
+        out.println(messageThroughputHistogram.toThrouphputString(true));
     }
 
     /**
@@ -91,20 +118,31 @@ public class ExperimentMonitor implements Runnable {
         }
     }
 
-    public boolean isSampling() {
+    /**
+     * @return true if throughput histogram is collecting samples
+     */
+    public final boolean isSampling() {
         return isSampling;
     }
 
-
-    public void startSampling() {
+    /**
+     * start sampling if not already sampling.
+     */
+    public final void startSampling() {
         isSampling = true;
     }
 
-    public void stopSampling() {
+    /**
+     * stop sampling.
+     */
+    public final void stopSampling() {
         isSampling = false;
     }
 
-    public synchronized void start() {
+    /**
+     * start monitoring the experiment.
+     */
+    public final synchronized void start() {
         if (monitorThread != null) {
             throw new IllegalStateException();
         }
@@ -114,12 +152,20 @@ public class ExperimentMonitor implements Runnable {
         monitorThread.start();
     }
 
-    public synchronized void stop() throws InterruptedException {
+    /**
+     * stop the monitoring the experiment.
+     */
+    public final synchronized void stop() {
         if (monitorThread == null) {
             throw new IllegalStateException();
         }
-        running = false;
-        monitorThread.join();
-        monitorThread = null;
+        isRunning = false;
+        try {
+            monitorThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            monitorThread = null;
+        }
     }
 }

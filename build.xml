@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<project name="load-runner" default="all" basedir=".">
+<project name="diffusion-benchmark-suite" default="all" basedir=".">
 	<taskdef resource="net/sf/antcontrib/antlib.xml"
 		classpath="lib/ant-contrib-1.0b3.jar" />
 	<taskdef resource="checkstyletask.properties"
@@ -48,11 +48,11 @@
 				<include name="*.jar" />
 			</fileset>
 		</copy>
-		<copy file="scripts/perf-test-server-tasks.xml" todir="${dir.main.dist}" />
-		<copy file="scripts/perf-test-suite-common.xml" todir="${dir.main.dist}" />
-		<copy file="scripts/ping-suite.xml" todir="${dir.main.dist}" />
-        <copy file="scripts/throughput-suite.xml" todir="${dir.main.dist}" />
-        <copy file="scripts/merge-fx-suite.xml" todir="${dir.main.dist}" />
+		<copy todir="${dir.main.dist}">
+            <fileset dir="scripts">
+                <include name="*.xml" />
+            </fileset>
+        </copy>
 		<copydir src="etc" dest="${dir.main.dist}/etc" />
 		<copydir src="META-INF" dest="${dir.main.dist}/META-INF" />
 		<zip destfile="benchmark-server.zip">

@@ -26,6 +26,8 @@
 	<property name="ssh.password" value="ds10hd" />
 	<!-- This property allows filtering tests from test suites-->
 	<property name="test.name.contains" value="perfTest" />
+    <property name="skip.server" value="false"/>
+    <property name="skip.client" value="false"/>
 
 	<import file="perf-test-server-tasks.xml" />
 	
@@ -33,12 +35,15 @@
 	<target name="after-suite" />
 	<target name="before">
 		<if>
+         <equals arg1="${skip.server}" arg2="true" /><then/>
+        <elseif>
 		 <equals arg1="${diffusion.host}" arg2="localhost" />
 		 <then>
 			<assert-no-diffusion-running />
 			<clean-diffusion />
 			<start-diffusion />
 		 </then>
+    	</elseif>
 		 <else>
 			<sshexec host="${diffusion.host}"
 				username="${ssh.username}"
@@ -49,16 +54,19 @@
 	</target>
 	<target name="after">
 		<if>
+         <equals arg1="${skip.server}" arg2="true" /><then/>
+        <elseif>
 		 <equals arg1="${diffusion.host}" arg2="localhost" />
 		 <then>
 			<kill-diffusion />
 		 </then>
-		 <else>
+    	</elseif>
+		<else>
 			<sshexec host="${diffusion.host}"
 				username="${ssh.username}"
 				password="${ssh.password}" 
 				command="cd benchmark-server;ant -f ${suite.ant.file} after" />
-		 </else>
+		</else>
 		</if>
 	</target>
 	<target name="perf-suite">

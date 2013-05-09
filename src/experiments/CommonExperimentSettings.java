@@ -15,9 +15,10 @@
  */
 package experiments;
 
-import java.util.concurrent.TimeUnit;
+import static util.PropertiesUtil.getProperty;
 
-import util.PropertiesUtil;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A common set of settings for the client side of experiments. To be extended
@@ -26,8 +27,9 @@ import util.PropertiesUtil;
  * @author nitsanw
  * 
  */
-public class CommonClientSettings {
+public class CommonExperimentSettings {
     // CHECKSTYLE:OFF adding docs will add nothing...
+    private static final String DEFAULT_URL = "ws://localhost:8080";
     private static final int DEFAULT_INBOUND_THREAD_POOL_CORE_SIZE = 1;
     private static final int DEFAULT_INBOUND_THREAD_POOL_MAX_SIZE = 1;
     private static final int DEFAULT_CLIENT_INCREMENT_PAUSE_SECS = 5;
@@ -35,6 +37,7 @@ public class CommonClientSettings {
     private static final int DEFAULT_CLIENT_INCREMENT = 50;
     private static final int DEFAULT_INITIAL_CLIENTS = 50;
     private static final int DEFAULT_MAX_CLIENTS = 175;
+    private static final int DEFAULT_MESSAGE_SIZE = 128;
     private static final String DEFAULT_CONNECT_TOPIC_SELECTOR = "ROOT//";
     private static final double DEFAULT_MAX_TEST_TIME_MINUTES = 5.0;
 
@@ -44,52 +47,69 @@ public class CommonClientSettings {
     private final int inboundThreadPoolMaxSize;
     private final int inboundThreadPoolCoreSize;
     private final String[] localInterfaces;
-    private final long maxTestTimeMillis;
     private final int initialClients;
     private final int clientIncrement;
     private final String connectTopicSelector;
     private final int clientIncrementPauseSeconds;
+    private final int messageSize;
+    private final long maxTestTimeMillis;
+    private final long maxTestMessages;
+    private final long maxTestConnections;
+    private final Properties finalSettings;
+    private final String outputFileName;
     // CHECKSTYLE:ON
     /**
-     * Load the experiment setting from system properties.
+     * Load the experiment settings from properties.
      * 
+     * @param settings ...
      */
-    public CommonClientSettings() {
+    public CommonExperimentSettings(Properties settings) {
+        finalSettings = new Properties();
+        finalSettings.putAll(settings);
         diffusionUrls =
-                System.getProperty("connect.string", "ws://localhost:8080")
-                        .split(",");
+                getProperty(finalSettings, "connect.string", 
+                        DEFAULT_URL).split(",");
 
-        maxClients = Integer.getInteger("max.clients", DEFAULT_MAX_CLIENTS);
-        initialClients = Integer.getInteger("initial.clients", 
+        maxClients = getProperty(finalSettings, "max.clients", 
+                DEFAULT_MAX_CLIENTS);
+        initialClients = getProperty(finalSettings, "initial.clients",
                 DEFAULT_INITIAL_CLIENTS);
-        clientIncrement = Integer.getInteger("clients.increment", 
+        clientIncrement = getProperty(finalSettings, "clients.increment",
                 DEFAULT_CLIENT_INCREMENT);
         clientCreatePauseNanos =
                 (long) (TimeUnit.SECONDS.toNanos(1)
-                * PropertiesUtil.getSysPropertyVal(
-                        "client.create.pause.seconds", 
+                * getProperty(finalSettings,
+                        "client.create.pause.seconds",
                         DEFAULT_CLIENT_CREATE_PAUSE_SECS));
         clientIncrementPauseSeconds =
-                Integer.getInteger("client.increment.pause.seconds",
+                getProperty(finalSettings, "client.increment.pause.seconds",
                         DEFAULT_CLIENT_INCREMENT_PAUSE_SECS);
         inboundThreadPoolMaxSize =
-                Integer.getInteger("inbound.threadpool.max.size", 
+                getProperty(finalSettings, "inbound.threadpool.max.size",
                         DEFAULT_INBOUND_THREAD_POOL_MAX_SIZE);
         inboundThreadPoolCoreSize =
-                Integer.getInteger("inbound.threadpool.core.size", 
+                getProperty(finalSettings, "inbound.threadpool.core.size",
                         DEFAULT_INBOUND_THREAD_POOL_CORE_SIZE);
-        String localsInterfaces = System.getProperty("local.interfaces", null);
+        String localsInterfaces =
+                getProperty(finalSettings, "local.interfaces", "");
         if (localsInterfaces == null || localsInterfaces.isEmpty()) {
             localInterfaces = new String[] {};
         } else {
             localInterfaces = localsInterfaces.split(",");
         }
         connectTopicSelector =
-                System.getProperty("topic", DEFAULT_CONNECT_TOPIC_SELECTOR);
+                getProperty(finalSettings, "topic",
+                        DEFAULT_CONNECT_TOPIC_SELECTOR);
+        messageSize = Integer.getInteger("message.size",
+                DEFAULT_MESSAGE_SIZE);
         maxTestTimeMillis =
-                (long) (TimeUnit.MINUTES.toMillis(1) * PropertiesUtil
-                        .getSysPropertyVal("max.test.time.minutes",
-                                DEFAULT_MAX_TEST_TIME_MINUTES));
+                (long) (TimeUnit.MINUTES.toMillis(1)
+                 * getProperty(finalSettings, "max.test.time.minutes",
+                        DEFAULT_MAX_TEST_TIME_MINUTES));
+        maxTestMessages = getProperty(finalSettings, "max.test.messages", 0L);
+        maxTestConnections = getProperty(finalSettings, 
+                "max.test.connections", 0L);
+        outputFileName = getProperty(finalSettings, "experiment.output", "");
     }
 
     // CHECKSTYLE:OFF adding docs will add nothing...
@@ -136,5 +156,25 @@ public class CommonClientSettings {
     public int getClientIncrementPauseSeconds() {
         return clientIncrementPauseSeconds;
     }
+
+    public int getMessageSize() {
+        return messageSize;
+    }
+
+    public long getMaxTestMessages() {
+        return maxTestMessages;
+    }
+
+    public long getMaxTestConnections() {
+        return maxTestConnections;
+    }
+
+    public Properties getFinalSettings() {
+        return finalSettings;
+    }
+    public String getOutputFile() {
+        return outputFileName;
+    }
     // CHECKSTYLE:ON
+
 }

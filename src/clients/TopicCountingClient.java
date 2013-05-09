@@ -50,7 +50,7 @@ public class TopicCountingClient extends MessageCountingClient {
         int size = topics.size();
         topics.add(topicMessage.getTopicName());
         if (size != topics.size()) {
-            experimentCounters.topicsCounter.set(topics.size());
+            experimentCounters.setTopicsCounter(topics.size());
         }
     }
 }

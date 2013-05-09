@@ -7,18 +7,10 @@
 	   COMPARE - conflation using the now deprecated comparator facility
 	-->
     <property name="conflationMode" value="NONE"/>
-	
-	<!-- if you set gentile to true the client will stop loading the server
-	   when adding clients stops increasing the precieved throughput -->
-	<condition property="client.type"
-        value="clients.GentleDiffusionBenchmark"
-        else="clients.DiffusionBenchmark">
-        <equals arg1="${gentile}" arg2="true" />
-    </condition>
     <property environment="env"/>
     <property name="suite.ant.file" value="throughput-suite.xml"/>
-	
-	
+	<property name="client.jvm.args" value="-server -Xms2g -Xmx2g"/>
+	        
 	<import file="perf-test-server-tasks.xml" />
 	<!-- Further common settings are available in the test-suite-common file
 	-->
@@ -83,7 +75,6 @@
 
 	<macrodef name="run-ramping-throughput-test">
 		<!-- Client attributes -->
-		<attribute name="client.jvm.memory" default="8g"/>
 		<attribute name="initial.clients" default="1"/>
 		<attribute name="max.clients" default="2000"/>
 		<attribute name="clients.increment" default="1"/>
@@ -103,28 +94,10 @@
 		<attribute name="test.name" />
 		<sequential>
 			<var name="full-test-name" value="@{test.name}-${diffusion.protocol}-${conflationMode}"/>
-			<echo file="${full-test-name}.settings">
-#Publisher settings:
-publish.pause.seconds="@{publish.pause.seconds}"
-message.size="@{message.size}" 
-initial.messages="@{initial.messages}"
-message.increment.interval="@{message.increment.interval}"
-message.increment="@{message.increment}"
-initial.topic.num="@{initial.topic.num}"
-topic.increment.interval="@{topic.increment.interval}"
-topic.increment="@{topic.increment}"
-#Client settings:
-initial.clients="@{initial.clients}"
-max.clients="@{max.clients}"
-clients.increment="@{clients.increment}"
-client.create.pause.seconds="@{client.create.pause.seconds}"
-client.increment.pause.seconds=@{client.increment.pause.seconds}
-threads="@{threads}"
-client.jvm.memory="@{client.jvm.memory}"
-diffusion.url="${diffusion.url}"
---------------
-			</echo>
+			
 			<if>
+             <equals arg1="${skip.server}" arg2="true" /><then/>
+			<elseif>
 			 <equals arg1="${diffusion.host}" arg2="localhost" />
 			 <then>
 			 	<!-- Create publisher configuration -->
@@ -141,6 +114,7 @@ diffusion.url="${diffusion.url}"
  				<dar publisher.name="@{test.name}" />
  				<deploy-dar dar.name="@{test.name}.dar" />
 			 </then>
+			 </elseif>
 			 <else>
 				<sshexec host="${diffusion.host}"
 					username="${ssh.username}"
@@ -150,23 +124,57 @@ diffusion.url="${diffusion.url}"
 			 </else>
 			</if>
 			<!-- Start Client -->
-			<run-ramping-client output="${full-test-name}.out"
-				initial.clients="@{initial.clients}" 
-				max.clients="@{max.clients}"
-				clients.increment="@{clients.increment}"
-				client.create.pause.seconds="@{client.create.pause.seconds}"
-				client.increment.pause.seconds="@{client.increment.pause.seconds}"
-			 	threads="@{threads}" client.jvm.memory="@{client.jvm.memory}"
-				max.test.time.minutes="@{max.test.time.minutes}"/>
-			
+            <if>
+             <equals arg1="${skip.client}" arg2="true" />
+            	<then><input>Press Return key to continue...</input></then>
+            	<else>
+                    <if>
+                        <available file="${full-test-name}.settings"/>
+                        <then>
+                            <echo message="Using existing settings file: ${full-test-name}.settings"/>
+                        </then>
+                        <else>
+                            <echo file="${full-test-name}.settings">
+#Publisher settings:
+publish.pause.seconds=@{publish.pause.seconds}
+message.size=@{message.size}
+initial.messages=@{initial.messages}
+message.increment.interval="@{message.increment.interval}
+message.increment="@{message.increment}
+initial.topic.num="@{initial.topic.num}
+topic.increment.interval=@{topic.increment.interval}
+topic.increment=@{topic.increment}
+#Client settings:
+initial.clients=@{initial.clients}
+max.clients=@{max.clients}
+clients.increment=@{clients.increment}
+client.create.pause.seconds=@{client.create.pause.seconds}
+client.increment.pause.seconds=@{client.increment.pause.seconds}
+inbound.threadpool.core.size=@{threads}
+inbound.threadpool.max.size=@{threads}
+client.jvm.args=${client.jvm.args}
+diffusion.url=${diffusion.url}
+local.interfaces=${diffusion.client.nics}
+experiment.output=${full-test-name}.csv
+clients.output=${full-test-name}-clients.log
+                            </echo>
+                        </else>
+                    </if>
+        	    <run-ramping-client testname="${full-test-name}"/>
+        	    </else>
+            </if>			
 			<!-- Cleanup server deployment -->
 			<if>
+             <equals arg1="${skip.server}" arg2="true" />
+			 <then><input>Press Return key to continue...</input></then>
+			<elseif>
 			 <equals arg1="${diffusion.host}" arg2="localhost" />
 			 <then>
 			 	<undeploy-dar dar.name="@{test.name}.dar" />
  				<delete file="@{test.name}.dar"/>
 			 </then>
-			 <else>
+			</elseif>
+		    <else>
 				<sshexec host="${diffusion.host}"
 					username="${ssh.username}"
 					password="${ssh.password}" 
@@ -192,37 +200,20 @@ diffusion.url="${diffusion.url}"
 		<undeploy-dar dar.name="${test.name}.dar" />
 		<delete file="${test.name}.dar"/>
 	</target>
+	
 	<macrodef name="run-ramping-client">
-		<attribute name="client.jvm.memory" default="8g"/>
-		<attribute name="initial.clients" default="1"/>
-		<attribute name="max.clients" default="2000"/>
-		<attribute name="clients.increment" default="1"/>
-		<attribute name="max.test.time.minutes" default="5"/>
-        <attribute name="client.create.pause.seconds" default="0.001"/>
-        <attribute name="client.increment.pause.seconds" default="3"/>
-		<attribute name="threads" default="10"/>
-		<attribute name="output" />
-		<sequential>
-			<echo message="Starting test client..."/>
-			<java classname="${client.type}" fork="true" 
-				  failonerror="true" output="@{output}">
-				<jvmarg value="-server" />
-				<jvmarg value="-Xmx@{client.jvm.memory}" />
-				<jvmarg value="-Xms@{client.jvm.memory}" />
-                <sysproperty key="log.exception" value="false" />
-				<sysproperty key="connect.string" value="${diffusion.url}" />
-				<sysproperty key="initial.clients" value="@{initial.clients}" />
-				<sysproperty key="max.clients" value="@{max.clients}" />
-				<sysproperty key="clients.increment" value="@{clients.increment}" />
-                <sysproperty key="client.create.pause.seconds" value="@{client.create.pause.seconds}" />
-                <sysproperty key="client.increment.pause.seconds" value="@{client.increment.pause.seconds}" />
-				<sysproperty key="inbound.threadpool.max.size" value="@{threads}" />
-				<sysproperty key="inbound.threadpool.core.size" value="@{threads}" />
-				<sysproperty key="local.interfaces" value="${diffusion.client.nics}" />
-				<sysproperty key="max.test.time.minutes" value="@{max.test.time.minutes}" />
-				<classpath refid="test.runtime.classpath" />
+		<attribute name="testname" />
+		<attribute name="client.jvm.memory" default="1g" />
+        <sequential>
+			<echo message="...Starting test client..."/>
+			<java classname="experiments.ExperimentRunner" fork="true" 
+				  failonerror="true" jvmargs="${client.jvm.args}">
+                <sysproperty key="log.connection.exception" value="false" />
+				<arg value="experiments.ThroughputExperiment"/>
+				<arg value="@{testname}.settings"/>
+                <classpath refid="test.runtime.classpath" />
 			</java>
-	        <echo message="Test client finished..."/>
+	        <echo message="...Test client finished..."/>
 		</sequential>
 	</macrodef>
 	<macrodef name="configure-injector">

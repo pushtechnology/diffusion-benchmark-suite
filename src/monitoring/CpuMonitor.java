@@ -20,50 +20,48 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 
 /**
- * A utility for monitoring CPU usage.
+ * A utility for monitoring CPU usage. Only works on the Oracle/Sun JVM.
  * 
  * @author nitsanw
- *
+ * 
  */
-public class CpuMonitor {
-    private long lastSystemTime = 0;
-    private long lastProcessCpuTime = 0;
+public final class CpuMonitor {
+    // CHECKSTYLE:OFF
+    private long lastSampleSystemTime = 0;
+    private long lastSampleProcessCpuTime = 0;
     private OperatingSystemMXBean bean = ManagementFactory
             .getOperatingSystemMXBean();
+    // CHECKSTYLE:ON
+    /**
+     * @return cpu usage in percent of logical cpu
+     */
+    public double getCpuUsage() {
+        if (lastSampleSystemTime == 0) {
+            lastSampleSystemTime = System.nanoTime();
 
-    public synchronized double getCpuUsage() {
-        if (lastSystemTime == 0) {
-            baselineCounters();
+            if (bean instanceof com.sun.management.OperatingSystemMXBean) {
+                lastSampleProcessCpuTime =
+                        ((com.sun.management.OperatingSystemMXBean) bean)
+                                .getProcessCpuTime();
+            }
             return 0.0;
         }
 
         long systemTime = System.nanoTime();
         long processCpuTime = 0;
 
-        if (getOperatingSystemMXBean() instanceof com.sun.management.OperatingSystemMXBean) {
-            processCpuTime = ((com.sun.management.OperatingSystemMXBean) getOperatingSystemMXBean())
-                    .getProcessCpuTime();
+        if (bean instanceof com.sun.management.OperatingSystemMXBean) {
+            processCpuTime = ((com.sun.management.OperatingSystemMXBean)
+                    bean)
+                            .getProcessCpuTime();
         }
-
-        double cpuUsage = (double) (processCpuTime - lastProcessCpuTime)
-                * 100.0 / (systemTime - lastSystemTime);
-
-        lastSystemTime = systemTime;
-        lastProcessCpuTime = processCpuTime;
+        // CHECKSTYLE:OFF
+        double cpuUsage = (double) (processCpuTime - lastSampleProcessCpuTime)
+                * 100.0 / (systemTime - lastSampleSystemTime);
+        // CHECKSTYLE:ON
+        lastSampleSystemTime = systemTime;
+        lastSampleProcessCpuTime = processCpuTime;
 
         return cpuUsage;
-    }
-
-    private OperatingSystemMXBean getOperatingSystemMXBean() {
-        return bean;
-    }
-
-    private void baselineCounters() {
-        lastSystemTime = System.nanoTime();
-
-        if (getOperatingSystemMXBean() instanceof com.sun.management.OperatingSystemMXBean) {
-            lastProcessCpuTime = ((com.sun.management.OperatingSystemMXBean) getOperatingSystemMXBean())
-                    .getProcessCpuTime();
-        }
     }
 }

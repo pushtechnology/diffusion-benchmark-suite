@@ -15,7 +15,8 @@
  */
 package experiments;
 
-import java.util.concurrent.Executor;
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
@@ -39,7 +40,7 @@ import com.pushtechnology.diffusion.api.threads.ThreadService;
  * @author nwakart
  * 
  */
-public class BaseExperiment implements Runnable {
+public class ExperimentControlLoop implements Runnable {
     /** async connect client task. */
     private final Runnable createClientTask = new Runnable() {
         @Override
@@ -53,17 +54,13 @@ public class BaseExperiment implements Runnable {
             }
         }
     };
-    /** background thread for connection creation. */
-    private static final Executor CONNECT_THREAD =
-            Executors.newSingleThreadExecutor();
     /** experiment counters used for reporting and load management. */
     private final ExperimentCounters experimentCounters =
             new ExperimentCounters();
     /** the monitor runs in the background and prints experiment output. */
-    private final ExperimentMonitor experimentMonitor =
-            new ExperimentMonitor(getExperimentCounters());
+    private final ExperimentMonitor experimentMonitor;
     /** common settings for control. */
-    private CommonClientSettings clientSettings;
+    private final CommonExperimentSettings clientSettings;
 
     /** connection factory, will be initiated with a client factory. */
     private Factory<ExternalClientConnection> connector;
@@ -71,22 +68,19 @@ public class BaseExperiment implements Runnable {
     private ExperimentLoadStrategy loadStrategy;
 
     /**
-     * TODO: externalize.
+     * @param settings ...
      */
-    public BaseExperiment() {
-        setClientSettings(new CommonClientSettings());
-        Factory<ExperimentClient> clientFactory =
-                new DefaultClientFactory(clientSettings, experimentCounters);
-        setClientFactory(clientFactory);
-        ExperimentLoadStrategy defaultLoadStrategy =
-                new DefaultLoadStrategy(clientSettings);
-        setLoadStartegy(defaultLoadStrategy);
+    public ExperimentControlLoop(CommonExperimentSettings settings) {
+        clientSettings = settings;
+        experimentMonitor =
+                new ExperimentMonitor(getExperimentCounters(), 
+                        settings.getOutputFile());
     }
 
     /**
      * @param clientFactory ...
      */
-    protected final void setClientFactory(
+    public final void setClientFactory(
             Factory<ExperimentClient> clientFactory) {
         connector = new ClientConnectionFactory(
                 getExperimentCounters(),
@@ -97,16 +91,8 @@ public class BaseExperiment implements Runnable {
     /**
      * @param strategy ...
      */
-    protected final void setLoadStartegy(ExperimentLoadStrategy strategy) {
+    public final void setLoadStartegy(ExperimentLoadStrategy strategy) {
         this.loadStrategy = strategy;
-    }
-
-    /**
-     * @param clientSettingsP ...
-     */
-    protected final void setClientSettings(CommonClientSettings 
-            clientSettingsP) {
-        clientSettings = clientSettingsP;
     }
 
     @Override
@@ -115,10 +101,11 @@ public class BaseExperiment implements Runnable {
             setUp();
             // GO!
             long testStartTime = System.currentTimeMillis();
-
+            ExecutorService connectThread =
+                    Executors.newSingleThreadExecutor();
             // generate initial load
             for (int i = 0; i < getClientSettings().getInitialClients(); i++) {
-                CONNECT_THREAD.execute(createClientTask);
+                connectThread.execute(createClientTask);
             }
             postInitialLoadCreated();
             experimentMonitor.startSampling();
@@ -128,23 +115,25 @@ public class BaseExperiment implements Runnable {
                 if (loadStrategy.shouldIncrementLoad(lastIncrementTime)) {
                     lastIncrementTime = System.currentTimeMillis();
                     long currConns =
-                            experimentCounters.getNumberCurrentlyConnected();
+                            experimentCounters.getCurrentlyConnected();
                     int maxConns = getClientSettings().getMaxClients();
                     int incBy = getClientSettings().getClientIncrement();
                     incBy = (int) Math.min(incBy, maxConns - currConns);
                     for (int i = 0; i < incBy; i++) {
-                        CONNECT_THREAD.execute(createClientTask);
+                        connectThread.execute(createClientTask);
                     }
                 }
                 LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(1));
             }
-
+            connectThread.shutdownNow();
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        experimentMonitor.stop();
         try {
-            experimentMonitor.stop();
-        } catch (InterruptedException e) {
+            connector.close();
+        } catch (IOException e) {
             e.printStackTrace();
         }
         wrapupAndReport();
@@ -188,7 +177,7 @@ public class BaseExperiment implements Runnable {
     /**
      * @return the client settings
      */
-    protected final CommonClientSettings getClientSettings() {
+    protected final CommonExperimentSettings getClientSettings() {
         return clientSettings;
     }
 

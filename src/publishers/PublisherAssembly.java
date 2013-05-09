@@ -17,15 +17,12 @@ package publishers;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import util.MessagesForTopicsMonitor;
-
 public final class PublisherAssembly {
     private final AtomicLong messageCounter = new AtomicLong();
     private final AtomicLong topicsCounter = new AtomicLong();
     private final MessagePublisher messagePublisher;
     private final BroadcastConfiguration config;
 
-    private MessagesForTopicsMonitor intervalCounterMonitor;
     private Thread injectionRunnerThread;
     private BroadcastRunner injectionRunner;
     private Thread monitorThread;
@@ -41,12 +38,6 @@ public final class PublisherAssembly {
             throw new IllegalStateException(
                     "Init should be called only once, found monitorThread");
         }
-        intervalCounterMonitor = new MessagesForTopicsMonitor(messageCounter,
-                topicsCounter);
-        monitorThread = new Thread(intervalCounterMonitor);
-        monitorThread.setDaemon(true);
-        monitorThread.setName("counter-monitor-thread");
-        monitorThread.start();
 
         injectionRunner = new BroadcastRunner(messagePublisher, messageCounter,
                 topicsCounter, config);
@@ -68,14 +59,5 @@ public final class PublisherAssembly {
             e.printStackTrace();
         }
         injectionRunnerThread = null;
-
-        intervalCounterMonitor.halt();
-        monitorThread.interrupt();
-        try {
-            monitorThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        monitorThread = null;
     }
 }

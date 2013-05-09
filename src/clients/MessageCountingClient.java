@@ -25,8 +25,7 @@ import com.pushtechnology.diffusion.message.TopicMessageImpl;
 
 
 /**
- * A client event listener setup with counters to support monitoring. Can be
- * shared between many client connections.
+ * A client event listener setup with counters to support monitoring.
  * 
  * @author nitsanw
  * 
@@ -34,9 +33,8 @@ import com.pushtechnology.diffusion.message.TopicMessageImpl;
 public class MessageCountingClient implements ExperimentClient {
     // CHECKSTYLE:OFF docs will add nothing here
     protected final ExperimentCounters experimentCounters;
-    private boolean reconnect;
     private final String[] initialTopics;
-
+    private boolean reconnect;
     // CHECKSTYLE:ON
 
     /**
@@ -53,7 +51,7 @@ public class MessageCountingClient implements ExperimentClient {
 
     @Override
     public final void serverConnected(final ServerConnection serverConnection) {
-        experimentCounters.clientConnectCounter.incrementAndGet();
+        experimentCounters.incClientConnectCounter();
         onServerConnect(serverConnection);
     }
 
@@ -70,13 +68,11 @@ public class MessageCountingClient implements ExperimentClient {
             final ServerConnection serverConnection,
             final TopicMessage topicMessage) {
         onMessage(serverConnection, topicMessage);
-        experimentCounters.messageCounter.incrementAndGet();
-        // TODO: uses internal API
-        experimentCounters.bytesCounter
-                .addAndGet(((TopicMessageImpl) topicMessage)
-                        .getOriginalMessageSize());
-        
-
+        experimentCounters.incMessageCounter();
+        // TODO: hack, uses internal API
+        int originalMessageSize = ((TopicMessageImpl) topicMessage)
+                .getOriginalMessageSize();
+        experimentCounters.incByteCounter(originalMessageSize);
     }
 
     /**
@@ -102,14 +98,14 @@ public class MessageCountingClient implements ExperimentClient {
 
     @Override
     public final void serverDisconnected(ServerConnection serverConnection) {
-        experimentCounters.clientDisconnectCounter.incrementAndGet();
+        experimentCounters.incClientDisconnectCounter();
         onServerDisconnect(serverConnection);
         if (reconnect) {
             try {
                 serverConnection.connect(initialTopics);
             } catch (Exception e) {
                 
-                experimentCounters.connectionRefusedCounter.incrementAndGet();
+                experimentCounters.incConnectionRefusedCounter();
             }
         }
     }
@@ -127,7 +123,7 @@ public class MessageCountingClient implements ExperimentClient {
     }
 
     /**
-     * @param reconnectP ...
+     * @param reconnectP set to false to stop client from reconnecting
      */
     public final void setReconnect(boolean reconnectP) {
         this.reconnect = reconnectP;

@@ -4,6 +4,7 @@
     <property name="suite.ant.file" value="latency-suite.xml"/>
 	<import file="perf-test-server-tasks.xml" />
 	<import file="perf-test-suite-common.xml" />
+	<!-- before/after are empty as we want the server up for duration of suite -->
 	<target name="before" />
 	<target name="after" />
 	<target name="before-suite">
@@ -63,13 +64,12 @@
 		<sequential>
 			<echo file="@{test.name}-${diffusion.protocol}.settings">
 				Test settings:
-				message.size="@{message.size}" 
-				initial.clients="@{initial.clients}"
-				max.clients="@{max.clients}"
-				client.create.pause.seconds="@{client.create.pause.seconds}"
-			 	threads="@{threads}"
-				client.jvm.memory="@{client.jvm.memory}"
-				--------------
+				message.size=@{message.size}"
+				initial.clients=@{initial.clients}
+				max.clients=@{max.clients}
+				client.create.pause.seconds=@{client.create.pause.seconds}
+			 	threads=@{threads}
+				client.jvm.memory=@{client.jvm.memory}
 			</echo>
 			<!-- Start Client -->
 			<echo message="Running latency test ${diffusion.url}"/>

@@ -15,7 +15,11 @@
  */
 
 /**
- * Client behaviour implementations...
+ * Client behaviour implementations. Experiments will usually involve a host
+ * of clients hooking up to a server and interacting with it(send/ subscribe/ 
+ * un-subscribe) over a period of time. Clients report their observations via
+ * the ExperimentCounters object and the MessageCountingClient implements most
+ * of the required reporting for clients.`
  * 
  * @author nitsanw
  */

@@ -26,39 +26,10 @@
 		<property name="topicIncrement">1</property>
 	</publisher>
     
-    <publisher name="ChatterPublisher">
-        <class>publishers.ChatterPublisher
-        </class>
-        <enabled>true</enabled>
-        <start>true</start>
-    </publisher>
-<!--
     <publisher name="PingPublisher">
         <class>publishers.PingPublisher
         </class>
         <enabled>true</enabled>
         <start>true</start>
     </publisher>
-    <publisher name="EventPubDrivenPublisher">
-        <class>publishers.EventPubDrivenPublisher</class>
-        <enabled>true</enabled>
-        <start>true</start>
-    </publisher>-->
-    <!--
-    <publisher name="MarketDepthPublisher">
-        <class>publishers.merge.MarketDepthPublisher
-        </class>
-        <enabled>true</enabled>
-        <start>true</start>
-        <property name="topic">ROOT</property>
-        <property name="intervalPauseSeconds">1</property>
-        <property name="messageSize">125</property>
-        <property name="initialMessages">1</property>
-        <property name="messageIncrementIntervalInPauses">1</property>
-        <property name="messageIncrement">0</property>
-        <property name="initialTopicNum">50</property>
-        <property name="topicIncrementIntervalInPauses">1</property>
-        <property name="topicIncrement">0</property>
-    </publisher>
-    -->
 </publishers>

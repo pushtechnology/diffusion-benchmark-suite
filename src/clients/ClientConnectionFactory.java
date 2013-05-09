@@ -17,6 +17,7 @@ package clients;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
@@ -33,7 +34,7 @@ import com.pushtechnology.diffusion.api.connection.ConnectionFactory;
 import com.pushtechnology.diffusion.api.connection.ServerDetails;
 import com.pushtechnology.diffusion.utils.JVMSupport;
 
-import experiments.CommonClientSettings;
+import experiments.CommonExperimentSettings;
 
 /**
  * This is a factory for ExternalClientConnections given a set of diffusion urls
@@ -49,7 +50,7 @@ public class ClientConnectionFactory implements
     private static final int SSL_BUFFER_SIZE = 64 * 1024;
     private static final boolean VERBOSE = Boolean.getBoolean("verbose");
     private final ExperimentCounters experimentCounters;
-    private final CommonClientSettings clientSettings;
+    private final CommonExperimentSettings clientSettings;
     private SSLContext cachedSslContext;
 
     private Factory<ExperimentClient> clientFactory;
@@ -61,7 +62,7 @@ public class ClientConnectionFactory implements
      * @param clientFactoryP ...
      */
     public ClientConnectionFactory(ExperimentCounters experimentCountersP,
-            CommonClientSettings clientSettingsP,
+            CommonExperimentSettings clientSettingsP,
             Factory<ExperimentClient> clientFactoryP) {
         this.experimentCounters = experimentCountersP;
         this.clientSettings = clientSettingsP;
@@ -78,8 +79,9 @@ public class ClientConnectionFactory implements
 
         // choose binding address via local.interface
         try {
-            int rotator = (int) experimentCounters.
-                    connectionAttemptsCounter.incrementAndGet();
+            experimentCounters.incConnectionAttemptsCounter();
+            int rotator = (int)
+                    experimentCounters.getConnectionAttemptsCounter();
 
             String[] diffusionUrls = clientSettings.getDiffusionUrls();
             String url = diffusionUrls[rotator % diffusionUrls.length];
@@ -97,7 +99,7 @@ public class ClientConnectionFactory implements
             if (VERBOSE) {
                 e.printStackTrace();
             }
-            experimentCounters.connectionRefusedCounter.incrementAndGet();
+            experimentCounters.incConnectionRefusedCounter();
             return null;
         }
     }
@@ -199,12 +201,17 @@ public class ClientConnectionFactory implements
     @Override
     public final ExternalClientConnection create() {
         long numberCurrentlyConnected =
-                experimentCounters.getNumberCurrentlyConnected();
+                experimentCounters.getCurrentlyConnected();
         if (numberCurrentlyConnected < clientSettings.getMaxClients()) {
             ExperimentClient client = clientFactory.create();
             return createConnection(client, client.getInitialTopics());
         } else {
             return null;
         }
+    }
+
+    @Override
+    public final void close() throws IOException {
+        clientFactory.close();
     }
 }
