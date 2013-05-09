@@ -65,9 +65,7 @@ public final class PingClient extends MessageCountingClient {
         if (externalData.length != message.length) {
             return;
         }
-        long sent = ByteBuffer.wrap(
-                externalData)
-                .getLong();
+        long sent = ByteBuffer.wrap(externalData).getLong();
         long rtt = System.nanoTime() - sent;
         if (experimentCounters.getMessageCounter() > WARMUP_MESSAGES) {
             getHistogram().addObservation(rtt);
