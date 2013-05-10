@@ -7,7 +7,6 @@ import clients.ExperimentClient;
  * The basic throughput experiment.
  * 
  * @author nitsanw
- *
  */
 public final class ThroughputExperiment implements Runnable {
 
@@ -20,11 +19,11 @@ public final class ThroughputExperiment implements Runnable {
     public ThroughputExperiment(CommonExperimentSettings settings) {
         loop = new ExperimentControlLoop(settings);
         Factory<ExperimentClient> clientFactory =
-                new DefaultClientFactory(loop.getClientSettings(), 
+                new DefaultClientFactory(loop.getClientSettings(),
                         loop.getExperimentCounters());
         loop.setClientFactory(clientFactory);
         ExperimentLoadStrategy defaultLoadStrategy =
-                new DefaultLoadStrategy(loop.getClientSettings(), 
+                new DefaultLoadStrategy(loop.getClientSettings(),
                         loop.getExperimentCounters());
         loop.setLoadStartegy(defaultLoadStrategy);
     }

@@ -16,7 +16,6 @@
 package experiments;
 
 import java.io.PrintStream;
-import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -102,14 +101,14 @@ public class ExperimentControlLoop implements Runnable {
             setUp();
             // GO!
             long testStartTime = System.currentTimeMillis();
-            System.out.println(new Date() + " - Starting experiment");
+            Logs.info("Starting experiment");
             ExecutorService connectThread =
                     Executors.newSingleThreadExecutor();
             // generate initial load
             for (int i = 0; i < getClientSettings().getInitialClients(); i++) {
                 connectThread.execute(createClientTask);
             }
-            System.out.println(new Date() + " - Initial load created");
+            Logs.info("Initial load created");
             postInitialLoadCreated();
             experimentMonitor.startSampling();
             long lastIncrementTime = System.currentTimeMillis();
@@ -123,8 +122,7 @@ public class ExperimentControlLoop implements Runnable {
                     int incBy = getClientSettings().getClientIncrement();
                     incBy = (int) Math.min(incBy, maxConns - currConns);
                     if (incBy > 0) {
-                        System.out.println(new Date()
-                                + " - increasing load by:" + incBy);
+                        Logs.info("increasing load by:" + incBy);
                     }
                     for (int i = 0; i < incBy; i++) {
                         connectThread.execute(createClientTask);
@@ -134,13 +132,13 @@ public class ExperimentControlLoop implements Runnable {
             }
             connectThread.shutdownNow();
         } catch (Exception e) {
-            e.printStackTrace();
+            Logs.severe("Error during experiment loop", e);
         }
-        System.out.println(new Date() + " - time is up, wrapping up");
+        Logs.info("time is up, wrapping up");
         experimentMonitor.stop();
         connector.close();
         wrapupAndReport();
-        System.out.println(new Date() + " - experiment finished");
+        Logs.info("experiment finished");
     }
 
     /**
@@ -166,7 +164,7 @@ public class ExperimentControlLoop implements Runnable {
         if (Boolean.getBoolean("verbose")) {
             Logs.setLevel(Level.FINEST);
         } else {
-            Logs.setLevel(Level.OFF);
+            Logs.setLevel(Level.INFO);
         }
         // configure
         int qSize = getClientSettings().getMaxClients();

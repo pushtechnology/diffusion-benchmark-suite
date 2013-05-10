@@ -2,10 +2,11 @@ package experiments;
 
 import java.io.FileOutputStream;
 import java.lang.reflect.Constructor;
-import java.util.Date;
 import java.util.Properties;
 
 import util.PropertiesUtil;
+
+import com.pushtechnology.diffusion.api.Logs;
 
 /**
  * A main class for all experiments.
@@ -26,33 +27,34 @@ public final class ExperimentRunner {
      * @throws Exception on grrr
      */
     public static void main(final String[] args) throws Exception {
-        Class<?> experimentClass = Class.forName(args[0]);
-        Class<?> settingsClass = CommonExperimentSettings.class;
         try {
-            String settingsClassName = args[0] + "$Settings";
-            settingsClass = Class.forName(settingsClassName);
-            System.out.println(new Date()
-                    + " - Using " + settingsClassName + " settings class...");
-        } catch (ClassNotFoundException e) {
-            System.out.println(new Date()
-                    + " - Using default settings class...");
-            e.printStackTrace();
+            Class<?> experimentClass = Class.forName(args[0]);
+            Class<?> settingsClass = CommonExperimentSettings.class;
+            try {
+                String settingsClassName = args[0] + "$Settings";
+                settingsClass = Class.forName(settingsClassName);
+                Logs.info("Using " + settingsClassName + " settings class...");
+            } catch (ClassNotFoundException e) {
+                Logs.info("Using default settings class...");
+            }
+            Properties experimentProperties = PropertiesUtil.load(args[1]);
+            CommonExperimentSettings settings =
+                    (CommonExperimentSettings) settingsClass.getConstructor(
+                            Properties.class).newInstance(
+                            experimentProperties);
+            FileOutputStream out = new FileOutputStream(args[1]);
+            experimentProperties.store(out, "");
+            out.close();
+
+            Constructor<?> constructor =
+                    experimentClass.
+                            getConstructor(settingsClass);
+
+            Runnable experiment = (Runnable) constructor.newInstance(settings);
+            experiment.run();
+        } finally {
+            System.exit(0);
         }
-        Properties experimentProperties = PropertiesUtil.load(args[1]);
-        CommonExperimentSettings settings =
-                (CommonExperimentSettings) settingsClass.getConstructor(
-                        Properties.class).newInstance(
-                        experimentProperties);
-        FileOutputStream out = new FileOutputStream(args[1]);
-        settings.getFinalSettings().store(out, "");
-        out.close();
-
-        Constructor<?> constructor =
-                experimentClass.
-                        getConstructor(settingsClass);
-
-        Runnable experiment = (Runnable) constructor.newInstance(settings);
-        experiment.run();
-        System.exit(0);
+        
     }
 }

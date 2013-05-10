@@ -27,6 +27,7 @@ import javax.net.ssl.TrustManagerFactory;
 import monitoring.ExperimentCounters;
 import util.Factory;
 
+import com.pushtechnology.diffusion.api.Logs;
 import com.pushtechnology.diffusion.api.ServerConnectionListener;
 import com.pushtechnology.diffusion.api.client.ExternalClientConnection;
 import com.pushtechnology.diffusion.api.connection.ConnectionFactory;
@@ -47,7 +48,6 @@ public class ClientConnectionFactory implements
         Factory<ExternalClientConnection> {
     // CHECKSTYLE:OFF
     private static final int SSL_BUFFER_SIZE = 64 * 1024;
-    private static final boolean VERBOSE = Boolean.getBoolean("verbose");
     private final ExperimentCounters experimentCounters;
     private final CommonExperimentSettings clientSettings;
     private SSLContext cachedSslContext;
@@ -95,8 +95,8 @@ public class ClientConnectionFactory implements
             }
             return connection;
         } catch (Exception e) {
-            if (VERBOSE) {
-                e.printStackTrace();
+            if (Logs.isFinestLogging()) {
+                Logs.finest("Error on connection attempt", e);
             }
             experimentCounters.incConnectionRefusedCounter();
             return null;

@@ -55,61 +55,59 @@ public class CommonExperimentSettings {
     private final long maxTestTimeMillis;
     private final long maxTestMessages;
     private final long maxTestConnections;
-    private final Properties finalSettings;
     private final String outputFileName;
     // CHECKSTYLE:ON
     /**
-     * Load the experiment settings from properties.
+     * Load the experiment settings from properties. Will modify the settings
+     * to defaults used where no value is available.
      * 
      * @param settings ...
      */
     public CommonExperimentSettings(Properties settings) {
-        finalSettings = new Properties();
-        finalSettings.putAll(settings);
         diffusionUrls =
-                getProperty(finalSettings, "connect.string", 
+                getProperty(settings, "connect.string", 
                         DEFAULT_URL).split(",");
 
-        maxClients = getProperty(finalSettings, "max.clients", 
+        maxClients = getProperty(settings, "max.clients", 
                 DEFAULT_MAX_CLIENTS);
-        initialClients = getProperty(finalSettings, "initial.clients",
+        initialClients = getProperty(settings, "initial.clients",
                 DEFAULT_INITIAL_CLIENTS);
-        clientIncrement = getProperty(finalSettings, "clients.increment",
+        clientIncrement = getProperty(settings, "clients.increment",
                 DEFAULT_CLIENT_INCREMENT);
         clientCreatePauseNanos =
                 (long) (TimeUnit.SECONDS.toNanos(1)
-                * getProperty(finalSettings,
+                * getProperty(settings,
                         "client.create.pause.seconds",
                         DEFAULT_CLIENT_CREATE_PAUSE_SECS));
         clientIncrementPauseSeconds =
-                getProperty(finalSettings, "client.increment.pause.seconds",
+                getProperty(settings, "client.increment.pause.seconds",
                         DEFAULT_CLIENT_INCREMENT_PAUSE_SECS);
         inboundThreadPoolMaxSize =
-                getProperty(finalSettings, "inbound.threadpool.max.size",
+                getProperty(settings, "inbound.threadpool.max.size",
                         DEFAULT_INBOUND_THREAD_POOL_MAX_SIZE);
         inboundThreadPoolCoreSize =
-                getProperty(finalSettings, "inbound.threadpool.core.size",
+                getProperty(settings, "inbound.threadpool.core.size",
                         DEFAULT_INBOUND_THREAD_POOL_CORE_SIZE);
         String localsInterfaces =
-                getProperty(finalSettings, "local.interfaces", "");
+                getProperty(settings, "local.interfaces", "");
         if (localsInterfaces == null || localsInterfaces.isEmpty()) {
             localInterfaces = new String[] {};
         } else {
             localInterfaces = localsInterfaces.split(",");
         }
         connectTopicSelector =
-                getProperty(finalSettings, "topic",
+                getProperty(settings, "topic",
                         DEFAULT_CONNECT_TOPIC_SELECTOR);
         messageSize = Integer.getInteger("message.size",
                 DEFAULT_MESSAGE_SIZE);
         maxTestTimeMillis =
                 (long) (TimeUnit.MINUTES.toMillis(1)
-                 * getProperty(finalSettings, "max.test.time.minutes",
+                 * getProperty(settings, "max.test.time.minutes",
                         DEFAULT_MAX_TEST_TIME_MINUTES));
-        maxTestMessages = getProperty(finalSettings, "max.test.messages", 0L);
-        maxTestConnections = getProperty(finalSettings, 
+        maxTestMessages = getProperty(settings, "max.test.messages", 0L);
+        maxTestConnections = getProperty(settings, 
                 "max.test.connections", 0L);
-        outputFileName = getProperty(finalSettings, "experiment.output", "");
+        outputFileName = getProperty(settings, "experiment.output", "");
     }
 
     // CHECKSTYLE:OFF adding docs will add nothing...
@@ -167,10 +165,6 @@ public class CommonExperimentSettings {
 
     public long getMaxTestConnections() {
         return maxTestConnections;
-    }
-
-    public Properties getFinalSettings() {
-        return finalSettings;
     }
     public String getOutputFile() {
         return outputFileName;

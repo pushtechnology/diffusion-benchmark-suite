@@ -22,6 +22,8 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
+import com.pushtechnology.diffusion.api.Logs;
+
 /**
  * This is a background thread for monitoring an experiment and output the
  * experiment metrics every second.
@@ -165,7 +167,7 @@ public class ExperimentMonitor implements Runnable {
         try {
             monitorThread.join();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Logs.severe("Interrupted while joining monitor thread", e);
         } finally {
             monitorThread = null;
         }

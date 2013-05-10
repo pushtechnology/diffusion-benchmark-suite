@@ -7,6 +7,7 @@ import monitoring.Histogram;
 import publishers.PingPublisher;
 
 import com.pushtechnology.diffusion.api.APIException;
+import com.pushtechnology.diffusion.api.Logs;
 import com.pushtechnology.diffusion.api.ServerConnection;
 import com.pushtechnology.diffusion.api.message.TopicMessage;
 import com.pushtechnology.diffusion.message.DataMessageImpl;
@@ -52,7 +53,9 @@ public final class PingClient extends MessageCountingClient {
             m.put(message);
             connection.send(m);
         } catch (APIException e) {
-            e.printStackTrace();
+            if (Logs.isFinestLogging()) {
+                Logs.finest("Error on trying to send a ping to server", e);
+            }
         }
     }
 

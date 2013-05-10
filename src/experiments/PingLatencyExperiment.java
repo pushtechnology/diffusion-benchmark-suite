@@ -16,7 +16,6 @@
 package experiments;
 
 import java.util.Collections;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,16 +32,6 @@ import clients.PingClient;
  *
  */
 public final class PingLatencyExperiment implements Runnable {
-    /** demonstrate specialized settings. */
-    public static class Settings extends CommonExperimentSettings {
-        /**
-         * @param settings ...
-         */
-        public Settings(Properties settings) {
-            super(settings);
-            // add my own settings here
-        }
-    }
     /** the experiment loop. */
     private final ExperimentControlLoop loop;
     
@@ -57,7 +46,7 @@ public final class PingLatencyExperiment implements Runnable {
      * @param settings ...
      * 
      */
-    public PingLatencyExperiment(Settings settings) {
+    public PingLatencyExperiment(CommonExperimentSettings settings) {
         loop = new ExperimentControlLoop(settings) {
             @Override
             protected void wrapupAndReport() {

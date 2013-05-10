@@ -18,6 +18,7 @@ package clients;
 import monitoring.ExperimentCounters;
 
 import com.pushtechnology.diffusion.api.Credentials;
+import com.pushtechnology.diffusion.api.Logs;
 import com.pushtechnology.diffusion.api.ServerConnection;
 import com.pushtechnology.diffusion.api.message.TopicMessage;
 import com.pushtechnology.diffusion.api.topic.TopicStatus;
@@ -104,7 +105,9 @@ public class MessageCountingClient implements ExperimentClient {
             try {
                 serverConnection.connect(initialTopics);
             } catch (Exception e) {
-                
+                if (Logs.isFinestLogging()) {
+                    Logs.finest("Error on connection attempt", e);
+                }
                 experimentCounters.incConnectionRefusedCounter();
             }
         }
