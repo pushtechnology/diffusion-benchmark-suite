@@ -9,4 +9,5 @@
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="experiments.ExperimentRunner"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="experiments.PingLatencyExperiment defaults.settings"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="diffusion-benchmark-suite"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dverbose=true"/>
 </launchConfiguration>
