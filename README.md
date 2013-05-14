@@ -56,7 +56,8 @@ Targets names which start with perfTest are assumed benchmarks. We'll work
 through the options by example:
 
 ####Run the throughput suite against localhost.
->    $ ant -f throughput-suite.xml
+>    $ ant -f throughput-suite.xml<br>
+
 The default target for the throughput-suite.xml is the __perf-suite__ target
 which will launch all the tests included. This run will default to testing the
 Web Sockets transport with no conflation enabled.<br>
@@ -65,34 +66,46 @@ output files. The settings files are not over written and thus allow for
 manual tweaking.
 
 ####Run a subset of the throughput suite against localhost.
->    $ ant -f throughput-suite.xml -Dtest.name.contains=125b
+>    $ ant -f throughput-suite.xml -Dtest.name.contains=125b<br>
+
 This will result in only the __perfTest-125b-50t__ benchmark being run, but
 within the framework of a suite so the before and after tasks are executed.
 
 ####Run the throughput suite against localhost with different transport/conflation
->    $ ant -f throughput-suite.xml -Ddiffusion.transport=dpt -Dconflation.mode=REPLACE
+>    $ ant -f throughput-suite.xml -Ddiffusion.transport=dpt -Dconflation.mode=REPLACE<br>
+
 This will result in a full suite run for the DPT transport using REPLACE conflation.
 You can read more about the different Diffusion transports and conflation modes
 in the User Manual.
 
-####Run the throughput suite against localhost with different client resources
+####Run the throughput suite against localhost with different client jvm settings
 >   $ ant -f throughput-suite.xml -Dclient.threads=1 -Dclient.jvm.args="-server -Xms128m -Xmx128m"
+
 This will launch the full suite but with client jvm launched with above args
 and using a single incoming thread.
 
+####Run the throughput suite against a different machine
+>    $ ant -f throughput-test.xml -Ddiffusion.host=test3<br>
+
+If __diffusion.host__ is not localhost the ant scripts will attempt to
+start/stop the diffusion server deployed remotely and deploy to it. The
+assumption being made that the remote host is setup for running the benchmarks
+in the same way the local machine is. The scripts use SSH to launch themselves
+on the remote machine.<br>
+This sucks a bit and we shall be looking to improve on this mechanism
+shortly. For now however you will need to set the __ssh.username__ and
+__ssh.username__ properties to allow the scripts ssh access. You'll also need
+to have the jsch.jar in your $ANT_HOME/lib.
+
 ####Run the throughput benchmark with host on machine 'test3' connecting via 4 interfaces on the 192.168.54/24 and 10.0.0/24 networks.
 
->    $ ant -f throughput-test.xml -Ddiffusion.host=test3 -Ddiffusion.url=ws://192.168.54.31:8080,ws://10.0.0.10:8080,ws://10.0.0.18:8080,ws://10.0.0.22:8080 -Ddiffusion.client.nics=192.168.54.21,10.0.0.9,10.0.0.17,10.0.0.21
+>    $ ant -f throughput-test.xml -Ddiffusion.host=test3 -Ddiffusion.url=ws://192.168.54.31:8080,ws://10.0.0.10:8080,ws://10.0.0.18:8080,ws://10.0.0.22:8080 -Ddiffusion.client.nics=192.168.54.21,10.0.0.9,10.0.0.17,10.0.0.21 <br>
 
-When the invocation is performed from the same host a local test run is performed. When the invocation is run from a client machine than the distributable is shipped via ssh/scp, a diffusion server launched, the benchmark publisher distributiond eployed and the client run against this distribution.
-
-Note that all test combinations will be run to completion.
-
-####Run the throughput benchmark with server on test3 and client on 'this machine'. Run a subset of tests for all test variants but with a payload size of 1000 bytes only.
-
->    $ ant -f throughput-test.xml -Ddiffusion.host=test3 -Ddiffusion.url=ws://10.0.0.18:8080 -Ddiffusion.client.nics=10.0.0.17 -Dtest.name.contains=1000b
-
-When launched on test2 will run the server on test3, client on test2 and utilize the solarflare nic for connection. Only the 1000b tests will be run.
+This will launch the full suite running the host on test3 and using several
+urls and client NICs for connectivity. This allows you to mix and match
+protocols and test your server using several outgoing/incoming network
+interfaces. Note that the list of urls is used in conjunction with the list of
+NICs and thus url[i] must be available on nic[i].
 
 ##Running/controlling tests manually
 

@@ -2,6 +2,7 @@
 <project name="ping-suite" default="perf-suite" basedir=".">
 	<property environment="env"/>
     <property name="client.jvm.args" value="-server -Xms2g -Xmx2g"/>
+	<property name="client.threads" value="1"/>
     <property name="suite.ant.file" value="latency-suite.xml"/>
 	<import file="perf-test-server-tasks.xml" />
 	<import file="perf-test-suite-common.xml" />
@@ -40,22 +41,22 @@
 		</if>
 	</target>
 	<target name="perfTest-1000b-ping-latency">
-        <run-ping-test test.name="1000b-ping-latency" threads="1" message.size="1000" />
+        <run-ping-test test.name="1000b-ping-latency" message.size="1000" />
 	</target>
     <target name="perfTest-2000b-ping-latency">
-        <run-ping-test test.name="2000b-ping-latency" threads="1" message.size="2000" />
+        <run-ping-test test.name="2000b-ping-latency" message.size="2000" />
     </target>
     <target name="perfTest-500b-ping-latency">
-        <run-ping-test test.name="500b-ping-latency" threads="1" message.size="500" />
+        <run-ping-test test.name="500b-ping-latency" message.size="500" />
     </target>
     <target name="perfTest-250b-ping-latency">
-        <run-ping-test test.name="250b-ping-latency" threads="1" message.size="250" />
+        <run-ping-test test.name="250b-ping-latency" message.size="250" />
     </target>
     <target name="perfTest-250b-ping-throughput">
-        <run-ping-test test.name="250b-ping-latency" threads="10" message.size="250"  />
+        <run-ping-test test.name="250b-ping-latency" message.size="250"  />
     </target>
 	<target name="perfTest-125b-ping-latency">
-        <run-ping-test test.name="125b-ping-latency" threads="1" message.size="125" />
+        <run-ping-test test.name="125b-ping-latency" message.size="125" />
 	</target>
 
 	<macrodef name="run-ping-test">
@@ -64,7 +65,6 @@
 		<attribute name="initial.clients" default="1" />
 		<attribute name="max.clients" default="1" />
 		<attribute name="client.create.pause.seconds" default="1.0" />
-		<attribute name="threads" default="10" />
 		<attribute name="message.size" default="10" />
 		<attribute name="max.test.time.minutes" default="5.0" />
 		<attribute name="test.name" />
@@ -88,8 +88,8 @@ max.clients=@{max.clients}
 clients.increment=@{clients.increment}
 client.create.pause.seconds=@{client.create.pause.seconds}
 client.increment.pause.seconds=@{client.increment.pause.seconds}
-inbound.threadpool.core.size=@{threads}
-inbound.threadpool.max.size=@{threads}
+inbound.threadpool.core.size=${client.threads}
+inbound.threadpool.max.size=${client.threads}
 client.jvm.args=${client.jvm.args}
 diffusion.url=${diffusion.url}
 local.interfaces=${diffusion.client.nics}
