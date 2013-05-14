@@ -6,11 +6,11 @@
 	   NONE - no conflation
 	   COMPARE - conflation using the now deprecated comparator facility
 	-->
-    <property name="conflationMode" value="NONE"/>
+    <property name="conflation.mode" value="NONE"/>
     <property environment="env"/>
     <property name="suite.ant.file" value="throughput-suite.xml"/>
 	<property name="client.jvm.args" value="-server -Xms2g -Xmx2g"/>
-	        
+	<property name="client.threads" value="10"/>        
 	<import file="perf-test-server-tasks.xml" />
 	<!-- Further common settings are available in the test-suite-common file
 	-->
@@ -65,7 +65,6 @@
 		<attribute name="clients.increment" default="1"/>
 		<attribute name="client.create.pause.seconds" default="0"/>
 		<attribute name="client.create.interval.seconds" default="5"/>
-		<attribute name="threads" default="10"/>
 		<attribute name="max.test.time.minutes" default="5"/>
 		<!-- Server attributes -->
 		<attribute name="publish.pause.seconds" default="0.1" />
@@ -78,7 +77,7 @@
 		<attribute name="topic.increment" default="10" />
 		<attribute name="test.name" />
 		<sequential>
-			<var name="full-test-name" value="@{test.name}-${diffusion.protocol}-${conflationMode}"/>
+			<var name="full-test-name" value="@{test.name}-${diffusion.protocol}-${conflation.mode}"/>
 			
 			<if>
              <equals arg1="${skip.server}" arg2="true" /><then/>
@@ -104,7 +103,7 @@
 				<sshexec host="${diffusion.host}"
 					username="${ssh.username}"
 					password="${ssh.password}" 
-                    command="cd benchmark-server;ant -f ${suite.ant.file} -Dtest.name=@{test.name} -Dpublish.pause.seconds=@{publish.pause.seconds} -Dmessage.size=@{message.size} -Dinitial.messages=@{initial.messages} -Dmessage.increment.interval=@{message.increment.interval} -Dmessage.increment=@{message.increment} -Dinitial.topic.num=@{initial.topic.num} -Dtopic.increment.interval=@{topic.increment.interval} -Dtopic.increment=@{topic.increment} -DconflationMode=${conflationMode} start-injector" />
+                    command="cd benchmark-server;ant -f ${suite.ant.file} -Dtest.name=@{test.name} -Dpublish.pause.seconds=@{publish.pause.seconds} -Dmessage.size=@{message.size} -Dinitial.messages=@{initial.messages} -Dmessage.increment.interval=@{message.increment.interval} -Dmessage.increment=@{message.increment} -Dinitial.topic.num=@{initial.topic.num} -Dtopic.increment.interval=@{topic.increment.interval} -Dtopic.increment=@{topic.increment} -Dconflation.mode=${conflation.mode} start-injector" />
 
 			 </else>
 			</if>
@@ -125,8 +124,8 @@ publish.pause.seconds=@{publish.pause.seconds}
 message.size=@{message.size}
 initial.messages=@{initial.messages}
 message.increment.interval="@{message.increment.interval}
-message.increment="@{message.increment}
-initial.topic.num="@{initial.topic.num}
+message.increment=@{message.increment}
+initial.topic.num=@{initial.topic.num}
 topic.increment.interval=@{topic.increment.interval}
 topic.increment=@{topic.increment}
 #Client settings:
@@ -135,8 +134,8 @@ max.clients=@{max.clients}
 clients.increment=@{clients.increment}
 client.create.pause.seconds=@{client.create.pause.seconds}
 client.increment.pause.seconds=@{client.increment.pause.seconds}
-inbound.threadpool.core.size=@{threads}
-inbound.threadpool.max.size=@{threads}
+inbound.threadpool.core.size=${client.threads}
+inbound.threadpool.max.size=${client.threads}
 client.jvm.args=${client.jvm.args}
 diffusion.url=${diffusion.url}
 local.interfaces=${diffusion.client.nics}
@@ -214,7 +213,7 @@ clients.output=${full-test-name}-clients.log
 		<sequential>
 			<copy file="etc/Injector.xml" tofile="etc/@{output}" overwrite="true">
 				<filterset begintoken="@" endtoken="@">
-                    <filter token="conflationMode" value="${conflationMode}" />
+                    <filter token="conflationMode" value="${conflation.mode}" />
                     <filter token="pauseSeconds" value="@{publish.pause.seconds}" />
 					<filter token="messageSize" value="@{message.size}" />
 					<filter token="initialMessages" value="@{initial.messages}" />

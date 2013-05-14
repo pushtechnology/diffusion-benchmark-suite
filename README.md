@@ -36,6 +36,7 @@ You will also need to define DIFFUSION_HOME<br>
 At this point you can use the build.xml in the project directory to build the
 benchmarks distributable. Invoking __ant__ or __ant dist__ should result
 in a packaged __benchmark-server.zip__ file being created in the project dir.<br>
+
 ##Deploying the benchmarks
 The target machine used for running the benchmarks requires the same
 dependencies described above for building (JDK/Ant/Diffusion). It also requires
@@ -43,48 +44,59 @@ a valid Diffusion licence file with sufficient allowances to support your test.
 Similarly you will need to configure your server to support the required number
 of connections and allow incoming connections on the desired ports. See the
 diffusion server configuration and tuning manual for detailed instructions.
-  
+To deploy the scripts you'll need to extract the __benchmark-server.zip__ into
+a folder named __benchmark-server__.<br>
+>    $ unzip benchmark-server.zip -d benchmark-server
+
 ##Running the benchmarks
+The ant scripts deployed with the application support running the benchmarks
+in a variety of configurations. The benchmarks can be run as a suite (similar
+to junit test suites) with before/after tasks run before/after every benchmark.
+Targets names which start with perfTest are assumed benchmarks. We'll work
+through the options by example:
 
-##Example command line usage of benchmark suite
+####Run the throughput suite against localhost.
+>    $ ant -f throughput-suite.xml
+The default target for the throughput-suite.xml is the __perf-suite__ target
+which will launch all the tests included. This run will default to testing the
+Web Sockets transport with no conflation enabled.<br>
+By the end of the run we will expect to have a set of experiment settings and
+output files. The settings files are not over written and thus allow for
+manual tweaking.
 
-####1. Run the throughput benchmark with host on machine 'test3' connecting via 4 interfaces on the 192.168.54/24 and 10.0.0/24 networks.
+####Run a subset of the throughput suite against localhost.
+>    $ ant -f throughput-suite.xml -Dtest.name.contains=125b
+This will result in only the __perfTest-125b-50t__ benchmark being run, but
+within the framework of a suite so the before and after tasks are executed.
 
-$ ant -f throughput-test.xml -Ddiffusion.host=test3 -Ddiffusion.url=ws://192.168.54.31:8080,ws://10.0.0.10:8080,ws://10.0.0.18:8080,ws://10.0.0.22:8080 -Ddiffusion.client.nics=192.168.54.21,10.0.0.9,10.0.0.17,10.0.0.21
+####Run the throughput suite against localhost with different transport/conflation
+>    $ ant -f throughput-suite.xml -Ddiffusion.transport=dpt -Dconflation.mode=REPLACE
+This will result in a full suite run for the DPT transport using REPLACE conflation.
+You can read more about the different Diffusion transports and conflation modes
+in the User Manual.
+
+####Run the throughput suite against localhost with different client resources
+>   $ ant -f throughput-suite.xml -Dclient.threads=1 -Dclient.jvm.args="-server -Xms128m -Xmx128m"
+This will launch the full suite but with client jvm launched with above args
+and using a single incoming thread.
+
+####Run the throughput benchmark with host on machine 'test3' connecting via 4 interfaces on the 192.168.54/24 and 10.0.0/24 networks.
+
+>    $ ant -f throughput-test.xml -Ddiffusion.host=test3 -Ddiffusion.url=ws://192.168.54.31:8080,ws://10.0.0.10:8080,ws://10.0.0.18:8080,ws://10.0.0.22:8080 -Ddiffusion.client.nics=192.168.54.21,10.0.0.9,10.0.0.17,10.0.0.21
 
 When the invocation is performed from the same host a local test run is performed. When the invocation is run from a client machine than the distributable is shipped via ssh/scp, a diffusion server launched, the benchmark publisher distributiond eployed and the client run against this distribution.
 
 Note that all test combinations will be run to completion.
 
-####2. Run the throughput benchmark on the local host only and run only non conflated variant.
+####Run the throughput benchmark with server on test3 and client on 'this machine'. Run a subset of tests for all test variants but with a payload size of 1000 bytes only.
 
-$ ant -DconflationMode=NONE -f throughput-test.xml
-
-####3. Run the throughput benchmark with server on test3 and client on 'this machine'. Run a subset of tests for all test variants but with a payload size of 1000 bytes only.
-
-$ ant -f throughput-test.xml -Ddiffusion.host=test3 -Ddiffusion.url=ws://10.0.0.18:8080 -Ddiffusion.client.nics=10.0.0.17 -Dtest.name.contains=1000b
+>    $ ant -f throughput-test.xml -Ddiffusion.host=test3 -Ddiffusion.url=ws://10.0.0.18:8080 -Ddiffusion.client.nics=10.0.0.17 -Dtest.name.contains=1000b
 
 When launched on test2 will run the server on test3, client on test2 and utilize the solarflare nic for connection. Only the 1000b tests will be run.
 
 ##Running/controlling tests manually
 
-Manual test runs can also be orchestrated through diligent use of sub tasks comprised in the above automated
-examples. For example:
 
-Start diffusion on test3 if not already running and deploy benchmark suite:
-
-ant -f throughput-test.xml -Ddiffusion.host=test3 before before-suite start-injector
-
-This can be run from test3 or any other machine from which test3 is visible & accessible (and ssh is configured).
-
-Once a server is running, individual tests can be selected and run from the same or another host. The
-appropriate targets in throughput-test.xml are as follows:
-
-  perfTest-1000b-50t
-  perfTest-125b-50t
-  perfTest-2000b-50t
-  perfTest-250b-50t
-  perfTest-500b-50t
 ##Notes
 
 ### Notes for IBM JDK
