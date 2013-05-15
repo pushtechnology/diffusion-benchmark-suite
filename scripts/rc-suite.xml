@@ -60,20 +60,20 @@
         </if>
     </target>
 	<target name="perfTest-2000b-50t">
-		<run-rc-test test.name="2000b-xC-4M-50T" message.size="2000" publish.pause.seconds="0.25" initial.clients="0" max.clients="100000" clients.increment="750" initial.messages="1" message.increment="0" initial.topic.num="50" topic.increment="0" />
+		<run-rc-test test.name="2000b-RC-2M-50T" message.size="2000" publish.pause.seconds="0.5" initial.clients="0" max.clients="100000" clients.increment="50" initial.messages="1" message.increment="0" initial.topic.num="50" topic.increment="0" />
 	</target>
 
 	<target name="perfTest-1000b-50t">
-		<run-rc-test test.name="1000b-xC-4M-50T" message.size="1000" publish.pause.seconds="0.25" initial.clients="0" max.clients="100000" clients.increment="750" initial.messages="1" message.increment="0" initial.topic.num="50" topic.increment="0" />
+		<run-rc-test test.name="1000b-RC-2M-50T" message.size="1000" publish.pause.seconds="0.5" initial.clients="0" max.clients="100000" clients.increment="50" initial.messages="1" message.increment="0" initial.topic.num="50" topic.increment="0" />
 	</target>
 	<target name="perfTest-500b-50t">
-		<run-rc-test test.name="500b-xC-4M-50T" message.size="500" publish.pause.seconds="0.25" initial.clients="0" max.clients="100000" clients.increment="750" initial.messages="1" message.increment="0" initial.topic.num="50" topic.increment="0" />
+		<run-rc-test test.name="500b-RC-2M-50T" message.size="500" publish.pause.seconds="0.5" initial.clients="0" max.clients="100000" clients.increment="50" initial.messages="1" message.increment="0" initial.topic.num="50" topic.increment="0" />
 	</target>
 	<target name="perfTest-250b-50t">
-		<run-rc-test test.name="250b-xC-4M-50T" message.size="250" publish.pause.seconds="0.25" initial.clients="0" max.clients="100000" clients.increment="750" initial.messages="1" message.increment="0" initial.topic.num="50" topic.increment="0" />
+		<run-rc-test test.name="250b-RC-2M-50T" message.size="250" publish.pause.seconds="0.5" initial.clients="0" max.clients="100000" clients.increment="50" initial.messages="1" message.increment="0" initial.topic.num="50" topic.increment="0" />
 	</target>
 	<target name="perfTest-125b-50t">
-		<run-rc-test test.name="125b-xC-4M-50T" message.size="125" publish.pause.seconds="0.25" initial.clients="0" max.clients="100000" clients.increment="750" initial.messages="1" message.increment="0" initial.topic.num="50" topic.increment="0" />
+		<run-rc-test test.name="125b-RC-2M-50T" message.size="125" publish.pause.seconds="0.5" initial.clients="0" max.clients="100000" clients.increment="50" initial.messages="1" message.increment="0" initial.topic.num="50" topic.increment="0" />
 	</target>
 
 	<macrodef name="run-rc-test">
@@ -82,17 +82,16 @@
 		<attribute name="max.clients" default="2000" />
 		<attribute name="clients.increment" default="1" />
 		<attribute name="client.create.pause.seconds" default="0" />
-		<attribute name="client.create.interval.seconds" default="5" />
-		<attribute name="max.test.time.minutes" default="5" />
+		<attribute name="client.create.interval.seconds" default="1" />
 		<!-- Server attributes -->
-		<attribute name="publish.pause.seconds" default="0.1" />
+		<attribute name="publish.pause.seconds" default="1.0" />
 		<attribute name="message.size" default="100" />
-		<attribute name="initial.messages" default="10" />
-		<attribute name="message.increment.interval" default="10" />
-		<attribute name="message.increment" default="10" />
+		<attribute name="initial.messages" default="1" />
+		<attribute name="message.increment.interval" default="0" />
+		<attribute name="message.increment" default="0" />
 		<attribute name="initial.topic.num" default="100" />
-		<attribute name="topic.increment.interval" default="10" />
-		<attribute name="topic.increment" default="10" />
+		<attribute name="topic.increment.interval" default="0" />
+		<attribute name="topic.increment" default="0" />
 		<attribute name="test.name" />
 		<sequential>
 			<var name="full-test-name" value="@{test.name}-${diffusion.protocol}" />

@@ -68,7 +68,6 @@
 		<attribute name="max.clients" default="1" />
 		<attribute name="client.create.pause.seconds" default="1.0" />
 		<attribute name="message.size" default="10" />
-		<attribute name="max.test.time.minutes" default="5.0" />
 		<attribute name="test.name" />
 		<sequential>
 			<!-- Start Client -->

@@ -66,7 +66,6 @@
 		<attribute name="clients.increment" default="1"/>
 		<attribute name="client.create.pause.seconds" default="0"/>
 		<attribute name="client.create.interval.seconds" default="5"/>
-		<attribute name="max.test.time.minutes" default="5"/>
 		<!-- Server attributes -->
 		<attribute name="publish.pause.seconds" default="0.1" />
 		<attribute name="message.size" default="100" />
