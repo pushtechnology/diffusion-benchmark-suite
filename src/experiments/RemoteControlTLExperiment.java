@@ -38,25 +38,23 @@ public final class RemoteControlTLExperiment implements Runnable {
      * latency stats.
      */
     private final Set<LatencyMonitoringClient> clients =
-            Collections.newSetFromMap(new ConcurrentHashMap<LatencyMonitoringClient, Boolean>());
+            Collections
+                    .newSetFromMap(new ConcurrentHashMap<LatencyMonitoringClient, Boolean>());
 
     private final class Service extends BaseService {
         public void startService() throws APIException {
             listener = new BaseRemoteListener(this);
 
-            this.serverDetails = 
-                ConnectionFactory.
-                    createServerDetails(settings.getRcUrl());
+            this.serverDetails =
+                    ConnectionFactory.
+                            createServerDetails(settings.getRcUrl());
             service = RemoteServiceFactory.
                     createRemoteService(serverDetails,
                             getControlTopicName(), getDomainTopicName(),
                             listener);
 
             listener.resetRegisterLatch();
-            service.getOptions().setClientConnectNotifications(false);
-            service.getOptions().setRouteSelectorSubscribes(false);
-            service.register();
-            listener.waitForRegistration(5000L, TimeUnit.MILLISECONDS);
+            register();
             for (int i = 0; i < settings.getInitialTopics(); i++) {
                 String topic = String.valueOf(i);
                 service.addTopic(topic, TOPIC_SPECIFICATION);
@@ -80,6 +78,13 @@ public final class RemoteControlTLExperiment implements Runnable {
                 @Override
                 public void run() {
                     pubPauseCounter++;
+                    if(!service.isRegistered()){
+                        try {
+                            register();
+                        } catch (APIException e) {
+                            System.exit(-1);
+                        }
+                    }
                     for (int j = 0; j < messages; j++) {
                         for (int i = 0; i < topics; i++) {
                             publishToTopic(i);
@@ -114,7 +119,9 @@ public final class RemoteControlTLExperiment implements Runnable {
                             initialLoad.put("INIT");
                             service.publish(initialLoad);
                         } catch (APIException e) {
-                            Logs.warning("Failed to add topic", e);
+                            if (service.isRegistered()) {
+                                Logs.warning("Failed to add topic", e);
+                            }
                         }
                     }
                     topics = targetTopics;
@@ -130,13 +137,30 @@ public final class RemoteControlTLExperiment implements Runnable {
                         delta.put(message);
                         service.publish(delta);
                     } catch (APIException ex) {
-                        Logs.warning("Failed to send delta", ex);
+                        if (service.isRegistered()) {
+                            Logs.warning("Failed to send delta", ex);
+                        }
                     }
                 }
             };
             Executors.newSingleThreadScheduledExecutor().
                     scheduleAtFixedRate(publishCommand, 0L,
                             settings.intervalPauseNanos, TimeUnit.NANOSECONDS);
+        }
+
+        public void register() throws APIException {
+            service.getOptions().setAuthoriseSubscribeClients(false);
+            service.getOptions().setClientConnectNotifications(false);
+            service.getOptions().setRouteSelectorSubscribes(false);
+            service.setMessageQueueSize(10000);
+            service.getServerDetails().setOutputBufferSize(64*1024);
+            service.getServerDetails().setInputBufferSize(64*1024);
+            listener.resetRegisterLatch();
+            service.register();
+            while(!service.isRegistered()){
+                listener.waitForRegistration(1000L, TimeUnit.MILLISECONDS);
+                Logs.info("Registering RC with server...");
+            }
         }
 
         @Override
@@ -159,6 +183,7 @@ public final class RemoteControlTLExperiment implements Runnable {
         private final int topicIncrement;
 
         private final String rcUrl;
+
         public Settings(Properties settings) {
             super(settings);
             intervalPauseNanos = (long) (getProperty(settings,
@@ -177,7 +202,7 @@ public final class RemoteControlTLExperiment implements Runnable {
             topicIncrement =
                     getProperty(settings, "publish.topics.increment", 1);
             rcUrl =
-                    getProperty(settings, "rc.url", "dpt://localhost:8080");
+                    getProperty(settings, "rc.host", "dpt://localhost:8080");
         }
 
         public long getIntervalPauseNanos() {
@@ -207,6 +232,7 @@ public final class RemoteControlTLExperiment implements Runnable {
         public int getTopicIncrement() {
             return topicIncrement;
         }
+
         // CHECKSTYLE:ON
 
         public String getRcUrl() {
@@ -247,7 +273,7 @@ public final class RemoteControlTLExperiment implements Runnable {
                 LatencyMonitoringClient pingClient =
                         new LatencyMonitoringClient(loop
                                 .getExperimentCounters(),
-                                false, settings.getRootTopic());
+                                false, "DOMAIN//");
                 clients.add(pingClient);
                 return pingClient;
             }

@@ -112,7 +112,7 @@
 						<else>
 							<echo file="${full-test-name}.settings">
 #Publisher settings:
-publish.pause.seconds=@{publish.pause.seconds}
+publish.pause.interval.seconds=@{publish.pause.seconds}
 publish.message.initial.count=@{initial.messages}
 publish.message.increment.pauses="@{message.increment.interval}
 publish.message.increment=@{message.increment}
