@@ -22,7 +22,6 @@ import com.pushtechnology.diffusion.api.Logs;
 import com.pushtechnology.diffusion.api.ServerConnection;
 import com.pushtechnology.diffusion.api.message.TopicMessage;
 import com.pushtechnology.diffusion.api.topic.TopicStatus;
-import com.pushtechnology.diffusion.message.TopicMessageImpl;
 
 
 /**
@@ -35,7 +34,7 @@ public class MessageCountingClient implements ExperimentClient {
     // CHECKSTYLE:OFF docs will add nothing here
     protected final ExperimentCounters experimentCounters;
     private final String[] initialTopics;
-    private boolean reconnect;
+    private volatile boolean reconnect;
     // CHECKSTYLE:ON
 
     /**
@@ -70,10 +69,7 @@ public class MessageCountingClient implements ExperimentClient {
             final TopicMessage topicMessage) {
         onMessage(serverConnection, topicMessage);
         experimentCounters.incMessageCounter();
-        // TODO: hack, uses internal API
-        int originalMessageSize = ((TopicMessageImpl) topicMessage)
-                .getOriginalMessageSize();
-        experimentCounters.incByteCounter(originalMessageSize);
+        experimentCounters.incByteCounter(topicMessage.size());
     }
 
     /**

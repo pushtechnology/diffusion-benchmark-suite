@@ -98,7 +98,7 @@ public class CommonExperimentSettings {
         connectTopicSelector =
                 getProperty(settings, "topic",
                         DEFAULT_CONNECT_TOPIC_SELECTOR);
-        messageSize = Integer.getInteger("message.size",
+        messageSize = getProperty(settings, "message.size",
                 DEFAULT_MESSAGE_SIZE);
         maxTestTimeMillis =
                 (long) (TimeUnit.MINUTES.toMillis(1)

@@ -28,6 +28,7 @@ import util.Factory;
 import clients.ClientConnectionFactory;
 import clients.ExperimentClient;
 
+import com.pushtechnology.diffusion.DiffusionSystemProperties;
 import com.pushtechnology.diffusion.api.APIProperties;
 import com.pushtechnology.diffusion.api.Logs;
 import com.pushtechnology.diffusion.api.client.ExternalClientConnection;
@@ -72,9 +73,12 @@ public class ExperimentControlLoop implements Runnable {
      */
     public ExperimentControlLoop(CommonExperimentSettings settings) {
         clientSettings = settings;
+        
         experimentMonitor =
                 new ExperimentMonitor(getExperimentCounters(),
                         settings.getOutputFile());
+        setUp();
+        
     }
 
     /**
@@ -98,7 +102,6 @@ public class ExperimentControlLoop implements Runnable {
     @Override
     public final void run() {
         try {
-            setUp();
             // GO!
             long testStartTime = System.currentTimeMillis();
             Logs.info("Starting experiment");
@@ -158,9 +161,7 @@ public class ExperimentControlLoop implements Runnable {
      * 
      * @throws Exception should any badness happen
      */
-    private void setUp() throws Exception {
-        // TODO: remove hack
-        System.setProperty("diffusion.use.external.data", "true");
+    private void setUp() {
         if (Boolean.getBoolean("verbose")) {
             Logs.setLevel(Level.FINEST);
         } else {
@@ -170,9 +171,14 @@ public class ExperimentControlLoop implements Runnable {
         int qSize = getClientSettings().getMaxClients();
         int coreSize = getClientSettings().getInboundThreadPoolCoreSize();
         int maxSize = getClientSettings().getInboundThreadPoolMaxSize();
-        APIProperties.setInboundThreadPoolQueueSize(qSize);
-        ThreadService.getInboundThreadPool().setCoreSize(coreSize);
-        ThreadService.getInboundThreadPool().setMaximumSize(maxSize);
+        try {
+            APIProperties.setInboundThreadPoolQueueSize(qSize);
+            ThreadService.getInboundThreadPool().setMaximumSize(maxSize);
+            // core size MUST be set after max size :(
+            ThreadService.getInboundThreadPool().setCoreSize(coreSize);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         experimentMonitor.start();
     }
 
