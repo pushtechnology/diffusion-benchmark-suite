@@ -28,7 +28,6 @@ import util.Factory;
 import clients.ClientConnectionFactory;
 import clients.ExperimentClient;
 
-import com.pushtechnology.diffusion.DiffusionSystemProperties;
 import com.pushtechnology.diffusion.api.APIProperties;
 import com.pushtechnology.diffusion.api.Logs;
 import com.pushtechnology.diffusion.api.client.ExternalClientConnection;
@@ -158,8 +157,6 @@ public class ExperimentControlLoop implements Runnable {
 
     /**
      * Setup some Diffusion properties and start monitoring.
-     * 
-     * @throws Exception should any badness happen
      */
     private void setUp() {
         if (Boolean.getBoolean("verbose")) {

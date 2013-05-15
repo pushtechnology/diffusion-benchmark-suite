@@ -6,10 +6,7 @@ import java.util.Properties;
 
 import util.PropertiesUtil;
 
-import com.pushtechnology.diffusion.DiffusionSystemProperties;
-import com.pushtechnology.diffusion.api.APIProperties;
 import com.pushtechnology.diffusion.api.Logs;
-import com.pushtechnology.diffusion.api.threads.ThreadService;
 
 /**
  * A main class for all experiments.
