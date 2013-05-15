@@ -11,6 +11,7 @@
     <property name="suite.ant.file" value="throughput-suite.xml"/>
 	<property name="client.jvm.args" value="-server -Xms2g -Xmx2g"/>
 	<property name="client.threads" value="10"/>        
+    <property name="max.time" value="5.0"/>
 	<import file="perf-test-server-tasks.xml" />
 	<!-- Further common settings are available in the test-suite-common file
 	-->
@@ -141,6 +142,7 @@ diffusion.url=${diffusion.url}
 local.interfaces=${diffusion.client.nics}
 experiment.output=${full-test-name}.csv
 clients.output=${full-test-name}-clients.log
+max.test.time.minutes=${max.time}
                             </echo>
                         </else>
                     </if>

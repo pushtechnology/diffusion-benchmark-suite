@@ -2,7 +2,9 @@
 <project name="ping-suite" default="perf-suite" basedir=".">
 	<property environment="env"/>
     <property name="client.jvm.args" value="-server -Xms2g -Xmx2g"/>
-	<property name="client.threads" value="1"/>
+    <property name="client.threads" value="1"/>
+    <property name="max.messages" value="1000000"/>
+    <property name="max.time" value="3.0"/>
     <property name="suite.ant.file" value="latency-suite.xml"/>
 	<import file="perf-test-server-tasks.xml" />
 	<import file="perf-test-suite-common.xml" />
@@ -95,6 +97,8 @@ diffusion.url=${diffusion.url}
 local.interfaces=${diffusion.client.nics}
 experiment.output=${full-test-name}.csv
 clients.output=${full-test-name}-clients.log
+max.test.time.minutes=${max.time}
+max.test.messages=${max.messages}
                             </echo>
                         </else>
                     </if>
