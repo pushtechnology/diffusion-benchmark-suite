@@ -166,13 +166,21 @@ public class ExperimentControlLoop implements Runnable {
         }
         // configure
         int qSize = getClientSettings().getMaxClients();
-        int coreSize = getClientSettings().getInboundThreadPoolCoreSize();
-        int maxSize = getClientSettings().getInboundThreadPoolMaxSize();
+        int coreSize = getClientSettings().getInboundThreadPoolSize();
         try {
             APIProperties.setInboundThreadPoolQueueSize(qSize);
-            ThreadService.getInboundThreadPool().setMaximumSize(maxSize);
+            // this will allow us to set the max
+            ThreadService.getInboundThreadPool().setCoreSize(0);
+            // set the max
+            ThreadService.getInboundThreadPool().setMaximumSize(coreSize);
+            if(ThreadService.getInboundThreadPool().getMaximumSize() != coreSize) {
+                throw new RuntimeException("Failed to set max pool size");
+            }
             // core size MUST be set after max size :(
             ThreadService.getInboundThreadPool().setCoreSize(coreSize);
+            if(ThreadService.getInboundThreadPool().getCoreSize() != coreSize) {
+                throw new RuntimeException("Failed to set core pool size");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

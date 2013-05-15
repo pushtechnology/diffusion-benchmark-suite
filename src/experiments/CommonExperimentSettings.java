@@ -30,8 +30,7 @@ import java.util.concurrent.TimeUnit;
 public class CommonExperimentSettings {
     // CHECKSTYLE:OFF adding docs will add nothing...
     private static final String DEFAULT_URL = "ws://localhost:8080";
-    private static final int DEFAULT_INBOUND_THREAD_POOL_CORE_SIZE = 1;
-    private static final int DEFAULT_INBOUND_THREAD_POOL_MAX_SIZE = 1;
+    private static final int DEFAULT_INBOUND_THREAD_POOL_SIZE = 1;
     private static final int DEFAULT_CLIENT_INCREMENT_PAUSE_SECS = 5;
     private static final double DEFAULT_CLIENT_CREATE_PAUSE_SECS = 0.001;
     private static final int DEFAULT_CLIENT_INCREMENT = 50;
@@ -44,8 +43,7 @@ public class CommonExperimentSettings {
     private final String[] diffusionUrls;
     private final int maxClients;
     private final long clientCreatePauseNanos;
-    private final int inboundThreadPoolMaxSize;
-    private final int inboundThreadPoolCoreSize;
+    private final int inboundThreadPoolSize;
     private final String[] localInterfaces;
     private final int initialClients;
     private final int clientIncrement;
@@ -82,12 +80,9 @@ public class CommonExperimentSettings {
         clientIncrementPauseSeconds =
                 getProperty(settings, "client.increment.pause.seconds",
                         DEFAULT_CLIENT_INCREMENT_PAUSE_SECS);
-        inboundThreadPoolMaxSize =
-                getProperty(settings, "inbound.threadpool.max.size",
-                        DEFAULT_INBOUND_THREAD_POOL_MAX_SIZE);
-        inboundThreadPoolCoreSize =
-                getProperty(settings, "inbound.threadpool.core.size",
-                        DEFAULT_INBOUND_THREAD_POOL_CORE_SIZE);
+        inboundThreadPoolSize =
+                getProperty(settings, "inbound.threadpool.size",
+                        DEFAULT_INBOUND_THREAD_POOL_SIZE);
         String localsInterfaces =
                 getProperty(settings, "local.interfaces", "");
         if (localsInterfaces == null || localsInterfaces.isEmpty()) {
@@ -123,12 +118,8 @@ public class CommonExperimentSettings {
         return clientCreatePauseNanos;
     }
 
-    public int getInboundThreadPoolMaxSize() {
-        return inboundThreadPoolMaxSize;
-    }
-
-    public int getInboundThreadPoolCoreSize() {
-        return inboundThreadPoolCoreSize;
+    public int getInboundThreadPoolSize() {
+        return inboundThreadPoolSize;
     }
 
     public String[] getLocalInterfaces() {

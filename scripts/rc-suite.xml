@@ -1,17 +1,11 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<project name="throughput-suite" default="perf-suite" basedir=".">
-	<!-- Use this property to control the conflation mode:
-	   REPLACE - conflate in place(like normal people do)
-	   APPEND - conflate and re-order to end of queue(default old behaviour, daft)
-	   NONE - no conflation
-	   COMPARE - conflation using the now deprecated comparator facility
-	-->
-    <property name="conflation.mode" value="NONE"/>
+<project name="rc-suite" default="perf-suite" basedir=".">
     <property environment="env"/>
-    <property name="suite.ant.file" value="throughput-suite.xml"/>
+    <property name="suite.ant.file" value="rc-suite.xml"/>
 	<property name="client.jvm.args" value="-server -Xms2g -Xmx2g"/>
 	<property name="client.threads" value="10"/>        
     <property name="max.time" value="5.0"/>
+	<property name="rc.url" value="dpt://localhost:8080"/>
 	<import file="perf-test-server-tasks.xml" />
 	<!-- Further common settings are available in the test-suite-common file
 	-->
@@ -59,7 +53,7 @@
 			initial.topic.num="50"  topic.increment="0"/>
 	</target>
 
-	<macrodef name="run-ramping-throughput-test">
+	<macrodef name="run-rc-test">
 		<!-- Client attributes -->
 		<attribute name="initial.clients" default="1"/>
 		<attribute name="max.clients" default="2000"/>
@@ -85,18 +79,8 @@
 			<elseif>
 			 <equals arg1="${diffusion.host}" arg2="localhost" />
 			 <then>
-			 	<!-- Create publisher configuration -->
-			 	<configure-injector output="@{test.name}.xml"
- 					publish.pause.seconds="@{publish.pause.seconds}"
- 					message.size="@{message.size}" 
- 					initial.messages="@{initial.messages}"
- 					message.increment.interval="@{message.increment.interval}"
- 					message.increment="@{message.increment}"
- 					initial.topic.num="@{initial.topic.num}"
- 					topic.increment.interval="@{topic.increment.interval}"
- 					topic.increment="@{topic.increment}" />
 			 	<!-- package and deliver to diffusion server to be auto-deployed -->
- 				<dar publisher.name="@{test.name}" />
+ 				<dar publisher.name="RemoteControl" />
  				<deploy-dar dar.name="@{test.name}.dar" />
 			 </then>
 			 </elseif>
@@ -122,14 +106,16 @@
                             <echo file="${full-test-name}.settings">
 #Publisher settings:
 publish.pause.seconds=@{publish.pause.seconds}
-message.size=@{message.size}
-initial.messages=@{initial.messages}
-message.increment.interval="@{message.increment.interval}
-message.increment=@{message.increment}
-initial.topic.num=@{initial.topic.num}
-topic.increment.interval=@{topic.increment.interval}
-topic.increment=@{topic.increment}
+publish.message.initial.count=@{initial.messages}
+publish.message.increment.pauses="@{message.increment.interval}
+publish.message.increment=@{message.increment}
+publish.topics.initial.count=@{initial.topic.num}
+publish.topics.increment.pauses=@{topic.increment.interval}
+publish.topics.increment=@{topic.increment}
+
 #Client settings:
+rc.host=${rc.host}
+message.size=@{message.size}
 initial.clients=@{initial.clients}
 max.clients=@{max.clients}
 clients.increment=@{clients.increment}

@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
 <publishers>
 
-	<!-- 
+	
 	<publisher name="Diffusion">
 		<topics>Diffusion</topics>
 		<class>com.pushtechnology.diffusion.publishers.diffusion.DiffusionPublisher</class>
 		<enabled>true</enabled>
 		<start>true</start>
 		<topic-aliasing>true</topic-aliasing>
-	</publisher> -->
-	
-	<publisher name="BroadcastPublisher">
+	</publisher>
+	<!-- 
+	<publisher name="Broadcast">
 		<class>publishers.BroadcastPublisher
 		</class>
 		<enabled>true</enabled>
@@ -24,10 +24,16 @@
 		<property name="initialTopicNum">10</property>
 		<property name="topicIncrementIntervalInPauses">1</property>
 		<property name="topicIncrement">1</property>
-	</publisher>
+	</publisher> -->
     
-    <publisher name="PingPublisher">
+    <publisher name="Ping">
         <class>publishers.PingPublisher
+        </class>
+        <enabled>true</enabled>
+        <start>true</start>
+    </publisher>
+    <publisher name="RemoteControl">
+        <class>com.pushtechnology.diffusion.api.publisher.RemoteControlPublisher
         </class>
         <enabled>true</enabled>
         <start>true</start>
