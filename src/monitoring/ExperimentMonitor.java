@@ -43,6 +43,7 @@ public class ExperimentMonitor implements Runnable {
     private volatile boolean isRunning = true;
     private volatile boolean isSampling = false;
     private Thread monitorThread;
+    private volatile long deadline;
 
     @SuppressWarnings("resource")
     public ExperimentMonitor(ExperimentCounters experimentCountersP,
@@ -72,18 +73,23 @@ public class ExperimentMonitor implements Runnable {
         getOutput().println("Time, MessagesPerSecond, ClientsConnected, Topics,"
                 + " InSample, Cpu, ClientDisconnects, ConnectionRefusals, "
                 + "ConnectionAttempts, BytesPerSecond");
-        long deadline = System.currentTimeMillis();
+        deadline = System.currentTimeMillis();
+        long messagesBefore = experimentCounters.getMessageCounter();
+        long bytesBefore = experimentCounters.getBytesCounter();
+        long timeBefore = System.nanoTime();
         while (isRunning) {
-            long messagesBefore = experimentCounters.getMessageCounter();
-            long bytesBefore = experimentCounters.getBytesCounter();
-            long timeBefore = System.nanoTime();
             deadline += MILLIS_IN_SECOND;
             LockSupport.parkUntil(deadline);
-            long intervalMessages = experimentCounters.getMessageCounter()
-                    - messagesBefore;
-            long intervalBytes = experimentCounters.getBytesCounter()
-                    - bytesBefore;
-            long intervalNanos = System.nanoTime() - timeBefore;
+            long messagesAfter = experimentCounters.getMessageCounter();
+            long bytesAfter = experimentCounters.getBytesCounter();
+            long timeAfter = System.nanoTime();
+            long intervalMessages = messagesAfter - messagesBefore;
+            long intervalBytes = bytesAfter - bytesBefore;
+            long intervalNanos = timeAfter - timeBefore;
+            messagesBefore = messagesAfter;
+            bytesBefore = bytesAfter;
+            timeBefore = timeAfter;
+            
             long messagesPerSecond = (long) intervalMessages
                     * TimeUnit.SECONDS.toNanos(1) / intervalNanos;
             long bytesPerSecond = (long) intervalBytes

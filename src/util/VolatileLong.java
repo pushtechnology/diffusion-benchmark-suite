@@ -1,11 +1,18 @@
 package util;
 
+/**
+ * A long wrapper allowing control over memory access method.
+ * 
+ * @author nitsanw
+ *
+ */
 public final class VolatileLong {
-    private static final long valueOffset;
+    /** memory offset to support unsafe access. */
+    private static final long VALUE_OFFSET;
 
     static {
         try {
-            valueOffset = UnsafeAccess.unsafe
+            VALUE_OFFSET = UnsafeAccess.UNSAFE
                     .objectFieldOffset(VolatileLong.class
                             .getDeclaredField("value"));
         } catch (Exception e) {
@@ -13,48 +20,86 @@ public final class VolatileLong {
         }
     }
 
+    /** actual value, plain. */
     private long value;
 
+    /**
+     * initial value is 0L.
+     */
     public VolatileLong() {
+        // nothing to do, java inits all memory to 0.
     }
 
-    public VolatileLong(final long initialValue) {
+    /**
+     * construct initialized to.
+     * 
+     * @param initialValue to set to
+     */
+    public VolatileLong(long initialValue) {
         lazySet(initialValue);
     }
 
+    /**
+     * @return volatile read of value.
+     */
     public long volatileGet() {
-        return UnsafeAccess.unsafe.getLongVolatile(this, valueOffset);
+        return UnsafeAccess.UNSAFE.getLongVolatile(this, VALUE_OFFSET);
     }
 
+    /**
+     * @return plain read of value.
+     */
     public long plainGet() {
         return value;
     }
 
+    /**
+     * increment value and lazySet it.
+     */
     public void lazyInc() {
         lazySet(value + 1);
     }
 
-    public void lazyInc(long d) {
+    /**
+     * increment value by d and lazySet it.
+     * @param d ...
+     */
+    public void lazyAdd(long d) {
         lazySet(value + d);
     }
 
-    public void volatileSet(final long value) {
-        UnsafeAccess.unsafe.putLongVolatile(this, valueOffset, value);
+    /**
+     * @param newVal to be written using a volatile write(STORE/LOAD).
+     */
+    public void volatileSet(long newVal) {
+        UnsafeAccess.UNSAFE.putLongVolatile(this, VALUE_OFFSET, newVal);
+    }
+    /**
+     * @param newVal to be written using a ordered write(STORE/STORE).
+     */
+    public void lazySet(long newVal) {
+        UnsafeAccess.UNSAFE.putOrderedLong(this, VALUE_OFFSET, newVal);
+    }
+    /**
+     * @param newVal to be written using a plain write.
+     */
+    public void plainSet(long newVal) {
+        this.value = newVal;
     }
 
-    public void lazySet(final long value) {
-        UnsafeAccess.unsafe.putOrderedLong(this, valueOffset, value);
-    }
-
-    public void plainSet(final long value) {
-        this.value = value;
-    }
-
-    public boolean compareAndSet(final long expectedValue, final long newValue) {
-        return UnsafeAccess.unsafe.compareAndSwapLong(this, valueOffset,
+    /**
+     * @param expectedValue ...
+     * @param newValue ...
+     * @return true is CAS success, false otherwise
+     */
+    public boolean compareAndSet(long expectedValue, long newValue) {
+        return UnsafeAccess.UNSAFE.compareAndSwapLong(this, VALUE_OFFSET,
                 expectedValue, newValue);
     }
 
+    /**
+     * @return String.valueOf(value)
+     */
     public String toString() {
         return Long.toString(volatileGet());
     }

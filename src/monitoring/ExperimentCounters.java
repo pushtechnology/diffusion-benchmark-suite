@@ -11,8 +11,8 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public final class ExperimentCounters {
     // CHECKSTYLE:OFF
-    private final AtomicLong messageCounter = new AtomicLong();
-    private final AtomicLong bytesCounter = new AtomicLong();
+    private final SingleWriterLongCounter messageCounter = new SingleWriterLongCounter();
+    private final SingleWriterLongCounter bytesCounter = new SingleWriterLongCounter();
     private final AtomicLong connectionAttemptsCounter = new AtomicLong();
     private final AtomicLong clientConnectCounter = new AtomicLong();
     private final AtomicLong clientDisconnectCounter = new AtomicLong();
@@ -85,7 +85,7 @@ public final class ExperimentCounters {
     }
 
     public void incMessageCounter() {
-        messageCounter.incrementAndGet();        
+        messageCounter.inc();        
     }
 
     public long getBytesCounter() {
@@ -93,7 +93,7 @@ public final class ExperimentCounters {
     }
 
     public void incByteCounter(int messageSize) {
-        bytesCounter.addAndGet(messageSize);
+        bytesCounter.add(messageSize);
     }
 }
 // CHECKSTYLE:ON
