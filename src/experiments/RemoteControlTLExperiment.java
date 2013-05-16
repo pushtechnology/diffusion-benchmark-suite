@@ -10,7 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import monitoring.Histogram;
+import org.HdrHistogram.Histogram;
+
 import rc.BaseRemoteListener;
 import rc.BaseService;
 import util.Factory;
@@ -78,7 +79,7 @@ public final class RemoteControlTLExperiment implements Runnable {
                 @Override
                 public void run() {
                     pubPauseCounter++;
-                    if(!service.isRegistered()){
+                    if (!service.isRegistered()) {
                         try {
                             register();
                         } catch (APIException e) {
@@ -153,11 +154,11 @@ public final class RemoteControlTLExperiment implements Runnable {
             service.getOptions().setClientConnectNotifications(false);
             service.getOptions().setRouteSelectorSubscribes(false);
             service.setMessageQueueSize(10000);
-            service.getServerDetails().setOutputBufferSize(64*1024);
-            service.getServerDetails().setInputBufferSize(64*1024);
+            service.getServerDetails().setOutputBufferSize(64 * 1024);
+            service.getServerDetails().setInputBufferSize(64 * 1024);
             listener.resetRegisterLatch();
             service.register();
-            while(!service.isRegistered()){
+            while (!service.isRegistered()) {
                 listener.waitForRegistration(1000L, TimeUnit.MILLISECONDS);
                 Logs.info("Registering RC with server...");
             }
@@ -259,12 +260,14 @@ public final class RemoteControlTLExperiment implements Runnable {
             @Override
             protected void wrapupAndReport() {
                 // CHECKSTYLE:OFF
-                Histogram histogramSummary = new Histogram(1024, 10000);
+                Histogram histogramSummary =
+                        new Histogram(TimeUnit.SECONDS.toNanos(10), 3);
                 // CHECKSTYLE:ON
                 for (LatencyMonitoringClient connection : clients) {
-                    histogramSummary.addObservations(connection.getHistogram());
+                    histogramSummary.add(connection.getHistogram());
                 }
-                getOutput().println(histogramSummary.toString());
+                histogramSummary.getHistogramData().
+                        outputPercentileDistribution(getOutput(), 1, 1000.0);
             }
         };
         loop.setClientFactory(new Factory<ExperimentClient>() {

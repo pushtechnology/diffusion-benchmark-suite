@@ -16,10 +16,13 @@
 package clients;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.TimeUnit;
+
+import org.HdrHistogram.Histogram;
 
 import monitoring.ExperimentCounters;
-import monitoring.Histogram;
 
+import com.pushtechnology.diffusion.api.Logs;
 import com.pushtechnology.diffusion.api.ServerConnection;
 import com.pushtechnology.diffusion.api.message.MessageException;
 import com.pushtechnology.diffusion.api.message.TopicMessage;
@@ -35,7 +38,8 @@ import com.pushtechnology.diffusion.api.message.TopicMessage;
 public class LatencyMonitoringClient extends MessageCountingClient {
     // CHECKSTYLE:OFF
     private static final int WARMUP_MESSAGES = 20000;
-    private final Histogram histogram = new Histogram(1024, 10000);
+    private final Histogram histogram = 
+            new Histogram(TimeUnit.SECONDS.toNanos(10), 3);
     protected ServerConnection connection;
     private Object connectionLock = new Object();
     private byte[] timestamp = new byte[8];
@@ -68,9 +72,14 @@ public class LatencyMonitoringClient extends MessageCountingClient {
                 return;
             }    
             long sent = tBuffy.getLong(0);
+            
 
             long rtt = arrived - sent;
-            getHistogram().addObservation(rtt);
+            if(rtt > TimeUnit.MINUTES.toNanos(1)){
+                Logs.severe("WTF:"+sent);
+                return;
+            }
+            getHistogram().recordValue(rtt);
         }
     }
 

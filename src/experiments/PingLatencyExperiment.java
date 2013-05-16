@@ -18,26 +18,27 @@ package experiments;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
-import monitoring.Histogram;
+import org.HdrHistogram.Histogram;
+
 import util.Factory;
 import clients.ExperimentClient;
 import clients.PingClient;
-
 
 /**
  * A latency measuring experiment benchmarking the RTT latency of messages.
  * 
  * @author nitsanw
- *
+ * 
  */
 public final class PingLatencyExperiment implements Runnable {
     /** the experiment loop. */
     private final ExperimentControlLoop loop;
-    
-    /** 
+
+    /**
      * client connections to be closed on close of factory and queried for
-     * latency stats. 
+     * latency stats.
      */
     private final Set<PingClient> clients = Collections
             .newSetFromMap(new ConcurrentHashMap<PingClient, Boolean>());
@@ -51,12 +52,15 @@ public final class PingLatencyExperiment implements Runnable {
             @Override
             protected void wrapupAndReport() {
                 // CHECKSTYLE:OFF
-                Histogram histogramSummary = new Histogram(1024, 10000);
-                // CHECKSTYLE:ON
+                Histogram histogramSummary =
+                        new Histogram(TimeUnit.SECONDS.toNanos(10), 3);
+
                 for (PingClient connection : clients) {
-                    histogramSummary.addObservations(connection.getHistogram());
+                    histogramSummary.add(connection.getHistogram());
                 }
-                getOutput().println(histogramSummary.toString());
+                histogramSummary.getHistogramData().
+                        outputPercentileDistribution(getOutput(), 1, 1000.0);
+                // CHECKSTYLE:ON
             }
         };
         loop.setClientFactory(new Factory<ExperimentClient>() {
@@ -77,11 +81,11 @@ public final class PingLatencyExperiment implements Runnable {
             }
         });
         ExperimentLoadStrategy defaultLoadStrategy =
-                new DefaultLoadStrategy(loop.getClientSettings(), 
+                new DefaultLoadStrategy(loop.getClientSettings(),
                         loop.getExperimentCounters());
         loop.setLoadStartegy(defaultLoadStrategy);
     }
-    
+
     @Override
     public void run() {
         loop.run();

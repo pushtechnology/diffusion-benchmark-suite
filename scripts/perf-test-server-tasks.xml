@@ -11,6 +11,7 @@
 	<path id="test.runtime.classpath">
 		<filelist>
 			<file name="${dir.main.lib}/diffusionbenchmark.jar" />
+			<file name="${dir.main.lib}/HdrHistogram.jar" />
 			<file name="${diffusion.dir}/lib/diffusion.jar" />
 			<file name="${diffusion.dir}/lib/diffusionclient.jar" />
 		</filelist>
