@@ -28,6 +28,7 @@ import util.Factory;
 import clients.ClientConnectionFactory;
 import clients.ExperimentClient;
 
+import com.pushtechnology.diffusion.api.APIException;
 import com.pushtechnology.diffusion.api.APIProperties;
 import com.pushtechnology.diffusion.api.Logs;
 import com.pushtechnology.diffusion.api.client.ExternalClientConnection;
@@ -72,12 +73,12 @@ public class ExperimentControlLoop implements Runnable {
      */
     public ExperimentControlLoop(CommonExperimentSettings settings) {
         clientSettings = settings;
-        
+
         experimentMonitor =
                 new ExperimentMonitor(getExperimentCounters(),
                         settings.getOutputFile());
         setUp();
-        
+
     }
 
     /**
@@ -168,23 +169,35 @@ public class ExperimentControlLoop implements Runnable {
         int qSize = getClientSettings().getMaxClients();
         int coreSize = getClientSettings().getInboundThreadPoolSize();
         try {
-            APIProperties.setInboundThreadPoolQueueSize(qSize);
-            // this will allow us to set the max
-            ThreadService.getInboundThreadPool().setCoreSize(0);
-            // set the max
-            ThreadService.getInboundThreadPool().setMaximumSize(coreSize);
-            if(ThreadService.getInboundThreadPool().getMaximumSize() != coreSize) {
-                throw new RuntimeException("Failed to set max pool size");
-            }
-            // core size MUST be set after max size :(
-            ThreadService.getInboundThreadPool().setCoreSize(coreSize);
-            if(ThreadService.getInboundThreadPool().getCoreSize() != coreSize) {
-                throw new RuntimeException("Failed to set core pool size");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+            setupThreadPool(qSize, coreSize);
+        } catch (APIException e) {
+            throw new RuntimeException(e);
         }
         experimentMonitor.start();
+    }
+
+    /**
+     * setup the diffusion inbound thread pool.
+     * 
+     * @param qSize ...
+     * @param coreSize ...
+     * @throws APIException ...
+     */
+    private void setupThreadPool(int qSize, int coreSize)
+            throws APIException {
+        APIProperties.setInboundThreadPoolQueueSize(qSize);
+        // this will allow us to set the max
+        ThreadService.getInboundThreadPool().setCoreSize(0);
+        // set the max
+        ThreadService.getInboundThreadPool().setMaximumSize(coreSize);
+        if (ThreadService.getInboundThreadPool().getMaximumSize() != coreSize) {
+            throw new RuntimeException("Failed to set max pool size");
+        }
+        // core size MUST be set after max size :(
+        ThreadService.getInboundThreadPool().setCoreSize(coreSize);
+        if (ThreadService.getInboundThreadPool().getCoreSize() != coreSize) {
+            throw new RuntimeException("Failed to set core pool size");
+        }
     }
 
     /**
