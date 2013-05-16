@@ -1,13 +1,12 @@
 package clients;
 
-import java.nio.ByteBuffer;
-
 import monitoring.ExperimentCounters;
 import publishers.PingPublisher;
 
 import com.pushtechnology.diffusion.api.APIException;
 import com.pushtechnology.diffusion.api.Logs;
 import com.pushtechnology.diffusion.api.ServerConnection;
+import com.pushtechnology.diffusion.api.message.MessageException;
 import com.pushtechnology.diffusion.api.message.TopicMessage;
 
 /**
@@ -16,47 +15,61 @@ import com.pushtechnology.diffusion.api.message.TopicMessage;
  * @author nitsanw
  */
 public final class PingClient extends LatencyMonitoringClient {
-    // CHECKSTYLE:OFF
-    private final byte[] message;
-    private final ByteBuffer messageBuffer;
+    /** message size. */
+    private final int size;
+    /** sent time. */
+    private long sentTimeNanos;
 
-    public PingClient(ExperimentCounters experimentCountersP, int size) {
-        // CHECKSTYLE:ON
+    /**
+     * @param experimentCountersP ...
+     * @param sizeP message size
+     */
+    public PingClient(ExperimentCounters experimentCountersP, int sizeP) {
         super(experimentCountersP, true,
                 PingPublisher.ROOT_TOPIC);
-        message = new byte[size];
-        messageBuffer = ByteBuffer.wrap(message);
+        this.size = sizeP;
     }
 
     @Override
     public void onMessage(ServerConnection serverConnection,
             TopicMessage topicMessage) {
         super.onMessage(serverConnection, topicMessage);
-        ping();
+        ping(topicMessage);
     }
 
     @Override
     public void onServerConnect(ServerConnection serverConnection) {
         super.onServerConnect(serverConnection);
-        ping();
+        TopicMessage m;
+        try {
+            m = connection
+                    .createDeltaMessage(PingPublisher.ROOT_TOPIC, size);
+            m.put(new byte[size]);
+            ping(m);
+        } catch (MessageException e) {
+            if (Logs.isFinestLogging()) {
+                Logs.finest("Error on trying to send a ping to server", e);
+            }
+        }
     }
 
     /**
      * send a ping to server.
+     * @param topicMessage 
      */
-    void ping() {
+    void ping(TopicMessage topicMessage) {
         try {
-            TopicMessage m = connection
-                    .createDeltaMessage(PingPublisher.ROOT_TOPIC,
-                            message.length);
-            messageBuffer.clear();
-            messageBuffer.putLong(System.nanoTime());
-            m.put(message);
-            connection.send(m);
+            sentTimeNanos = System.nanoTime();
+            connection.send(topicMessage);
         } catch (APIException e) {
             if (Logs.isFinestLogging()) {
                 Logs.finest("Error on trying to send a ping to server", e);
             }
         }
+    }
+    @Override
+    protected long getSentTimestamp(TopicMessage topicMessage)
+            throws MessageException {
+        return sentTimeNanos;
     }
 }

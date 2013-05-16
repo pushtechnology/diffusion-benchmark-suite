@@ -43,7 +43,7 @@ public class LatencyMonitoringClient extends MessageCountingClient {
     protected ServerConnection connection;
     private Object connectionLock = new Object();
     private byte[] timestamp = new byte[8];
-    private ByteBuffer tBuffy = ByteBuffer.wrap(timestamp);
+    private ByteBuffer tsWrapperBuffer = ByteBuffer.wrap(timestamp);
     
     public LatencyMonitoringClient(ExperimentCounters experimentCountersP,
             boolean reconnectP, String... initialTopicsP) {
@@ -67,20 +67,21 @@ public class LatencyMonitoringClient extends MessageCountingClient {
         if (experimentCounters.getMessageCounter() > WARMUP_MESSAGES
                 && topicMessage.isDelta()) {
             try {
-                topicMessage.nextBytes(timestamp);
-            } catch (MessageException e) {
-                return;
-            }    
-            long sent = tBuffy.getLong(0);
-            
-
-            long rtt = arrived - sent;
-            if(rtt > TimeUnit.MINUTES.toNanos(1)){
-                Logs.severe("WTF:"+sent);
+                long sent = getSentTimestamp(topicMessage);
+                long rtt = arrived - sent;
+                getHistogram().recordValue(rtt);
+            } catch (Exception e) {
+                Logs.severe("Failed to capture rtt:", e);
                 return;
             }
-            getHistogram().recordValue(rtt);
         }
+    }
+
+    protected long getSentTimestamp(TopicMessage topicMessage)
+            throws MessageException{
+        topicMessage.nextBytes(timestamp);
+        long sent = tsWrapperBuffer.getLong(0);
+        return sent;
     }
 
     // CHECKSTYLE:OFF
