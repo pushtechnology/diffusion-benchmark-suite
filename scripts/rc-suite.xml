@@ -10,6 +10,7 @@
 	<!-- Further common settings are available in the test-suite-common file
 	-->
 	<import file="perf-test-suite-common.xml" />
+	
 	<target name="before-suite">
 		<if>
 			<equals arg1="${skip.server}" arg2="true" />
@@ -28,6 +29,7 @@
 			</else>
 		</if>
 	</target>
+	
 	<target name="after-suite">
         <if>
             <equals arg1="${skip.server}" arg2="true" />
@@ -43,6 +45,7 @@
             </else>
         </if>
     </target>
+	
 	<target name="before">
         <if>
             <equals arg1="${skip.server}" arg2="true" />
@@ -59,10 +62,10 @@
             </else>
         </if>
     </target>
+	
 	<target name="perfTest-2000b-50t">
 		<run-rc-test test.name="2000b-RC-2M-50T" message.size="2000" publish.pause.seconds="0.5" initial.clients="0" max.clients="100000" clients.increment="50" initial.messages="1" message.increment="0" initial.topic.num="50" topic.increment="0" />
 	</target>
-
 	<target name="perfTest-1000b-50t">
 		<run-rc-test test.name="1000b-RC-2M-50T" message.size="1000" publish.pause.seconds="0.5" initial.clients="0" max.clients="100000" clients.increment="50" initial.messages="1" message.increment="0" initial.topic.num="50" topic.increment="0" />
 	</target>
@@ -82,7 +85,7 @@
 		<attribute name="max.clients" default="2000" />
 		<attribute name="clients.increment" default="1" />
 		<attribute name="client.create.pause.seconds" default="0" />
-		<attribute name="client.create.interval.seconds" default="1" />
+		<attribute name="client.increment.pause.seconds" default="1" />
 		<!-- Server attributes -->
 		<attribute name="publish.pause.seconds" default="1.0" />
 		<attribute name="message.size" default="100" />
