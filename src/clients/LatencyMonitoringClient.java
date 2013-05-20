@@ -27,6 +27,8 @@ import com.pushtechnology.diffusion.api.ServerConnection;
 import com.pushtechnology.diffusion.api.message.MessageException;
 import com.pushtechnology.diffusion.api.message.TopicMessage;
 
+import experiments.EvilMessageAccessHack;
+
 /**
  * This client will track message latency by reading the first 8 bytes of any
  * message received and adding to it's latency histogram. The timestamp is
@@ -35,15 +37,13 @@ import com.pushtechnology.diffusion.api.message.TopicMessage;
  * @author nitsanw
  *
  */
-public class LatencyMonitoringClient extends MessageCountingClient {
+public abstract class LatencyMonitoringClient extends MessageCountingClient {
     // CHECKSTYLE:OFF
     private static final int WARMUP_MESSAGES = 20000;
     private final Histogram histogram = 
             new Histogram(TimeUnit.SECONDS.toNanos(10), 3);
     protected ServerConnection connection;
     private Object connectionLock = new Object();
-    private byte[] timestamp = new byte[8];
-    private ByteBuffer tsWrapperBuffer = ByteBuffer.wrap(timestamp);
     
     public LatencyMonitoringClient(ExperimentCounters experimentCountersP,
             boolean reconnectP, String... initialTopicsP) {
@@ -51,7 +51,7 @@ public class LatencyMonitoringClient extends MessageCountingClient {
     }
 
     @Override
-    public void onServerConnect(ServerConnection serverConnection) {
+    public final void onServerConnect(ServerConnection serverConnection) {
         synchronized (connectionLock) {
             this.connection = serverConnection;
         }
@@ -59,10 +59,10 @@ public class LatencyMonitoringClient extends MessageCountingClient {
 
 
     @Override
-    public void onMessage(ServerConnection serverConnection,
+    public final void onMessage(ServerConnection serverConnection,
             TopicMessage topicMessage) {
         // CHECKSTYLE:ON
-        long arrived = System.nanoTime();
+        long arrived = getArrivedTimestamp();
 
         if (experimentCounters.getMessageCounter() > WARMUP_MESSAGES
                 && topicMessage.isDelta()) {
@@ -77,22 +77,25 @@ public class LatencyMonitoringClient extends MessageCountingClient {
         }
     }
 
-    protected long getSentTimestamp(TopicMessage topicMessage)
-            throws MessageException{
-        topicMessage.nextBytes(timestamp);
-        long sent = tsWrapperBuffer.getLong(0);
-        return sent;
-    }
+    /**
+     * @return ...
+     */
+    protected abstract long getArrivedTimestamp();
 
-    // CHECKSTYLE:OFF
+    /**
+     * @param topicMessage ...
+     * @return ...
+     */
+    protected abstract long getSentTimestamp(TopicMessage topicMessage);
+
     @Override
-    public void onServerDisconnect(ServerConnection serverConnection) {
+    public final void onServerDisconnect(ServerConnection serverConnection) {
         synchronized (connectionLock) {
             this.connection = null;
         }
     }
 
-    public void disconnect() {
+    public final void disconnect() {
         synchronized (connectionLock) {
             if (connection != null) {
                 connection.close();
@@ -100,7 +103,7 @@ public class LatencyMonitoringClient extends MessageCountingClient {
         }
     }
 
-    public Histogram getHistogram() {
+    public final Histogram getHistogram() {
         return histogram;
     }
     // CHECKSTYLE:ON

@@ -17,33 +17,38 @@ import com.pushtechnology.diffusion.api.message.TopicMessage;
 public final class PingClient extends LatencyMonitoringClient {
     /** message size. */
     private final int size;
+    
+    /** ping exchange topic. */
+    private final String pingTopic;
     /** sent time. */
     private long sentTimeNanos;
+    
 
     /**
      * @param experimentCountersP ...
      * @param sizeP message size
+     * @param pingTopicP the topic on which we ping
      */
-    public PingClient(ExperimentCounters experimentCountersP, int sizeP) {
+    public PingClient(ExperimentCounters experimentCountersP, int sizeP,
+            String pingTopicP) {
         super(experimentCountersP, true,
-                PingPublisher.ROOT_TOPIC);
+                pingTopicP);
         this.size = sizeP;
+        this.pingTopic = pingTopicP;
     }
 
+
     @Override
-    public void onMessage(ServerConnection serverConnection,
+    public void afterMessage(ServerConnection serverConnection,
             TopicMessage topicMessage) {
-        super.onMessage(serverConnection, topicMessage);
         ping(topicMessage);
     }
 
     @Override
-    public void onServerConnect(ServerConnection serverConnection) {
-        super.onServerConnect(serverConnection);
+    public void afterServerConnect(ServerConnection serverConnection) {
         TopicMessage m;
         try {
-            m = connection
-                    .createDeltaMessage(PingPublisher.ROOT_TOPIC, size);
+            m = connection.createDeltaMessage(pingTopic, size);
             m.put(new byte[size]);
             ping(m);
         } catch (MessageException e) {
@@ -68,8 +73,13 @@ public final class PingClient extends LatencyMonitoringClient {
         }
     }
     @Override
-    protected long getSentTimestamp(TopicMessage topicMessage)
-            throws MessageException {
+    protected long getSentTimestamp(TopicMessage topicMessage) {
         return sentTimeNanos;
+    }
+
+
+    @Override
+    protected long getArrivedTimestamp() {
+        return System.nanoTime();
     }
 }

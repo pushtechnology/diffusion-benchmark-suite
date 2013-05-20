@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.HdrHistogram.Histogram;
 
+import publishers.ClientDrivenBroadcastPublisher;
 import rc.BaseRemoteListener;
 import rc.BaseService;
 import util.Factory;
@@ -22,12 +23,18 @@ import clients.LatencyMonitoringClient;
 import clients.UnsafeLatencyMonitoringClient;
 
 import com.pushtechnology.diffusion.api.APIException;
+import com.pushtechnology.diffusion.api.Credentials;
 import com.pushtechnology.diffusion.api.Logs;
+import com.pushtechnology.diffusion.api.ServerConnection;
+import com.pushtechnology.diffusion.api.ServerConnectionListener;
+import com.pushtechnology.diffusion.api.client.ExternalClientConnection;
 import com.pushtechnology.diffusion.api.connection.ConnectionFactory;
+import com.pushtechnology.diffusion.api.connection.ServerDetails;
 import com.pushtechnology.diffusion.api.message.MessageException;
 import com.pushtechnology.diffusion.api.message.TopicMessage;
 import com.pushtechnology.diffusion.api.remote.RemoteServiceFactory;
 import com.pushtechnology.diffusion.api.remote.topics.SimpleTopicSpecification;
+import com.pushtechnology.diffusion.api.topic.TopicStatus;
 
 /**
  * Remote control base throughput and latency experiment.
@@ -35,7 +42,7 @@ import com.pushtechnology.diffusion.api.remote.topics.SimpleTopicSpecification;
  * @author nitsanw
  * 
  */
-public final class RemoteControlTLExperiment implements Runnable {
+public final class ExternalClientTLExperiment implements Runnable {
     private static final SimpleTopicSpecification TOPIC_SPECIFICATION =
             new SimpleTopicSpecification();
     /**
@@ -254,16 +261,18 @@ public final class RemoteControlTLExperiment implements Runnable {
     private final ExperimentControlLoop loop;
 
     private final Settings settings;
+    private ServerDetails serverDetails;
+    private ServerConnectionListener client;
 
     /**
      * @param settingsP ...
      */
-    public RemoteControlTLExperiment(Settings settingsP) {
+    public ExternalClientTLExperiment(Settings settingsP) {
         this.settings = settingsP;
         loop = new ExperimentControlLoop(settingsP) {
             @Override
             protected void postInitialLoadCreated() {
-                setUpRC();
+                setUpController();
             }
 
             @Override
@@ -308,10 +317,41 @@ public final class RemoteControlTLExperiment implements Runnable {
         loop.run();
     }
 
-    public void setUpRC() {
-        Service service = new Service();
+    public void setUpController() {
         try {
-            service.startService();
+            serverDetails =
+                ConnectionFactory.
+                        createServerDetails(settings.getRcUrl());
+            client = new ServerConnectionListener() {
+                
+                @Override
+                public void serverTopicStatusChanged(ServerConnection arg0, 
+                        String arg1,
+                        TopicStatus arg2) {
+                }
+                
+                @Override
+                public void serverRejectedCredentials(ServerConnection arg0,
+                        Credentials arg1) {
+                }
+                
+                @Override
+                public void serverDisconnected(ServerConnection arg0) {
+                }
+                
+                @Override
+                public void serverConnected(ServerConnection arg0) {
+                }
+                
+                @Override
+                public void messageFromServer(ServerConnection arg0,
+                        TopicMessage arg1) {
+                }
+            };
+            ExternalClientConnection connection =
+                    new ExternalClientConnection(client, serverDetails);
+            connection.connect(ClientDrivenBroadcastPublisher.BROADCAST_ROOT);
+            
         } catch (APIException e) {
             new RuntimeException(e);
         }

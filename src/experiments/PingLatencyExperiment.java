@@ -22,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.HdrHistogram.Histogram;
 
+import publishers.PingPublisher;
+
 import util.Factory;
 import clients.ExperimentClient;
 import clients.PingClient;
@@ -68,7 +70,8 @@ public final class PingLatencyExperiment implements Runnable {
             public ExperimentClient create() {
                 PingClient pingClient =
                         new PingClient(loop.getExperimentCounters(),
-                                loop.getClientSettings().getMessageSize());
+                                loop.getClientSettings().getMessageSize(),
+                                PingPublisher.ROOT_TOPIC);
                 clients.add(pingClient);
                 return pingClient;
             }

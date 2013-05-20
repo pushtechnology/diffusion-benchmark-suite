@@ -51,8 +51,9 @@ public class MessageCountingClient implements ExperimentClient {
 
     @Override
     public final void serverConnected(final ServerConnection serverConnection) {
-        experimentCounters.incClientConnectCounter();
         onServerConnect(serverConnection);
+        experimentCounters.incClientConnectCounter();
+        afterServerConnect(serverConnection);
     }
 
     /**
@@ -70,6 +71,17 @@ public class MessageCountingClient implements ExperimentClient {
         onMessage(serverConnection, topicMessage);
         experimentCounters.incMessageCounter();
         experimentCounters.incByteCounter(topicMessage.size());
+        afterMessage(serverConnection, topicMessage);
+    }
+
+    /**
+     * Allow extension of default behavior.
+     * 
+     * @param serverConnection ...
+     * @param topicMessage ...
+     */
+    protected void afterMessage(ServerConnection serverConnection,
+            TopicMessage topicMessage) {
     }
 
     /**
@@ -126,5 +138,12 @@ public class MessageCountingClient implements ExperimentClient {
      */
     public final void setReconnect(boolean reconnectP) {
         this.reconnect = reconnectP;
+    }
+
+    /**
+     * post connection action.
+     * @param serverConnection ...
+     */
+    public void afterServerConnect(ServerConnection serverConnection) {
     }
 }
