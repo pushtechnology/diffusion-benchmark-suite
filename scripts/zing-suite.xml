@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<project name="throughput-suite" default="perf-suite" basedir=".">
+<project name="zing-suite" default="perf-suite" basedir=".">
 	<!-- Use this property to control the conflation mode:
 	   REPLACE - conflate in place(like normal people do)
 	   APPEND - conflate and re-order to end of queue(default old behaviour, daft)
@@ -8,7 +8,7 @@
 	-->
     <property name="conflation.mode" value="NONE"/>
     <property environment="env"/>
-    <property name="suite.ant.file" value="throughput-suite.xml"/>
+    <property name="suite.ant.file" value="zing-suite.xml"/>
 	<property name="client.jvm.args" value="-server -Xms2g -Xmx2g"/>
 	<property name="client.threads" value="10"/>        
     <property name="max.time" value="5.0"/>
