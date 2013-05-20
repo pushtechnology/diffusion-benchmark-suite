@@ -63,7 +63,7 @@ public class CommonExperimentSettings {
      */
     public CommonExperimentSettings(Properties settings) {
         diffusionUrls =
-                getProperty(settings, "connect.string", 
+                getProperty(settings, "diffusion.url", 
                         DEFAULT_URL).split(",");
 
         maxClients = getProperty(settings, "max.clients", 
