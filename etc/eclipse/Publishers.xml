@@ -11,7 +11,7 @@
 	</publisher>
 	<!-- 
 	<publisher name="Broadcast">
-		<class>publishers.BroadcastPublisher
+		<class>com.pushtechnology.benchmarks.publishers.BroadcastPublisher
 		</class>
 		<enabled>true</enabled>
 		<start>true</start>
@@ -27,7 +27,7 @@
 	</publisher> -->
     
     <publisher name="Ping">
-        <class>publishers.PingPublisher
+        <class>com.pushtechnology.benchmarks.publishers.PingPublisher
         </class>
         <enabled>true</enabled>
         <start>true</start>

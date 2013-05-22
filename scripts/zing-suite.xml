@@ -226,10 +226,10 @@ max.test.time.minutes=${max.time}
 		<attribute name="testname" />
         <sequential>
 			<echo message="...Starting test client..."/>
-			<java classname="experiments.ExperimentRunner" fork="true" 
+			<java classname="com.pushtechnology.benchmarks.experiments.ExperimentRunner" fork="true" 
 				  failonerror="true" jvmargs="${client.jvm.args}">
                 <sysproperty key="log.connection.exception" value="false" />
-				<arg value="experiments.ThroughputExperiment"/>
+				<arg value="com.pushtechnology.benchmarks.experiments.ThroughputExperiment"/>
 				<arg value="@{testname}.settings"/>
                 <classpath refid="test.runtime.classpath" />
 			</java>

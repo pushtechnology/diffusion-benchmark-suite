@@ -165,9 +165,9 @@ max.test.time.minutes=${max.time}
 		<attribute name="testname" />
 		<sequential>
 			<echo message="...Starting test client..." />
-			<java classname="experiments.ExperimentRunner" fork="true" failonerror="true" jvmargs="${client.jvm.args}">
+			<java classname="com.pushtechnology.benchmarks.experiments.ExperimentRunner" fork="true" failonerror="true" jvmargs="${client.jvm.args}">
 				<sysproperty key="verbose" value="${verbose}" />
-				<arg value="experiments.RemoteControlTLExperiment" />
+				<arg value="com.pushtechnology.benchmarks.experiments.RemoteControlTLExperiment" />
 				<arg value="@{testname}.settings" />
 				<classpath refid="test.runtime.classpath" />
 			</java>

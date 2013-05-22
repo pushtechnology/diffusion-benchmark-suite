@@ -99,10 +99,10 @@ max.test.messages=${max.messages}
                         </else>
                     </if>
                     <echo message="...Starting test client..."/>
-                    <java classname="experiments.ExperimentRunner" fork="true" 
+                    <java classname="com.pushtechnology.benchmarks.experiments.ExperimentRunner" fork="true" 
                           failonerror="true" jvmargs="${client.jvm.args}">
                         <sysproperty key="log.connection.exception" value="false" />
-                        <arg value="experiments.PingLatencyExperiment"/>
+                        <arg value="com.pushtechnology.benchmarks.experiments.PingLatencyExperiment"/>
                         <arg value="${full-test-name}.settings"/>
                         <classpath refid="test.runtime.classpath" />
                     </java>

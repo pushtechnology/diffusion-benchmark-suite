@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
 <publishers>
 	<publisher name="InjectionPublisher">
-		<class>publishers.BroadcastPublisher
+		<class>com.pushtechnology.benchmarks.publishers.BroadcastPublisher
 		</class>
 		<enabled>true</enabled>
 		<start>true</start>
