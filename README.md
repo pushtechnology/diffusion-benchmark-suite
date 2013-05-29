@@ -62,8 +62,9 @@ The default target for the throughput-suite.xml is the __perf-suite__ target
 which will launch all the tests included. This run will default to testing the
 Web Sockets transport with no conflation enabled.<br>
 By the end of the run we will expect to have a set of experiment settings and
-output files. The settings files are not over written and thus allow for
-manual tweaking.
+output files. The settings files are __not over written__ and thus allow for
+manual tweaking. If you change the settings and re-run the settings from the
+file will be used.
 
 ####Run a subset of the throughput suite against localhost.
 >    $ ant -f throughput-suite.xml -Dtest.name.contains=125b<br>

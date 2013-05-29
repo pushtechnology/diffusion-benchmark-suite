@@ -17,18 +17,13 @@ package com.pushtechnology.benchmarks.experiments;
 
 import static com.pushtechnology.benchmarks.util.PropertiesUtil.getProperty;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.HdrHistogram.Histogram;
-
 
 import com.pushtechnology.benchmarks.clients.ExperimentClient;
 import com.pushtechnology.benchmarks.clients.LatencyMonitoringClient;
@@ -40,7 +35,6 @@ import com.pushtechnology.diffusion.api.APIException;
 import com.pushtechnology.diffusion.api.ClientDetails;
 import com.pushtechnology.diffusion.api.Logs;
 import com.pushtechnology.diffusion.api.connection.ConnectionFactory;
-import com.pushtechnology.diffusion.api.message.MessageException;
 import com.pushtechnology.diffusion.api.message.TopicMessage;
 import com.pushtechnology.diffusion.api.remote.RemoteServiceFactory;
 import com.pushtechnology.diffusion.api.remote.topics.SimpleTopicSpecification;

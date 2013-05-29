@@ -183,6 +183,7 @@ public class ExperimentControlLoop implements Runnable {
      * @param coreSize ...
      * @throws APIException ...
      */
+    @SuppressWarnings("deprecation")
     private void setupThreadPool(int qSize, int coreSize)
             throws APIException {
         APIProperties.setInboundThreadPoolQueueSize(qSize);

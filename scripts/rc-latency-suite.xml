@@ -7,64 +7,11 @@
     <property name="max.time" value="5.0" />
     <property name="max.messages" value="100000" />
 	<property name="rc.host" value="dpt://localhost:8080" />
-	<import file="perf-test-server-tasks.xml" />
 	<!-- Further common settings are available in the test-suite-common file
 	-->
-	<import file="perf-test-suite-common.xml" />
-	
-	<target name="before-suite">
-		<if>
-			<equals arg1="${skip.server}" arg2="true" />
-			<then />
-			<elseif>
-				<equals arg1="${diffusion.host}" arg2="localhost" />
-				<then>
-					<assert-no-diffusion-running />
-					<clean-diffusion />
-					<dar publisher.name="RemoteControl" />
-                    <deploy-dar dar.name="RemoteControl.dar" />
-				</then>
-			</elseif>
-			<else>
-				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd benchmark-server;ant -f ${suite.ant.file} before" />
-			</else>
-		</if>
-	</target>
-	
-	<target name="after-suite">
-        <if>
-            <equals arg1="${skip.server}" arg2="true" />
-            <then />
-            <elseif>
-                <equals arg1="${diffusion.host}" arg2="localhost" />
-                <then>
-                    <delete file="RemoteControl.dar" />
-                </then>
-            </elseif>
-            <else>
-                <sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd benchmark-server;ant -f ${suite.ant.file} before" />
-            </else>
-        </if>
-    </target>
-	
-	<target name="before">
-        <if>
-            <equals arg1="${skip.server}" arg2="true" />
-            <then />
-            <elseif>
-                <equals arg1="${diffusion.host}" arg2="localhost" />
-                <then>
-                    <assert-no-diffusion-running />
-                    <start-diffusion />
-                </then>
-            </elseif>
-            <else>
-                <sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd benchmark-server;ant -f ${suite.ant.file} before" />
-            </else>
-        </if>
-    </target>
-	
-    <target name="perfTest-1000b-rc-ping-latency">
+	<import file="rc-test-suite-common.xml" />
+
+	<target name="perfTest-1000b-rc-ping-latency">
         <run-rc-ping-test test.name="1000b-rc-ping-latency" message.size="1000" />
     </target>
     <target name="perfTest-2000b-rc-ping-latency">
@@ -132,12 +79,4 @@ max.test.messages=${max.messages}
             </if>           
         </sequential>
     </macrodef>
-	<target name="start-injector">
-		<dar publisher.name="RemoteControl" />
-		<deploy-dar dar.name="RemoteControl.dar" />
-	</target>
-	<target name="stop-injector">
-		<undeploy-dar dar.name="RemoteControl.dar" />
-		<delete file="RemoteControl.dar" />
-	</target>
 </project>

@@ -29,16 +29,18 @@ import com.pushtechnology.diffusion.api.topic.Topic;
  * 
  * @author nitsanw
  */
-public final class PingPublisher extends Publisher {
+public final class PingTopicPublishPublisher extends Publisher {
     /** the ping topic. Messages sent here will be sent back. */
     public static final String ROOT_TOPIC = "PING";
+    /** the ping topic, messages will be re-broadcasted on this one.*/
+    private Topic rootTopic;
 
     @Override
     protected void initialLoad() throws APIException {
         SingleValueTopicData pingTopicData = 
                 TopicDataFactory.newSingleValueData(MDataType.STRING);
         pingTopicData.initialise("Welcome");
-        Topic rootTopic = addTopic(ROOT_TOPIC,
+        rootTopic = addTopic(ROOT_TOPIC,
                 pingTopicData);
         rootTopic.setAutoSubscribe(true);
     }
@@ -46,9 +48,8 @@ public final class PingPublisher extends Publisher {
     @Override
     protected void messageFromClient(TopicMessage message, Client client) {
         try {
-            // As this is echo, send a message back to the same client and not
-            // broadcast
-            client.send(message);
+            // Echo to the topic
+            rootTopic.publishMessage(message);
         } catch (APIException ex) {
             logWarning("Unable to process message from client", ex);
         }

@@ -26,8 +26,14 @@
 	<property name="ssh.password" value="ds10hd" />
 	<!-- This property allows filtering tests from test suites-->
 	<property name="test.name.contains" value="perfTest" />
-    <property name="skip.server" value="false"/>
+    
+	<!-- Skip client/server actions for interactive runs -->
+	<property name="skip.server" value="false"/>
     <property name="skip.client" value="false"/>
+	
+	<!-- Log all exceptions and set client side logging to FINEST, ony for debug
+	     purposes -->
+    <property name="verbose" value="false"/>
 
 	<import file="perf-test-server-tasks.xml" />
 	

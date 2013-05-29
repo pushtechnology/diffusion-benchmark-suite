@@ -24,7 +24,7 @@ import org.HdrHistogram.Histogram;
 
 import com.pushtechnology.benchmarks.clients.ExperimentClient;
 import com.pushtechnology.benchmarks.clients.PingClient;
-import com.pushtechnology.benchmarks.publishers.PingPublisher;
+import com.pushtechnology.benchmarks.publishers.PingClientSendPublisher;
 import com.pushtechnology.benchmarks.util.Factory;
 
 
@@ -72,7 +72,7 @@ public final class PingLatencyExperiment implements Runnable {
                 PingClient pingClient =
                         new PingClient(loop.getExperimentCounters(),
                                 loop.getClientSettings().getMessageSize(),
-                                PingPublisher.ROOT_TOPIC);
+                                PingClientSendPublisher.ROOT_TOPIC);
                 clients.add(pingClient);
                 return pingClient;
             }

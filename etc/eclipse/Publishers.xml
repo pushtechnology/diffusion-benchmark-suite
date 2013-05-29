@@ -24,10 +24,17 @@
 		<property name="initialTopicNum">10</property>
 		<property name="topicIncrementIntervalInPauses">1</property>
 		<property name="topicIncrement">1</property>
-	</publisher> -->
-    
+	</publisher>
+   -->
+    <publisher name="ManyTopics">
+        <class>ManyTopicsPublisher
+        </class>
+        <enabled>true</enabled>
+        <start>true</start>
+    </publisher> 
+   
     <publisher name="Ping">
-        <class>com.pushtechnology.benchmarks.publishers.PingPublisher
+        <class>com.pushtechnology.benchmarks.publishers.PingClientSendPublisher
         </class>
         <enabled>true</enabled>
         <start>true</start>

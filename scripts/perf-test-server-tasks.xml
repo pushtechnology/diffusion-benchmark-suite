@@ -12,7 +12,7 @@
 		<filelist>
 			<file name="${dir.main.lib}/diffusionbenchmark.jar" />
 			<file name="${dir.main.lib}/HdrHistogram.jar" />
-			<file name="${diffusion.dir}/lib/diffusion.jar" />
+			<file name="${diffusion.dir}/lib/diffusionremote.jar" />
 			<file name="${diffusion.dir}/lib/diffusionclient.jar" />
 		</filelist>
 	</path>
@@ -101,7 +101,22 @@
 			<delete dir="deploy/@{publisher.name}" />
 		</sequential>
 	</macrodef>
-
+    <macrodef name="dar-generic">
+    	<attribute name="publisher.name" />
+    	<attribute name="package" default="com.pushtechnology.benchmarks.publishers"/>
+        <sequential>
+            <mkdir dir="deploy/@{publisher.name}" />
+            <copy file="etc/GenericPublisher.xml" tofile="deploy/@{publisher.name}/etc/Publishers.xml">
+                <filterset begintoken="@" endtoken="@">
+                    <filter token="publisher.name" value="@{publisher.name}" />
+                    <filter token="package" value="@{package}" />
+        	    </filterset>
+            </copy>
+            <copy tofile="deploy/@{publisher.name}/ext/diffusionbenchmark.jar" file="lib/diffusionbenchmark.jar" />
+            <jar jarfile="@{publisher.name}.dar" includes="@{publisher.name}/**" basedir="deploy" manifest="META-INF/MANIFEST.MF" />
+            <delete dir="deploy/@{publisher.name}" />
+        </sequential>
+    </macrodef>
 	<!-- TODO:
 		- Configure diffusion
 	 -->

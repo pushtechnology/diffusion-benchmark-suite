@@ -5,7 +5,9 @@
     <property name="client.threads" value="1"/>
     <property name="max.messages" value="1000000"/>
     <property name="max.time" value="3.0"/>
-    <property name="suite.ant.file" value="latency-suite.xml"/>
+	<property name="ping.type" value="ClientSend"/>
+	    
+    <property name="suite.ant.file" value="ping-suite.xml"/>
 	<import file="perf-test-server-tasks.xml" />
 	<import file="perf-test-suite-common.xml" />
 	<!-- before/after are empty as we want the server up for duration of suite -->
@@ -24,7 +26,7 @@
 			</then>
         	</elseif>
 			<else>
-				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd benchmark-server;ant -f ping-suite.xml before-suite" />
+				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd benchmark-server;ant -f ping-suite.xml before-suite -Dping.type=${ping.type}" />
 			</else>
 		</if>
 	</target>
@@ -112,11 +114,11 @@ max.test.messages=${max.messages}
 		</sequential>
 	</macrodef>
 	<target name="start-echo">
-		<dar publisher.name="Ping" />
-		<deploy-dar dar.name="Ping.dar" />
+		<dar-generic publisher.name="Ping${ping.type}Publisher" />
+		<deploy-dar dar.name="Ping${ping.type}Publisher.dar" />
 	</target>
 	<target name="stop-echo">
-		<undeploy-dar dar.name="Ping.dar" />
-		<delete file="Ping.dar" />
+		<undeploy-dar dar.name="Ping${ping.type}Publisher.dar" />
+		<delete file="Ping${ping.type}Publisher.dar" />
 	</target>
 </project>
