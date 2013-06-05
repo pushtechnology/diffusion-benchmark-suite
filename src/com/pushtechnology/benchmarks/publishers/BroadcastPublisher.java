@@ -24,8 +24,12 @@ import com.pushtechnology.diffusion.api.TimeoutException;
 import com.pushtechnology.diffusion.api.config.ConfigManager;
 import com.pushtechnology.diffusion.api.config.ConflationPolicyConfig;
 import com.pushtechnology.diffusion.api.config.ConflationPolicyConfig.Mode;
+import com.pushtechnology.diffusion.api.conflation.MessageMerger;
 import com.pushtechnology.diffusion.api.data.TopicData;
+import com.pushtechnology.diffusion.api.data.TopicDataFactory;
 import com.pushtechnology.diffusion.api.data.TopicDataType;
+import com.pushtechnology.diffusion.api.data.metadata.MDataType;
+import com.pushtechnology.diffusion.api.data.single.SingleValueTopicData;
 import com.pushtechnology.diffusion.api.message.TopicMessage;
 import com.pushtechnology.diffusion.api.message.TopicMessageComparator;
 import com.pushtechnology.diffusion.api.message.TopicMessageComparators;
@@ -49,34 +53,10 @@ public final class BroadcastPublisher extends Publisher implements
     @Override
     protected void initialLoad() throws APIException {
         System.out.println(getPublisherName()+".initialLoad");
-        TopicData data = new TopicDataImpl() {
-
-            @Override
-            public TopicDataType getType() {
-                return TopicDataType.CUSTOM;
-            }
-
-            @Override
-            public TopicMessage getLoadMessage(TopicClient client)
-                    throws TimeoutException, APIException {
-                return getLoadMessage();
-            }
-
-            @Override
-            public TopicMessage getLoadMessage() throws TimeoutException,
-                    APIException {
-                final TopicMessage loadMessage = getTopic().createLoadMessage(
-                        20);
-                loadMessage.put("ROOT");
-                return loadMessage;
-            }
-
-            @Override
-            protected void attachedToTopic(String topicName,
-                    TopicTreeNode parent) throws APIException {
-            }
-        };
-        rootTopic = addTopic(INJECTOR_ROOT, data);
+        SingleValueTopicData topicData = 
+                TopicDataFactory.newSingleValueData(MDataType.STRING);
+        topicData.initialise("ALOHA");
+        rootTopic = addTopic(INJECTOR_ROOT, topicData);
         rootTopic.setAutoSubscribe(true);
         String conflationMode = getProperty("conflationMode", "NONE");
         if (!conflationMode.equals("NONE")) {
@@ -114,12 +94,26 @@ public final class BroadcastPublisher extends Publisher implements
         BroadcastConfiguration config = new BroadcastConfiguration(messageSize,
                 intervalPauseNanos, initialMessages,
                 messageIncrementIntervalInPauses, messageIncrement,
-                initialTopicNum, topicIncrementIntervalInPauses, topicIncrement);
+                initialTopicNum, topicIncrementIntervalInPauses,
+                topicIncrement);
         publisherAssembly = new PublisherAssembly(this, config);
     }
 
     protected static void setupMergePolicy() throws APIException {
-        setupDefaultPolicy(ConflationPolicyConfig.Mode.REPLACE);
+        ConflationPolicyConfig policy = ConfigManager.getConfig()
+                .getConflation().addPolicy("XXX", Mode.REPLACE,
+                        new MessageMerger() {
+                            @Override
+                            public TopicMessage merge(TopicMessage arg0,
+                                    TopicMessage arg1)
+                                    throws APIException {
+                                // This illustrates minimum merge cost as
+                                // duplication
+                                return arg0.duplicate();
+                            }
+                        });
+        ConfigManager.getConfig().getConflation()
+                .setDefaultPolicy(policy.getName());
     }
 
     protected static void setupDefaultPolicy(Mode mode) throws APIException {
@@ -225,50 +219,11 @@ public final class BroadcastPublisher extends Publisher implements
     @Override
     public void addChildTopic(String topicName, final String loaddata) {
         try {
-            TopicData data = new TopicDataImpl() {
-
-                @Override
-                public TopicDataType getType() {
-                    return TopicDataType.CUSTOM;
-                }
-
-                @Override
-                public TopicMessage getLoadMessage(TopicClient client)
-                        throws TimeoutException, APIException {
-                    return getLoadMessage();
-                }
-
-                @Override
-                public TopicMessage getLoadMessage() throws TimeoutException,
-                        APIException {
-                    final TopicMessage loadMessage = getTopic()
-                            .createLoadMessage(loaddata.length() + 20);
-                    loadMessage.put(loaddata);
-                    return loadMessage;
-                }
-
-                @Override
-                protected void attachedToTopic(String topicName,
-                        TopicTreeNode parent) throws APIException {
-                }
-            };
-            final Topic childTopic = addTopic(topicName, rootTopic, data);
-            final TopicMessage loadMessage = childTopic
-                    .createLoadMessage(loaddata.length() + 20);
-            loadMessage.put(loaddata);
-            addTopicLoader(new TopicLoader() {
-                public boolean load(TopicClient client, Topic topic)
-                        throws APIException {
-                    client.send(loadMessage);
-                    return true;
-                }
-
-            }, childTopic.getName());
+            SingleValueTopicData topicData = 
+                    TopicDataFactory.newSingleValueData(MDataType.STRING);
+            topicData.initialise(loaddata);
+            final Topic childTopic = addTopic(topicName, rootTopic, topicData);
             childTopics.add(childTopic);
-            final List<TopicClient> clients = getClients(rootTopic);
-            for (TopicClient client : clients) {
-                client.subscribe(childTopic, true);
-            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

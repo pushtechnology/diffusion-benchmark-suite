@@ -62,13 +62,17 @@ public class BroadcastRunner implements Runnable {
             if (messagePublisher.hasClients()) {
                 for (int i = 0; i < messagesPerIntervalPerTopic; i++) {
                     for (Topic topic : messagePublisher.getChildTopics()) {
+                        
                         try {
+                            topic.lock();
                             messagePublisher.publish(topic, data);
 
                             messageCounter.lazySet(messageCounter.get() + 1);
                         } catch (Exception e) {
                             Logs.severe("Runtime exception while publishing:",
                                     e);
+                        } finally {
+                            topic.unlock();
                         }
                     }
                 }
