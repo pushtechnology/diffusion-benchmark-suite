@@ -1,7 +1,7 @@
 #Diffusion Benchmark Suite
 ##Overview
 This project is a collection of synthetic benchmarks, or experiments, used to
-drive performance of the diffusion product. Our framework consists of:
+drive performance of the Diffusion product. Our framework consists of:
 
 * Ant scripts used to start/stop the Diffusion server (local/remote)
 * And scripts for packaging and deploying publishers (by copying .dar files into
@@ -12,7 +12,7 @@ Currently implemented experiments are:
 * Throughput experiment:<br>
     A broadcasting publisher is set up, publishing at a uniform rate across a 
     set number of topics. A population of clients subscribes to all topics. The
-    experiment can be set up to examine server behaivour for different types of
+    experiment can be set up to examine server behaviour for different types of
     load resulting from a growing client population/increase of topics/increase
     of messages/message size. The experiment reports throughput from the clients
     perspective.
