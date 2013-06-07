@@ -2,6 +2,8 @@ package com.pushtechnology.benchmarks.monitoring;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.pushtechnology.benchmarks.util.LongAdder;
+
 /**
  * A central reporting object shared between the clients/connection factory/
  * load strategy/monitoring thread for a given experiment.
@@ -9,17 +11,16 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author nwakart
  * 
  */
-public final class ExperimentCounters {
+public class ExperimentCounters {
     // CHECKSTYLE:OFF
-    private final SingleWriterLongCounter messageCounter = new SingleWriterLongCounter();
-    private final SingleWriterLongCounter bytesCounter = new SingleWriterLongCounter();
     private final AtomicLong connectionAttemptsCounter = new AtomicLong();
     private final AtomicLong clientConnectCounter = new AtomicLong();
     private final AtomicLong clientDisconnectCounter = new AtomicLong();
     private final AtomicLong connectionRefusedCounter = new AtomicLong();
     private final AtomicLong topicsCounter = new AtomicLong();
     private final AtomicLong lastMessagesPerSecond = new AtomicLong(0L);
-
+    private final LongAdder messageCounter = new LongAdder();
+    private final LongAdder bytesCounter = new LongAdder();
     // CHECKSTYLE:ON
     /**
      * NOTE this is an inaccurate measure reflecting recent values from the
@@ -27,7 +28,7 @@ public final class ExperimentCounters {
      * 
      * @return number of currently connected (connected - disconnected)
      */
-    public long getCurrentlyConnected() {
+    public final long getCurrentlyConnected() {
         return getClientConnectCounter() - getClientDisconnectCounter();
     }
 
@@ -79,21 +80,21 @@ public final class ExperimentCounters {
     public void incConnectionAttemptsCounter() {
         connectionAttemptsCounter.incrementAndGet();        
     }
-
     public long getMessageCounter() {
-        return messageCounter.get();
+        return messageCounter.sum();
     }
 
     public void incMessageCounter() {
-        messageCounter.inc();        
+        messageCounter.increment();        
     }
 
     public long getBytesCounter() {
-        return bytesCounter.get();
+        return bytesCounter.sum();
     }
 
     public void incByteCounter(int messageSize) {
         bytesCounter.add(messageSize);
     }
 }
+
 // CHECKSTYLE:ON
