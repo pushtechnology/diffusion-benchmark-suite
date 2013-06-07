@@ -42,12 +42,8 @@ public class BroadcastRunner implements Runnable {
 
     public void run() {
         running = true;
-        final StringBuilder messageBuilder = new StringBuilder(
-                config.getMessageSize());
-        for (int c = 0; c < config.getMessageSize(); c++) {
-            messageBuilder.append('X');
-        }
-        final String data = messageBuilder.toString();
+        
+        final byte[] data = new byte[config.getMessageSize()];
         int pauseCounter = 0;
         for (int i = 0; i < config.getInitialTopicNum(); i++) {
             messagePublisher.addChildTopic(String.valueOf(i), data);
@@ -83,7 +79,8 @@ public class BroadcastRunner implements Runnable {
 
             if (isCoping && messagePublisher.hasClients()) {
                 // increase number of topics
-                if (pauseCounter % config.getTopicIncrementIntervalInPauses() == 0) {
+                if (config.getTopicIncrementIntervalInPauses() != 0 &&
+                        pauseCounter % config.getTopicIncrementIntervalInPauses() == 0) {
                     for (int i = 0; i < config.getTopicIncrement(); i++) {
                         messagePublisher.addChildTopic(
                                 String.valueOf(topicCounter++), data);
@@ -91,7 +88,8 @@ public class BroadcastRunner implements Runnable {
                     }
                 }
                 // increase number of messages
-                if (pauseCounter % config.getMessageIncrementIntervalInPauses() == 0) {
+                if (config.getMessageIncrementIntervalInPauses() != 0 &&
+                        pauseCounter % config.getMessageIncrementIntervalInPauses() == 0) {
                     messagesPerIntervalPerTopic += config.getMessageIncrement();
                 }
             }

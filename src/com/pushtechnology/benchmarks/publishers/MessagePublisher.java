@@ -20,9 +20,9 @@ import java.util.Queue;
 import com.pushtechnology.diffusion.api.topic.Topic;
 
 public interface MessagePublisher {
-    void addChildTopic(String topic, String loaddata);
+    void addChildTopic(String topic, byte[] loaddata);
 
-    void publish(Topic topic, String... message);
+    void publish(Topic topic, byte[] data);
 
     Queue<Topic> getChildTopics();
 

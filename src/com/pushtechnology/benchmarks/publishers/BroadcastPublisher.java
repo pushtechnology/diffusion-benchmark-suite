@@ -206,10 +206,11 @@ public final class BroadcastPublisher extends Publisher implements
     }
 
     @Override
-    public void publish(final Topic topic, final String... message) {
+    public void publish(final Topic topic, final byte[] message) {
         try {
-            final TopicMessage deltaMessage = topic.createDeltaMessage();
-            deltaMessage.putFields(message);
+            final TopicMessage deltaMessage = 
+                    topic.createDeltaMessage(message.length);
+            deltaMessage.put(message);
             topic.publishMessage(deltaMessage);
         } catch (APIException e) {
             throw new RuntimeException(e);
@@ -217,12 +218,13 @@ public final class BroadcastPublisher extends Publisher implements
     }
 
     @Override
-    public void addChildTopic(String topicName, final String loaddata) {
+    public void addChildTopic(String topicName, final byte[] loaddata) {
         try {
             SingleValueTopicData topicData = 
                     TopicDataFactory.newSingleValueData(MDataType.STRING);
             topicData.initialise(loaddata);
             final Topic childTopic = addTopic(topicName, rootTopic, topicData);
+            childTopic.setDefaultLoadMessageCapacity(loaddata.length);
             childTopics.add(childTopic);
         } catch (Exception e) {
             throw new RuntimeException(e);
