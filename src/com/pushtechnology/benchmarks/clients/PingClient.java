@@ -40,7 +40,9 @@ public final class PingClient extends LatencyMonitoringClient {
     @Override
     public void afterMessage(ServerConnection serverConnection,
             TopicMessage topicMessage) {
-        ping(topicMessage);
+        if (topicMessage.isDelta()) {
+            ping(topicMessage);
+        }
     }
 
     @Override
