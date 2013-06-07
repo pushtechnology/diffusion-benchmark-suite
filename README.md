@@ -48,6 +48,24 @@ To deploy the scripts you'll need to extract the __benchmark-server.zip__ into
 a folder named __benchmark-server__.<br>
 >    $ unzip benchmark-server.zip -d benchmark-server
 
+##Before you run the benchmarks!!!
+The benchmarks are configured for running on tuned commodity servers, not your
+average laptop. This is particularly true when running both server and client
+on the same host. To run the benchmarks in your IDE refer to the relevant section
+below.<br>
+The server on which the benchmarks are to be run should be configured to allow
+large numbers of connections. On Unix add file descriptors as follows:<br>
+>    ulimit -n 100000
+
+To persist the changes after a restart edit /etc/security/limits.conf (or /etc/limits.conf) and add the following lines:
+>     *                hard    nofile          100000
+>     *                soft    nofile          100000
+
+If you run you client process via a single IP you may exhaust the IP range (by
+opening too many local connections, each client requires a port). To
+avoid you can either access your server via multiple addresses(explained below)
+or extend the IP range as described [here](http://stackoverflow.com/questions/6145108/problem-running-into-java-net-bindexception-cannot-assign-requested-address)
+  
 ##Running the benchmarks
 The ant scripts deployed with the application support running the benchmarks
 in a variety of configurations. The benchmarks can be run as a suite (similar
@@ -112,7 +130,7 @@ NICs and thus url[i] must be available on nic[i].
 
 
 ##Notes
-
+### Notes for running in Eclipse
 ### Notes for IBM JDK
 ### Notes for Zing
 ### Notes for Waratek
