@@ -199,10 +199,9 @@ public final class BroadcastPublisher extends Publisher implements
             final boolean loaded) throws APIException {
         if (topic.equals(rootTopic)) {
             client.setConflation(conflation);
-            for (Topic childTopic : childTopics) {
-                client.subscribe(childTopic, true);
-            }
         }
+        // call super which should do the right thing with topic load
+        super.subscription(client, topic, loaded);
     }
 
     @Override
