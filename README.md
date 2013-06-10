@@ -1,11 +1,13 @@
 #Diffusion Benchmark Suite
 ##Overview
 This project is a collection of synthetic benchmarks, or experiments, used to
-drive performance of the Diffusion product. Our framework consists of:
+drive performance of the [Diffusion](http://docs.pushtechnology.com/) product.
+ Our framework consists of:
 
 * Ant scripts used to start/stop the Diffusion server (local/remote)
 * And scripts for packaging and deploying publishers (by copying .dar files into
-the deploy folder of the server)  
+the deploy folder of the server)
+* Soft cushions!  
 
 Currently implemented experiments are:
 
@@ -19,10 +21,16 @@ Currently implemented experiments are:
 * Latency experiment:<br>
     A pong/echo publisher is set up which 'echo's clients messages back to them.
     The experiment allows for controlling the number concurrently pinging
-    clients. Clients ping as fast as they can.
-* Client churn test (coming soon):<br>
-    A population of clients connects and subscribe, clients disconnect randomly
-    after a set period of time.
+    clients. Clients ping as fast as they can. The ping service can either
+    send back to the particular client or broadcast on the ping topic.
+* Remote Control Latency experiment:<br>
+    A RemoteControl client is connected and sets up an Echo topic as described
+    above. We connect clients to it and measure response time(Client <-> Server 
+    <-> RC).
+* Remote Control Throughput+Latency experiment:<br>
+    A RemoteControl client is connected and sets up a topic tree similar to the
+    one used in the throughput experiment. Latency is measured from
+    RemoteControl client to clients (RC -> Server -> Client)
 
 ##Building the benchmarks distributable
 To build and run the benchmarks it is assumed that you have already installed:
@@ -131,6 +139,13 @@ NICs and thus url[i] must be available on nic[i].
 
 ##Notes
 ### Notes for running in Eclipse
+If you have the Diffusion server installed locally on your developer box and
+wish to run these benchmarks from Eclipse you can install the Diffusion Eclipse
+Plugin and do just that! use the RunPublishers.launch(right click, run as)
+launcher to start the service and create a launcher/use an existing one for your
+selected experiment.<br>
+Note that this is intended mostly as a means to validate your code, not as a
+benchmarking environment for best results. 
 ### Notes for IBM JDK
 ### Notes for Zing
 ### Notes for Waratek
