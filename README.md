@@ -12,34 +12,23 @@ the deploy folder of the server)
 
 Currently implemented experiments are:
 
-* **Throughput**
+> #### Throughput
 
-    A broadcasting publisher is set up, publishing at a uniform rate across a 
-    set number of topics. A population of clients subscribes to all topics.
+> A broadcasting publisher is set up, publishing at a uniform rate across a set number of topics. A population of clients subscribes to all topics.
     
-    The experiment can be set up to examine server behaviour for different types of
-    load resulting from a growing client population / increase of topics / increase
-    of messages / message size. The experiment reports throughput from the clients'
-    perspective.
+> The experiment can be set up to examine server behaviour for different types of load resulting from a growing client population / increase of topics / increase of messages / message size. The experiment reports throughput from the clients' perspective.
     
-* **Latency**
+> #### Latency
 
-    A pong/echo publisher is set up which "echo"s clients messages back to them.
-    The experiment allows the number concurrently pinging clients to be controlled.
-    Clients ping as fast as they can. The ping service can either
-    respond to the particular client or broadcast on the ping topic.
+> A pong/echo publisher is set up which "echo"s clients messages back to them. The experiment allows the number concurrently pinging clients to be controlled. Clients ping as fast as they can. The ping service can either respond to the particular client or broadcast on the ping topic.
     
-* **Remote Control Latency**
+> #### Remote Control Latency
 
-    A RemoteControl client is connected and sets up an Echo topic as described
-    above. We connect clients to it and measure response time (Client <-> Server 
-    <-> RC).
+> A RemoteControl client is connected and sets up an Echo topic as described above. We connect clients to it and measure response time (Client <-> Server <-> RC).
     
-* **Remote Control Throughput + Latency**
+> #### Remote Control Throughput + Latency
 
-    A RemoteControl client is connected and sets up a topic tree similar to the
-    one used in the throughput experiment. Latency is measured from
-    RemoteControl client to clients (RC -> Server -> Client)
+> A RemoteControl client is connected and sets up a topic tree similar to the one used in the throughput experiment. Latency is measured from RemoteControl client to clients (RC -> Server -> Client)
 
 ##Building the benchmarks distributable
 To build and run the benchmarks it is assumed that you have the following installed:
@@ -63,7 +52,7 @@ Diffusion server configuration and tuning manual for detailed instructions.
 To deploy the scripts you'll need to extract the `benchmark-server.zip` into
 a folder named `benchmark-server`.
 
->     $ unzip benchmark-server.zip -d benchmark-server
+    $ unzip benchmark-server.zip -d benchmark-server
 
 ##Before you run the benchmarks!!!
 The benchmarks are configured for running on tuned commodity servers, not your
@@ -74,7 +63,7 @@ below.
 The server on which the benchmarks are to be run should be configured to allow
 large numbers of connections. On Unix, add file descriptors as follows:
 
->     ulimit -n 100000
+    ulimit -n 100000
 
 To persist the changes after a restart edit `/etc/security/limits.conf` (or `/etc/limits.conf`) and add the following lines:
 
@@ -95,7 +84,7 @@ Target names which start with *perfTest* are assumed benchmarks.
 We'll work through the options by example. First, open a terminal and change to the `benchamrk-server` directory.
 
 ####Run the throughput suite against localhost
->     $ ant -f throughput-suite.xml
+    $ ant -f throughput-suite.xml
 
 The default target for the `throughput-suite.xml` is the __perf-suite__ target
 which will launch all the tests included. This run will default to testing the
@@ -109,26 +98,26 @@ manual tweaking. If you change the settings and re-run the settings from the
 file will be used.
 
 ####Run a subset of the throughput suite against localhost
->     $ ant -f throughput-suite.xml -Dtest.name.contains=125b
+    $ ant -f throughput-suite.xml -Dtest.name.contains=125b
 
 This will result in only the __perfTest-125b-50t__ benchmark being run, but
 within the framework of a suite so the before and after tasks are executed.
 
 ####Run the throughput suite against localhost with different transport/conflation
->     $ ant -f throughput-suite.xml -Ddiffusion.transport=dpt -Dconflation.mode=REPLACE
+    $ ant -f throughput-suite.xml -Ddiffusion.transport=dpt -Dconflation.mode=REPLACE
 
 This will result in a full suite run for the DPT transport using `REPLACE` conflation.
 You can read more about the different Diffusion transports and conflation modes
 in the User Manual.
 
 ####Run the throughput suite against localhost with different client jvm settings
->     $ ant -f throughput-suite.xml -Dclient.threads=1 -Dclient.jvm.args="-server -Xms128m -Xmx128m"
+    $ ant -f throughput-suite.xml -Dclient.threads=1 -Dclient.jvm.args="-server -Xms128m -Xmx128m"
 
 This will launch the full suite but with client JVM launched with above arguments
 and using a single incoming thread.
 
 ####Run the throughput suite against a different machine
->     $ ant -f throughput-test.xml -Ddiffusion.host=test3
+    $ ant -f throughput-test.xml -Ddiffusion.host=test3
 
 If `diffusion.host` is not `localhost` the Ant scripts will attempt to
 start/stop the diffusion server deployed remotely and deploy to it. The
@@ -143,7 +132,7 @@ to have the `jsch.jar` in your `$ANT_HOME/lib`.
 
 ####Run the throughput benchmark with host on machine 'test3' connecting via 4 interfaces on the 192.168.54/24 and 10.0.0/24 networks.
 
->     $ ant -f throughput-test.xml -Ddiffusion.host=test3 -Ddiffusion.url=ws://192.168.54.31:8080,ws://10.0.0.10:8080,ws://10.0.0.18:8080,ws://10.0.0.22:8080 -Ddiffusion.client.nics=192.168.54.21,10.0.0.9,10.0.0.17,10.0.0.21 <br>
+    $ ant -f throughput-test.xml -Ddiffusion.host=test3 -Ddiffusion.url=ws://192.168.54.31:8080,ws://10.0.0.10:8080,ws://10.0.0.18:8080,ws://10.0.0.22:8080 -Ddiffusion.client.nics=192.168.54.21,10.0.0.9,10.0.0.17,10.0.0.21 <br>
 
 This will launch the full suite running the host on `test3` and using several
 urls and client NICs for connectivity. This allows you to mix and match
@@ -179,12 +168,12 @@ CP=${CP}:../etc
 CP=${CP}:../data
 ```
 
->     /root/waratek-package/target/open/jdk/jre/bin/javad -Xdaemon -Dcom.waratek.javaagent=-javaagent:../lib/licenceagent.jar=../etc/licence.lic,../etc/publicKeys.store -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=../logs -cp ${CP} com.pushtechnology.diffusion.Diffusion $1<br>
+    $ /root/waratek-package/target/open/jdk/jre/bin/javad -Xdaemon -Dcom.waratek.javaagent=-javaagent:../lib/licenceagent.jar=../etc/licence.lic,../etc/publicKeys.store -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=../logs -cp ${CP} com.pushtechnology.diffusion.Diffusion $1<br>
 
 Unless cleanly shutdown Waratek JVM instances leaves behind detritus in `/var/lib/javad`. So if you start
 a cloud VM named 'jvm-1' you should recursively delete any artefacts created by Waratek so you can clean
 start:
 
->     rm -rf /var/lib/javad/jvm-1
+    $ rm -rf /var/lib/javad/jvm-1
 
 Enjoy!
