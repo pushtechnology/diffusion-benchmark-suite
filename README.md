@@ -12,23 +12,23 @@ the deploy folder of the server)
 
 Currently implemented experiments are:
 
-> #### Throughput
+#### Throughput
 
-> A broadcasting publisher is set up, publishing at a uniform rate across a set number of topics. A population of clients subscribes to all topics.
+A broadcasting publisher is set up, publishing at a uniform rate across a set number of topics. A population of clients subscribes to all topics.
     
-> The experiment can be set up to examine server behaviour for different types of load resulting from a growing client population / increase of topics / increase of messages / message size. The experiment reports throughput from the clients' perspective.
+The experiment can be set up to examine server behaviour for different types of load resulting from a growing client population / increase of topics / increase of messages / message size. The experiment reports throughput from the clients' perspective.
     
-> #### Latency
+#### Latency
 
-> A pong/echo publisher is set up which "echo"s clients messages back to them. The experiment allows the number concurrently pinging clients to be controlled. Clients ping as fast as they can. The ping service can either respond to the particular client or broadcast on the ping topic.
+A pong/echo publisher is set up which "echo"s clients messages back to them. The experiment allows the number concurrently pinging clients to be controlled. Clients ping as fast as they can. The ping service can either respond to the particular client or broadcast on the ping topic.
     
-> #### Remote Control Latency
+#### Remote Control Latency
 
-> A RemoteControl client is connected and sets up an Echo topic as described above. We connect clients to it and measure response time (Client <-> Server <-> RC).
+A RemoteControl client is connected and sets up an Echo topic as described above. We connect clients to it and measure response time (Client <-> Server <-> RC).
     
-> #### Remote Control Throughput + Latency
+#### Remote Control Throughput + Latency
 
-> A RemoteControl client is connected and sets up a topic tree similar to the one used in the throughput experiment. Latency is measured from RemoteControl client to clients (RC -> Server -> Client)
+A RemoteControl client is connected and sets up a topic tree similar to the one used in the throughput experiment. Latency is measured from RemoteControl client to clients (RC -> Server -> Client)
 
 ##Building the benchmarks distributable
 To build and run the benchmarks it is assumed that you have the following installed:
@@ -67,8 +67,8 @@ large numbers of connections. On Unix, add file descriptors as follows:
 
 To persist the changes after a restart edit `/etc/security/limits.conf` (or `/etc/limits.conf`) and add the following lines:
 
->     *                hard    nofile          100000
->     *                soft    nofile          100000
+    *                hard    nofile          100000
+    *                soft    nofile          100000
 
 If you run you client process via a single IP you may exhaust the IP range (by
 opening too many local connections, each client requires a local port). To
