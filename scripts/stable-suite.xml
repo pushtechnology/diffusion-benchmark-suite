@@ -17,47 +17,8 @@
 	-->
 	<import file="perf-test-suite-common.xml" />
 
-	<target name="perfTest-zing-125b-30k">
-        <run-ramping-throughput-test test.name="zing-125b-30k" 
-            message.size="125" 
-            publish.pause.seconds="0.25"
-            initial.clients="30000"
-            max.clients="30000"
-            clients.increment="0"
-            initial.messages="1"
-            message.increment="0"
-            initial.topic.num="50"
-            topic.increment="0"/>
-    </target>
-
-   <target name="perfTest-zing-125b-25k">
-        <run-ramping-throughput-test test.name="zing-125b-25k" 
-            message.size="125" 
-            publish.pause.seconds="0.25"
-            initial.clients="25000"
-            max.clients="25000"
-            clients.increment="0"
-            initial.messages="1"
-            message.increment="0"
-            initial.topic.num="50"
-            topic.increment="0"/>
-    </target>
-
-   <target name="perfTest-zing-125b-20k">
-        <run-ramping-throughput-test test.name="zing-125b-20k" 
-            message.size="125" 
-            publish.pause.seconds="0.25"
-            initial.clients="20000"
-            max.clients="20000"
-            clients.increment="0"
-            initial.messages="1"
-            message.increment="0"
-            initial.topic.num="50"
-            topic.increment="0"/>
-    </target>
-
-   <target name="perfTest-zing-125b-15k">
-        <run-ramping-throughput-test test.name="zing-125b-15k" 
+    <target name="perfTest-stable-125b-15k">
+        <run-ramping-throughput-test test.name="stable-125b-15k" 
             message.size="125" 
             publish.pause.seconds="0.25"
             initial.clients="15000"
@@ -69,8 +30,8 @@
             topic.increment="0"/>
     </target>
 
-   <target name="perfTest-zing-125b-10k">
-        <run-ramping-throughput-test test.name="zing-125b-10k" 
+   <target name="perfTest-stable-125b-10k">
+        <run-ramping-throughput-test test.name="stable-125b-10k" 
             message.size="125" 
             publish.pause.seconds="0.25"
             initial.clients="10000"
@@ -82,8 +43,8 @@
             topic.increment="0"/>
     </target>
 
-  <target name="perfTest-zing-125b-5k">
-        <run-ramping-throughput-test test.name="zing-125b-5k" 
+  <target name="perfTest-stable-125b-5k">
+        <run-ramping-throughput-test test.name="stable-125b-5k" 
             message.size="125" 
             publish.pause.seconds="0.25"
             initial.clients="5000"
@@ -94,7 +55,6 @@
             initial.topic.num="50"
             topic.increment="0"/>
     </target>
-
 
 	<macrodef name="run-ramping-throughput-test">
 		<!-- Client attributes -->
