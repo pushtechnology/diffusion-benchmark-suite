@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <project name="rc-throughtput-suite" default="perf-suite" basedir=".">
 	<property environment="env" />
-	<property name="suite.ant.file" value="rc-throughtput-suite.xml" />
+	<property name="suite.ant.file" value="rc-throughput-suite.xml" />
 	<property name="client.jvm.args" value="-server -Xms2g -Xmx2g" />
 	<property name="client.threads" value="10" />
 	<property name="max.time" value="5.0" />

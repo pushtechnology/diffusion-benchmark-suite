@@ -34,7 +34,7 @@
 	<!-- Log all exceptions and set client side logging to FINEST, ony for debug
 	     purposes -->
     <property name="verbose" value="false"/>
-    <property name="benchmark-server.dir" value="/root/becnhmark-server"/>
+    <property name="benchmark-server.dir" value="/root/benchmark-server"/>
 
 	<import file="perf-test-server-tasks.xml" />
 	
