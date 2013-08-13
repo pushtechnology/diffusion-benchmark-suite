@@ -19,7 +19,7 @@
 				</then>
 			</elseif>
 			<else>
-				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd benchmark-server;ant -f ${suite.ant.file} before" />
+				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd ${benchmark-server.dir};ant -f ${suite.ant.file} before-suite" />
 			</else>
 		</if>
 	</target>
@@ -36,7 +36,7 @@
                 </then>
             </elseif>
             <else>
-                <sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd benchmark-server;ant -f ${suite.ant.file} before" />
+                <sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd ${benchmark-server.dir};ant -f ${suite.ant.file} after-suite" />
             </else>
         </if>
     </target>
@@ -54,7 +54,7 @@
                 </then>
             </elseif>
             <else>
-                <sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd benchmark-server;ant -f ${suite.ant.file} before" />
+                <sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd ${benchmark-server.dir};ant -f ${suite.ant.file} before" />
             </else>
         </if>
     </target>

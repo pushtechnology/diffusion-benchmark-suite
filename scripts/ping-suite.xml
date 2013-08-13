@@ -26,7 +26,7 @@
 			</then>
         	</elseif>
 			<else>
-				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd benchmark-server;ant -f ping-suite.xml before-suite -Dping.type=${ping.type}" />
+				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd ${benchmark-server.dir};ant -f ping-suite.xml before-suite -Dping.type=${ping.type}" />
 			</else>
 		</if>
 	</target>
@@ -40,7 +40,7 @@
 			</then>
         	</elseif>
 			<else>
-				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd benchmark-server;ant -f ping-suite.xml after-suite" />
+				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd ${benchmark-server.dir};ant -f ping-suite.xml after-suite" />
 			</else>
 		</if>
 	</target>

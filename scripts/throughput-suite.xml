@@ -103,7 +103,7 @@
 				<sshexec host="${diffusion.host}"
 					username="${ssh.username}"
 					password="${ssh.password}" 
-                    command="cd benchmark-server;ant -f ${suite.ant.file} -Dtest.name=@{test.name} -Dpublish.pause.seconds=@{publish.pause.seconds} -Dmessage.size=@{message.size} -Dinitial.messages=@{initial.messages} -Dmessage.increment.interval=@{message.increment.interval} -Dmessage.increment=@{message.increment} -Dinitial.topic.num=@{initial.topic.num} -Dtopic.increment.interval=@{topic.increment.interval} -Dtopic.increment=@{topic.increment} -Dconflation.mode=${conflation.mode} start-injector" />
+                    command="cd ${benchmark-server.dir};ant -f ${suite.ant.file} -Dtest.name=@{test.name} -Dpublish.pause.seconds=@{publish.pause.seconds} -Dmessage.size=@{message.size} -Dinitial.messages=@{initial.messages} -Dmessage.increment.interval=@{message.increment.interval} -Dmessage.increment=@{message.increment} -Dinitial.topic.num=@{initial.topic.num} -Dtopic.increment.interval=@{topic.increment.interval} -Dtopic.increment=@{topic.increment} -Dconflation.mode=${conflation.mode} start-injector" />
 
 			 </else>
 			</if>
@@ -162,7 +162,7 @@ max.test.time.minutes=${max.time}
 				<sshexec host="${diffusion.host}"
 					username="${ssh.username}"
 					password="${ssh.password}" 
-					command="cd benchmark-server;ant -f ${suite.ant.file} -Dtest.name=@{test.name} stop-injector" />
+					command="cd ${benchmark-server.dir};ant -f ${suite.ant.file} -Dtest.name=@{test.name} stop-injector" />
 			 </else>
 			</if>
 		</sequential>
