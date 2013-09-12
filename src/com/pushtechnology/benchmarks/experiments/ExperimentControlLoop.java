@@ -76,7 +76,7 @@ public class ExperimentControlLoop implements Runnable {
 
         experimentMonitor =
                 new ExperimentMonitor(getExperimentCounters(),
-                        settings.getOutputFile());
+                        settings.getOutputFile(), settings.getDiffusionHost());
         setUp();
 
     }

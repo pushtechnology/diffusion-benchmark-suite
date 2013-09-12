@@ -22,8 +22,12 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
+import javax.management.MBeanServerConnection;
+import javax.management.remote.JMXConnector;
+
 import org.HdrHistogram.Histogram;
 
+import com.pushtechnology.benchmarks.util.JmxHelper;
 import com.pushtechnology.diffusion.api.Logs;
 
 /**
@@ -40,6 +44,9 @@ public class ExperimentMonitor implements Runnable {
             new Histogram(20*1000*1000, 3);
     private final CpuMonitor cpuMonitor = System.getProperty("java.vendor")
             .startsWith("Oracle") ? new LocalCpuMonitor() : null;
+    private final MemoryMonitor memoryMonitor = new LocalMemoryMonitor();
+    private final CpuMonitor rCpuMonitor;
+    private final MemoryMonitor rMemoryMonitor;
     private final PrintStream out;
 
     private volatile boolean isRunning = true;
@@ -49,9 +56,22 @@ public class ExperimentMonitor implements Runnable {
 
     @SuppressWarnings("resource")
     public ExperimentMonitor(ExperimentCounters experimentCountersP,
-            String outputFilename) {
+            String outputFilename, String host) {
         this.experimentCounters = experimentCountersP;
-        
+        RemoteMemoryMonitor m = null;
+        RemoteCpuMonitor c = null;
+        try {
+            JMXConnector connect =
+                    JmxHelper.getJmxConnector(host, "Diffusion", "admin",
+                            "Diffusion");
+            MBeanServerConnection mBeanServerConnection = 
+                    connect.getMBeanServerConnection();
+            m = new RemoteMemoryMonitor(mBeanServerConnection);
+            c  = new RemoteCpuMonitor(mBeanServerConnection);
+        } catch (Exception e1) {
+        }
+        rMemoryMonitor = m;
+        rCpuMonitor = c;
         if (outputFilename == null || outputFilename.isEmpty()) {
             out = System.out;
         } else {
@@ -74,7 +94,8 @@ public class ExperimentMonitor implements Runnable {
 
         getOutput().println("Time, MessagesPerSecond, ClientsConnected, Topics,"
                 + " InSample, Cpu, ClientDisconnects, ConnectionRefusals, "
-                + "ConnectionAttempts, BytesPerSecond");
+                + "ConnectionAttempts, BytesPerSecond, UsedHeapMB, MaxHeapMB, "
+                + "ServerCPU, ServerHeapUsedMB, ServerMaxHeapMB");
         deadline = System.currentTimeMillis();
         long messagesBefore = experimentCounters.getMessageCounter();
         long bytesBefore = experimentCounters.getBytesCounter();
@@ -96,7 +117,10 @@ public class ExperimentMonitor implements Runnable {
                     * TimeUnit.SECONDS.toNanos(1) / intervalNanos;
             long bytesPerSecond = (long) intervalBytes
                     * TimeUnit.SECONDS.toNanos(1) / intervalNanos;
-            getOutput().format("%s, %d, %d, %d, %b, %s, %d, %d, %d, %d\n",
+            
+            memoryMonitor.sample();
+            getOutput().format("%s, %d, %d, %d, %b, %s, %d, %d, %d, %d, %d, " 
+                    + "%d, %s, %s, %s\n",
                     format.format(new Date()), messagesPerSecond,
                     experimentCounters.getCurrentlyConnected(),
                     experimentCounters.getTopicsCounter(),
@@ -104,7 +128,12 @@ public class ExperimentMonitor implements Runnable {
                     experimentCounters.getClientDisconnectCounter(),
                     experimentCounters.getConnectionRefusedCounter(),
                     experimentCounters.getConnectionAttemptsCounter(),
-                    bytesPerSecond);
+                    bytesPerSecond,
+                    memoryMonitor.heapUsed(),
+                    memoryMonitor.heapMax(),
+                    getServerCpu(),
+                    getServerHeapUsed(),
+                    getServerHeapMax());
             if (isSampling) {
                 messageThroughputHistogram.recordValue(messagesPerSecond);
             } else {
@@ -134,9 +163,39 @@ public class ExperimentMonitor implements Runnable {
                 getHistogramData().getMinValue());
         getOutput().println("]");
     }
+    /**
+     * @return server max heap formatted, or N/A if no monitor exists
+     */
+    private String getServerHeapMax() {
+        if (rMemoryMonitor == null) {
+            return "N/A";
+        }
+        return String.valueOf(rMemoryMonitor.heapMax());
+    }
 
     /**
-     * @return cpu usage formatted
+     * @return server used heap formatted, or N/A if no monitor exists
+     */
+    private String getServerHeapUsed() {
+        if (rMemoryMonitor == null) {
+            return "N/A";
+        }
+        rMemoryMonitor.sample();
+        return String.valueOf(rMemoryMonitor.heapUsed());
+    }
+    /**
+     * @return server cpu usage formatted, or N/A if no monitor exists
+     */
+    private String getServerCpu() {
+        if (rCpuMonitor == null) {
+            return "N/A";
+        } else {
+            return String.format("%.1f", rCpuMonitor.getCpuUsage());
+        }
+    }
+
+    /**
+     * @return cpu usage formatted, or N/A if no monitor exists
      */
     private String getCpu() {
         if (cpuMonitor == null) {

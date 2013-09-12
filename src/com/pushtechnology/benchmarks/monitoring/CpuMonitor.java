@@ -23,10 +23,6 @@ package com.pushtechnology.benchmarks.monitoring;
  * @author nitsanw
  * 
  */
-/**
- * @author yak
- *
- */
 public abstract class CpuMonitor {
     // CHECKSTYLE:OFF
     private long lastSampleSystemTime = 0;

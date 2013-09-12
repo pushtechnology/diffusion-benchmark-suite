@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class CommonExperimentSettings {
     // CHECKSTYLE:OFF adding docs will add nothing...
+    private static final String DEFAULT_HOST = "localhost";
     private static final String DEFAULT_URL = "ws://localhost:8080";
     private static final int DEFAULT_INBOUND_THREAD_POOL_SIZE = 1;
     private static final int DEFAULT_CLIENT_INCREMENT_PAUSE_SECS = 5;
@@ -54,6 +55,7 @@ public class CommonExperimentSettings {
     private final long maxTestMessages;
     private final long maxTestConnections;
     private final String outputFileName;
+    private final String diffusionHost;
     // CHECKSTYLE:ON
     /**
      * Load the experiment settings from properties. Will modify the settings
@@ -63,9 +65,8 @@ public class CommonExperimentSettings {
      */
     public CommonExperimentSettings(Properties settings) {
         diffusionUrls =
-                getProperty(settings, "diffusion.url", 
-                        DEFAULT_URL).split(",");
-
+                getProperty(settings, "diffusion.url", DEFAULT_URL).split(",");
+        diffusionHost = getProperty(settings, "diffusion.host", DEFAULT_HOST);
         maxClients = getProperty(settings, "max.clients", 
                 DEFAULT_MAX_CLIENTS);
         initialClients = getProperty(settings, "initial.clients",
@@ -160,6 +161,9 @@ public class CommonExperimentSettings {
     public String getOutputFile() {
         return outputFileName;
     }
-    // CHECKSTYLE:ON
+
+    public String getDiffusionHost() {
+        return diffusionHost;
+    }
 
 }
