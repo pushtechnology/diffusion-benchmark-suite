@@ -58,8 +58,8 @@ public final class RemoteControlTLExperiment implements Runnable {
      * latency stats.
      */
     private final Set<LatencyMonitoringClient> clients =
-            Collections
-                    .newSetFromMap(new ConcurrentHashMap<LatencyMonitoringClient, Boolean>());
+            Collections.newSetFromMap(
+                    new ConcurrentHashMap<LatencyMonitoringClient, Boolean>());
 
     private final class Service extends BaseService {
         List<TopicMessage> messageForTopic = 

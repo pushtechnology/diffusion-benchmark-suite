@@ -39,7 +39,7 @@ public class ExperimentMonitor implements Runnable {
     private final Histogram messageThroughputHistogram = 
             new Histogram(20*1000*1000, 3);
     private final CpuMonitor cpuMonitor = System.getProperty("java.vendor")
-            .startsWith("Oracle") ? new CpuMonitor() : null;
+            .startsWith("Oracle") ? new LocalCpuMonitor() : null;
     private final PrintStream out;
 
     private volatile boolean isRunning = true;

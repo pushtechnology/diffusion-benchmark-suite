@@ -15,9 +15,7 @@
  */
 package com.pushtechnology.benchmarks.monitoring;
 
-import java.lang.management.ManagementFactory;
 
-import java.lang.management.OperatingSystemMXBean;
 
 /**
  * A utility for monitoring CPU usage. Only works on the Oracle/Sun JVM.
@@ -25,43 +23,40 @@ import java.lang.management.OperatingSystemMXBean;
  * @author nitsanw
  * 
  */
-public final class CpuMonitor {
+/**
+ * @author yak
+ *
+ */
+public abstract class CpuMonitor {
     // CHECKSTYLE:OFF
     private long lastSampleSystemTime = 0;
     private long lastSampleProcessCpuTime = 0;
-    private OperatingSystemMXBean bean = ManagementFactory
-            .getOperatingSystemMXBean();
     // CHECKSTYLE:ON
     /**
      * @return cpu usage in percent of logical cpu
      */
-    public double getCpuUsage() {
+    public final double getCpuUsage() {
         if (lastSampleSystemTime == 0) {
             lastSampleSystemTime = System.nanoTime();
-
-            if (bean instanceof com.sun.management.OperatingSystemMXBean) {
-                lastSampleProcessCpuTime =
-                        ((com.sun.management.OperatingSystemMXBean) bean)
-                                .getProcessCpuTime();
-            }
+            lastSampleProcessCpuTime = getProcessCpuTime();
             return 0.0;
         }
 
         long systemTime = System.nanoTime();
-        long processCpuTime = 0;
-
-        if (bean instanceof com.sun.management.OperatingSystemMXBean) {
-            processCpuTime = ((com.sun.management.OperatingSystemMXBean)
-                    bean)
-                            .getProcessCpuTime();
-        }
+        long processCpuTime = getProcessCpuTime();
         // CHECKSTYLE:OFF
-        double cpuUsage = (double) (processCpuTime - lastSampleProcessCpuTime)
-                * 100.0 / (systemTime - lastSampleSystemTime);
+        long dCpu = processCpuTime - lastSampleProcessCpuTime;
+        long dTime = systemTime - lastSampleSystemTime;
+        double cpuUsage = (double) (dCpu * 100.0) / dTime;
         // CHECKSTYLE:ON
         lastSampleSystemTime = systemTime;
         lastSampleProcessCpuTime = processCpuTime;
 
-        return cpuUsage;
+        return Math.max(cpuUsage,0.0);
     }
+    
+    /**
+     * @return cpu time for the process in nanos
+     */
+    protected abstract long getProcessCpuTime();
 }
