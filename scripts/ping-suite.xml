@@ -92,6 +92,7 @@ client.create.pause.seconds=@{client.create.pause.seconds}
 inbound.threadpool.size=${client.threads}
 client.jvm.args=${client.jvm.args}
 diffusion.url=${diffusion.url}
+diffusion.host=${diffusion.host}
 local.interfaces=${diffusion.client.nics}
 experiment.output=${full-test-name}.csv
 clients.output=${full-test-name}-clients.log
