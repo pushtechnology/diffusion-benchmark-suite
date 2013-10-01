@@ -40,8 +40,8 @@ public class ExperimentMonitor implements Runnable {
     // CHECKSTYLE:OFF
     private static final int MILLIS_IN_SECOND = 1000;
     private final ExperimentCounters experimentCounters;
-    private final Histogram messageThroughputHistogram = 
-            new Histogram(20*1000*1000, 3);
+    private final Histogram messageThroughputHistogram =
+            new Histogram(20 * 1000 * 1000, 3);
     private final CpuMonitor cpuMonitor = System.getProperty("java.vendor")
             .startsWith("Oracle") ? new LocalCpuMonitor() : null;
     private final MemoryMonitor memoryMonitor = new LocalMemoryMonitor();
@@ -54,21 +54,29 @@ public class ExperimentMonitor implements Runnable {
     private Thread monitorThread;
     private volatile long deadline;
 
+    /**
+     * Create monitor for experiment.
+     * 
+     * @param experimentCountersP Counters
+     * @param outputFilename Name of output file
+     * @param host Name of server host
+     */
     @SuppressWarnings("resource")
-    public ExperimentMonitor(ExperimentCounters experimentCountersP,
-            String outputFilename, String host) {
+    public ExperimentMonitor(final ExperimentCounters experimentCountersP,
+            final String outputFilename, final String host) {
         this.experimentCounters = experimentCountersP;
         RemoteMemoryMonitor m = null;
         RemoteCpuMonitor c = null;
         try {
-            JMXConnector connect =
-                    JmxHelper.getJmxConnector(host, "Diffusion", "admin",
-                            "Diffusion");
-            MBeanServerConnection mBeanServerConnection = 
+            final JMXConnector connect =
+                    JmxHelper.getJmxConnector(host, "Diffusion", "guest",
+                            "Guest");
+            final MBeanServerConnection mBeanServerConnection =
                     connect.getMBeanServerConnection();
             m = new RemoteMemoryMonitor(mBeanServerConnection);
-            c  = new RemoteCpuMonitor(mBeanServerConnection);
-        } catch (Exception e1) {
+            c = new RemoteCpuMonitor(mBeanServerConnection);
+        } catch (Exception e) {
+            Logs.warning("Unable to create JMX connection to server", e);
         }
         rMemoryMonitor = m;
         rCpuMonitor = c;
@@ -79,7 +87,7 @@ public class ExperimentMonitor implements Runnable {
             try {
                 o = new PrintStream(outputFilename);
             } catch (FileNotFoundException e) {
-                System.out.println("failed to create output file: "
+                Logs.warning("failed to create output file: "
                         + outputFilename + " will use sysout instead.");
                 o = System.out;
             }
@@ -94,8 +102,11 @@ public class ExperimentMonitor implements Runnable {
 
         getOutput().println("Time, MessagesPerSecond, ClientsConnected, Topics,"
                 + " InSample, Cpu, ClientDisconnects, ConnectionRefusals, "
-                + "ConnectionAttempts, BytesPerSecond, UsedHeapMB, MaxHeapMB, "
-                + "ServerCPU, ServerHeapUsedMB, ServerMaxHeapMB");
+                + "ConnectionAttempts, BytesPerSecond, UsedHeapMB, "
+                + "CommitedHeapMB, MaxHeapMB, UsedOffHeapMB, CommittedOffHeapMB"
+                + ", MaxOffHeapMB, ServerCPU, ServerHeapUsedMB, "
+                + "ServerHeapCommittedMB, ServerMaxHeapMB, ServerOffHeapUsedMB,"
+                + " ServerOffHeapCommittedMB, ServerOffHeapMaxMB");
         deadline = System.currentTimeMillis();
         long messagesBefore = experimentCounters.getMessageCounter();
         long bytesBefore = experimentCounters.getBytesCounter();
@@ -103,37 +114,47 @@ public class ExperimentMonitor implements Runnable {
         while (isRunning) {
             deadline += MILLIS_IN_SECOND;
             LockSupport.parkUntil(deadline);
-            long messagesAfter = experimentCounters.getMessageCounter();
-            long bytesAfter = experimentCounters.getBytesCounter();
-            long timeAfter = System.nanoTime();
-            long intervalMessages = messagesAfter - messagesBefore;
-            long intervalBytes = bytesAfter - bytesBefore;
-            long intervalNanos = timeAfter - timeBefore;
+            final long messagesAfter = experimentCounters.getMessageCounter();
+            final long bytesAfter = experimentCounters.getBytesCounter();
+            final long timeAfter = System.nanoTime();
+            final long intervalMessages = messagesAfter - messagesBefore;
+            final long intervalBytes = bytesAfter - bytesBefore;
+            final long intervalNanos = timeAfter - timeBefore;
             messagesBefore = messagesAfter;
             bytesBefore = bytesAfter;
             timeBefore = timeAfter;
-            
-            long messagesPerSecond = (long) intervalMessages
+
+            final long messagesPerSecond = (long) intervalMessages
                     * TimeUnit.SECONDS.toNanos(1) / intervalNanos;
-            long bytesPerSecond = (long) intervalBytes
+            final long bytesPerSecond = (long) intervalBytes
                     * TimeUnit.SECONDS.toNanos(1) / intervalNanos;
-            
+
             memoryMonitor.sample();
-            getOutput().format("%s, %d, %d, %d, %b, %s, %d, %d, %d, %d, %d, " 
-                    + "%d, %s, %s, %s\n",
-                    format.format(new Date()), messagesPerSecond,
+            getOutput().format("%s, %d, %d, %d, %b, %s, %d, %d, %d, %d, %d, "
+                    + "%d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s\n",
+                    format.format(new Date()),
+                    messagesPerSecond,
                     experimentCounters.getCurrentlyConnected(),
                     experimentCounters.getTopicsCounter(),
-                    isSampling, getCpu(),
+                    isSampling,
+                    getCpu(),
                     experimentCounters.getClientDisconnectCounter(),
                     experimentCounters.getConnectionRefusedCounter(),
                     experimentCounters.getConnectionAttemptsCounter(),
                     bytesPerSecond,
                     memoryMonitor.heapUsed(),
+                    memoryMonitor.heapCommitted(),
                     memoryMonitor.heapMax(),
+                    memoryMonitor.offHeapUsed(),
+                    memoryMonitor.offHeapCommitted(),
+                    memoryMonitor.offHeapMax(),
                     getServerCpu(),
                     getServerHeapUsed(),
-                    getServerHeapMax());
+                    getServerHeapCommitted(),
+                    getServerHeapMax(),
+                    getServerOffHeapUsed(),
+                    getServerOffHeapCommitted(),
+                    getServerOffHeapMax());
             if (isSampling) {
                 messageThroughputHistogram.recordValue(messagesPerSecond);
             } else {
@@ -157,12 +178,13 @@ public class ExperimentMonitor implements Runnable {
         getOutput().print(messageThroughputHistogram.
                 getHistogramData().getValueAtPercentile(50));
         // CHECKSTYLE:ON
-        
+
         getOutput().print(" min:");
         getOutput().print(messageThroughputHistogram.
                 getHistogramData().getMinValue());
         getOutput().println("]");
     }
+
     /**
      * @return server max heap formatted, or N/A if no monitor exists
      */
@@ -183,6 +205,48 @@ public class ExperimentMonitor implements Runnable {
         rMemoryMonitor.sample();
         return String.valueOf(rMemoryMonitor.heapUsed());
     }
+
+    /**
+     * @return server committed heap formatted, or N/A if no monitor exists
+     */
+    private String getServerHeapCommitted() {
+        if (rMemoryMonitor == null) {
+            return "N/A";
+        }
+        return String.valueOf(rMemoryMonitor.heapCommitted());
+    }
+
+    /**
+     * @return server max off heap formatted, or N/A if no monitor exists
+     */
+    private String getServerOffHeapMax() {
+        if (rMemoryMonitor == null) {
+            return "N/A";
+        }
+        return String.valueOf(rMemoryMonitor.offHeapMax());
+    }
+
+    /**
+     * @return server used off heap formatted, or N/A if no monitor exists
+     */
+    private String getServerOffHeapUsed() {
+        if (rMemoryMonitor == null) {
+            return "N/A";
+        }
+        rMemoryMonitor.sample();
+        return String.valueOf(rMemoryMonitor.offHeapUsed());
+    }
+
+    /**
+     * @return server committed off heap formatted, or N/A if no monitor exists
+     */
+    private String getServerOffHeapCommitted() {
+        if (rMemoryMonitor == null) {
+            return "N/A";
+        }
+        return String.valueOf(rMemoryMonitor.offHeapCommitted());
+    }
+
     /**
      * @return server cpu usage formatted, or N/A if no monitor exists
      */

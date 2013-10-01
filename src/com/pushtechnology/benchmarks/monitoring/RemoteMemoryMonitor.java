@@ -26,14 +26,17 @@ import javax.management.openmbean.CompositeDataSupport;
  * @author nitsanw
  * 
  */
-public class RemoteMemoryMonitor implements MemoryMonitor {
+public final class RemoteMemoryMonitor implements MemoryMonitor {
     // CHECKSTYLE:OFF
     private static final int BYTES_IN_MB = 1000000;
     private final MBeanServerConnection connection;
     private final ObjectName osBeanName;
     private CompositeDataSupport currentMemoryUsage;
+    private CompositeDataSupport currentOffHeapMemoryUsage;
 
     /**
+     * Constructor for remote memory monitor.
+     * 
      * @param connection to remote process
      * @throws MalformedObjectNameException if bean is not found
      */
@@ -45,7 +48,16 @@ public class RemoteMemoryMonitor implements MemoryMonitor {
     }
 
     @Override
-    public final int heapUsed() {
+    public int heapCommitted() {
+        if (getMemoryUsageData() == null) {
+            return -1;
+        }
+        return (int) ((Long) getMemoryUsageData().get("committed")
+                / BYTES_IN_MB);
+    }
+
+    @Override
+    public int heapUsed() {
         if (getMemoryUsageData() == null) {
             return -1;
         }
@@ -53,11 +65,38 @@ public class RemoteMemoryMonitor implements MemoryMonitor {
     }
 
     @Override
-    public final int heapMax() {
+    public int heapMax() {
         if (getMemoryUsageData() == null) {
             return -1;
         }
         return (int) ((Long) getMemoryUsageData().get("max") / BYTES_IN_MB);
+    }
+
+    @Override
+    public int offHeapCommitted() {
+        if (getOffHeapMemoryUsageData() == null) {
+            return -1;
+        }
+        return (int) ((Long) getOffHeapMemoryUsageData().get("committed")
+                / BYTES_IN_MB);
+    }
+
+    @Override
+    public int offHeapUsed() {
+        if (getOffHeapMemoryUsageData() == null) {
+            return -1;
+        }
+        return (int) ((Long) getOffHeapMemoryUsageData().get("used")
+                / BYTES_IN_MB);
+    }
+
+    @Override
+    public int offHeapMax() {
+        if (getOffHeapMemoryUsageData() == null) {
+            return -1;
+        }
+        return (int) ((Long) getOffHeapMemoryUsageData().get("max")
+                / BYTES_IN_MB);
     }
 
     /**
@@ -71,12 +110,26 @@ public class RemoteMemoryMonitor implements MemoryMonitor {
         }
     }
 
+    /**
+     * @return current heap memory use
+     */
+    private CompositeDataSupport getOffHeapMemoryUsageData() {
+        try {
+            return currentOffHeapMemoryUsage;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     @Override
-    public final void sample() {
+    public void sample() {
         try {
             currentMemoryUsage =
                     (CompositeDataSupport) connection.getAttribute(osBeanName,
                             "HeapMemoryUsage");
+            currentOffHeapMemoryUsage =
+                    (CompositeDataSupport) connection.getAttribute(osBeanName,
+                            "NonHeapMemoryUsage");
         } catch (Exception e) {
             currentMemoryUsage = null;
         }

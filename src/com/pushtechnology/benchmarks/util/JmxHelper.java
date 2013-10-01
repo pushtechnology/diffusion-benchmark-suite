@@ -7,6 +7,8 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
+import com.pushtechnology.diffusion.api.Logs;
+
 /**
  * Some JMX connection creation utility methods.
  * 
@@ -52,10 +54,11 @@ public final class JmxHelper {
      * @return a JMX connector to specified host
      * @throws IOException if connection fails/if resulting URL is malformed
      */
-    public static JMXConnector getJmxConnector(String host, String service, 
+    public static JMXConnector getJmxConnector(String host, String service,
             String user, String pass)
             throws IOException {
         String jmxUrl = getJmxUrl(host, service);
+        Logs.advice("Using JMX URL: " + jmxUrl);
         JMXServiceURL serviceUrl = new JMXServiceURL(jmxUrl);
         return getJMXConnector(user, pass, serviceUrl);
     }
@@ -86,7 +89,7 @@ public final class JmxHelper {
      * @return see {@link #getJmxUrl(String, int, int)}
      */
     public static String getJmxUrl(String host, String service) {
-        return getJmxUrl(host, service, 
+        return getJmxUrl(host, service,
                 DEFAULT_JMX_RMI_PORT, DEFAULT_JNDI_PORT);
     }
 

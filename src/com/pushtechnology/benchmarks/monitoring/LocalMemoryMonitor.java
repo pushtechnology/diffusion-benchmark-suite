@@ -25,25 +25,49 @@ import java.lang.management.MemoryUsage;
  * @author nitsanw
  * 
  */
-public class LocalMemoryMonitor implements MemoryMonitor {
-    //CHECKSTYLE:OFF
+public final class LocalMemoryMonitor implements MemoryMonitor {
+    // CHECKSTYLE:OFF
     private static final int BYTES_IN_MB = 1000000;
     private final MemoryMXBean memoryMXBean;
     private MemoryUsage currentMemoryUsage;
-    
+    private MemoryUsage currentOffHeapMemoryUsage;
+
+    /**
+     * Constructor for local memory monitor.
+     */
     public LocalMemoryMonitor() {
-        //CHECKSTYLE:ON
+        // CHECKSTYLE:ON
         memoryMXBean = ManagementFactory.getMemoryMXBean();
     }
 
     @Override
-    public final int heapUsed() {
+    public int heapCommitted() {
+        return (int) (getHeapMemoryUsage().getCommitted() / BYTES_IN_MB);
+    }
+
+    @Override
+    public int heapUsed() {
         return (int) (getHeapMemoryUsage().getUsed() / BYTES_IN_MB);
     }
 
     @Override
-    public final int heapMax() {
+    public int heapMax() {
         return (int) (getHeapMemoryUsage().getMax() / BYTES_IN_MB);
+    }
+
+    @Override
+    public int offHeapCommitted() {
+        return (int) (getOffHeapMemoryUsage().getCommitted() / BYTES_IN_MB);
+    }
+
+    @Override
+    public int offHeapUsed() {
+        return (int) (getOffHeapMemoryUsage().getUsed() / BYTES_IN_MB);
+    }
+
+    @Override
+    public int offHeapMax() {
+        return (int) (getOffHeapMemoryUsage().getMax() / BYTES_IN_MB);
     }
 
     /**
@@ -53,9 +77,16 @@ public class LocalMemoryMonitor implements MemoryMonitor {
         return currentMemoryUsage;
     }
 
-    @Override
-    public final void sample() {
-        currentMemoryUsage = memoryMXBean.getHeapMemoryUsage();
+    /**
+     * @return current heap memory use
+     */
+    private MemoryUsage getOffHeapMemoryUsage() {
+        return currentOffHeapMemoryUsage;
     }
 
+    @Override
+    public void sample() {
+        currentMemoryUsage = memoryMXBean.getHeapMemoryUsage();
+        currentOffHeapMemoryUsage = memoryMXBean.getNonHeapMemoryUsage();
+    }
 }

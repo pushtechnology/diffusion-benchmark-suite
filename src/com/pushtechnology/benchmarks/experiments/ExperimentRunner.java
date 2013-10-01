@@ -19,7 +19,6 @@ import java.io.FileOutputStream;
 import java.lang.reflect.Constructor;
 import java.util.Properties;
 
-
 import com.pushtechnology.benchmarks.util.PropertiesUtil;
 import com.pushtechnology.diffusion.api.Logs;
 
@@ -34,14 +33,14 @@ public final class ExperimentRunner {
      * Never create me...
      */
     private ExperimentRunner() {
-
     }
 
     /**
+     * Entry point for experiments.
+     * 
      * @param args expect experiment class name
-     * @throws Exception on grrr
      */
-    public static void main(final String[] args) throws Exception {
+    public static void main(final String[] args) {
         try {
             Class<?> experimentClass = Class.forName(args[0]);
             Class<?> settingsClass = CommonExperimentSettings.class;
@@ -57,19 +56,22 @@ public final class ExperimentRunner {
                     (CommonExperimentSettings) settingsClass.getConstructor(
                             Properties.class).newInstance(
                             experimentProperties);
-            FileOutputStream out = new FileOutputStream(args[1]);
+            final FileOutputStream out = new FileOutputStream(args[1]);
             experimentProperties.store(out, "");
             out.close();
 
-            Constructor<?> constructor =
+            final Constructor<?> constructor =
                     experimentClass.
                             getConstructor(settingsClass);
 
             Runnable experiment = (Runnable) constructor.newInstance(settings);
             experiment.run();
+        } catch (Throwable t) {
+            // Could be a problem with logging
+            // Do not log this error, print it
+            t.printStackTrace();
         } finally {
             System.exit(0);
         }
-        
     }
 }
