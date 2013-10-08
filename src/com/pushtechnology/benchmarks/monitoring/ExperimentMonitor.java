@@ -131,8 +131,8 @@ public class ExperimentMonitor implements Runnable {
                     * TimeUnit.SECONDS.toNanos(1) / intervalNanos;
 
             memoryMonitor.sample();
-            getOutput().format("%s, %d, %d, %d, %b, %s, %d, %d, %d, %d, %d, "
-                    + "%d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s\n",
+            getOutput().format("%s, %d, %d, %d, %b, %s, %d, %d, %d, %d, %s, "
+                    + "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s\n",
                     format.format(new Date()),
                     messagesPerSecond,
                     experimentCounters.getCurrentlyConnected(),
@@ -143,12 +143,12 @@ public class ExperimentMonitor implements Runnable {
                     experimentCounters.getConnectionRefusedCounter(),
                     experimentCounters.getConnectionAttemptsCounter(),
                     bytesPerSecond,
-                    memoryMonitor.heapUsed(),
-                    memoryMonitor.heapCommitted(),
-                    memoryMonitor.heapMax(),
-                    memoryMonitor.offHeapUsed(),
-                    memoryMonitor.offHeapCommitted(),
-                    memoryMonitor.offHeapMax(),
+                    Memory.formatMemory(memoryMonitor.heapUsed()),
+                    Memory.formatMemory(memoryMonitor.heapCommitted()),
+                    Memory.formatMemory(memoryMonitor.heapMax()),
+                    Memory.formatMemory(memoryMonitor.offHeapUsed()),
+                    Memory.formatMemory(memoryMonitor.offHeapCommitted()),
+                    Memory.formatMemory(memoryMonitor.offHeapMax()),
                     getServerCpu(),
                     getServerHeapUsed(),
                     getServerHeapCommitted(),
@@ -193,7 +193,7 @@ public class ExperimentMonitor implements Runnable {
         if (rMemoryMonitor == null) {
             return "N/A";
         }
-        return String.valueOf(rMemoryMonitor.heapMax());
+        return Memory.formatMemory(rMemoryMonitor.heapMax());
     }
 
     /**
