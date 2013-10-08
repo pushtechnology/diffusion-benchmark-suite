@@ -22,34 +22,34 @@ package com.pushtechnology.benchmarks.monitoring;
 public interface MemoryMonitor {
 
     /**
-     * @return committed heap in MD
+     * @return committed heap in bytes
      */
-    int heapCommitted();
+    long heapCommitted();
 
     /**
-     * @return used heap in MB
+     * @return used heap in bytes
      */
-    int heapUsed();
+    long heapUsed();
 
     /**
-     * @return max heap in MB
+     * @return max heap in bytes
      */
-    int heapMax();
+    long heapMax();
 
     /**
-     * @return committed off heap in MD
+     * @return committed off heap in bytes
      */
-    int offHeapCommitted();
+    long offHeapCommitted();
 
     /**
-     * @return used off heap in MB
+     * @return used off heap in bytes
      */
-    int offHeapUsed();
+    long offHeapUsed();
 
     /**
-     * @return max off heap in MB
+     * @return max off heap in bytes
      */
-    int offHeapMax();
+    long offHeapMax();
 
     /**
      * Take a current sample of memory use.

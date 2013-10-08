@@ -27,7 +27,6 @@ import java.lang.management.MemoryUsage;
  */
 public final class LocalMemoryMonitor implements MemoryMonitor {
     // CHECKSTYLE:OFF
-    private static final int BYTES_IN_MB = 1000000;
     private final MemoryMXBean memoryMXBean;
     private MemoryUsage currentMemoryUsage;
     private MemoryUsage currentOffHeapMemoryUsage;
@@ -41,33 +40,33 @@ public final class LocalMemoryMonitor implements MemoryMonitor {
     }
 
     @Override
-    public int heapCommitted() {
-        return (int) (getHeapMemoryUsage().getCommitted() / BYTES_IN_MB);
+    public long heapCommitted() {
+        return getHeapMemoryUsage().getCommitted();
     }
 
     @Override
-    public int heapUsed() {
-        return (int) (getHeapMemoryUsage().getUsed() / BYTES_IN_MB);
+    public long heapUsed() {
+        return getHeapMemoryUsage().getUsed();
     }
 
     @Override
-    public int heapMax() {
-        return (int) (getHeapMemoryUsage().getMax() / BYTES_IN_MB);
+    public long heapMax() {
+        return getHeapMemoryUsage().getMax();
     }
 
     @Override
-    public int offHeapCommitted() {
-        return (int) (getOffHeapMemoryUsage().getCommitted() / BYTES_IN_MB);
+    public long offHeapCommitted() {
+        return getOffHeapMemoryUsage().getCommitted();
     }
 
     @Override
-    public int offHeapUsed() {
-        return (int) (getOffHeapMemoryUsage().getUsed() / BYTES_IN_MB);
+    public long offHeapUsed() {
+        return getOffHeapMemoryUsage().getUsed();
     }
 
     @Override
-    public int offHeapMax() {
-        return (int) (getOffHeapMemoryUsage().getMax() / BYTES_IN_MB);
+    public long offHeapMax() {
+        return getOffHeapMemoryUsage().getMax();
     }
 
     /**

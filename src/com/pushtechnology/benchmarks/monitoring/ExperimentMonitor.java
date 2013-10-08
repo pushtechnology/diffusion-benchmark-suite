@@ -28,6 +28,7 @@ import javax.management.remote.JMXConnector;
 import org.HdrHistogram.Histogram;
 
 import com.pushtechnology.benchmarks.util.JmxHelper;
+import com.pushtechnology.benchmarks.util.Memory;
 import com.pushtechnology.diffusion.api.Logs;
 
 /**
@@ -203,7 +204,7 @@ public class ExperimentMonitor implements Runnable {
             return "N/A";
         }
         rMemoryMonitor.sample();
-        return String.valueOf(rMemoryMonitor.heapUsed());
+        return Memory.formatMemory(rMemoryMonitor.heapUsed());
     }
 
     /**
@@ -213,7 +214,7 @@ public class ExperimentMonitor implements Runnable {
         if (rMemoryMonitor == null) {
             return "N/A";
         }
-        return String.valueOf(rMemoryMonitor.heapCommitted());
+        return Memory.formatMemory(rMemoryMonitor.heapCommitted());
     }
 
     /**
@@ -223,7 +224,7 @@ public class ExperimentMonitor implements Runnable {
         if (rMemoryMonitor == null) {
             return "N/A";
         }
-        return String.valueOf(rMemoryMonitor.offHeapMax());
+        return Memory.formatMemory(rMemoryMonitor.offHeapMax());
     }
 
     /**
@@ -234,7 +235,7 @@ public class ExperimentMonitor implements Runnable {
             return "N/A";
         }
         rMemoryMonitor.sample();
-        return String.valueOf(rMemoryMonitor.offHeapUsed());
+        return Memory.formatMemory(rMemoryMonitor.offHeapUsed());
     }
 
     /**
@@ -244,7 +245,7 @@ public class ExperimentMonitor implements Runnable {
         if (rMemoryMonitor == null) {
             return "N/A";
         }
-        return String.valueOf(rMemoryMonitor.offHeapCommitted());
+        return Memory.formatMemory(rMemoryMonitor.offHeapCommitted());
     }
 
     /**

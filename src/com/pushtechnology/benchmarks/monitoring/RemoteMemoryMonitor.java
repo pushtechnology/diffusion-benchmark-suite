@@ -28,7 +28,6 @@ import javax.management.openmbean.CompositeDataSupport;
  */
 public final class RemoteMemoryMonitor implements MemoryMonitor {
     // CHECKSTYLE:OFF
-    private static final int BYTES_IN_MB = 1000000;
     private final MBeanServerConnection connection;
     private final ObjectName osBeanName;
     private CompositeDataSupport currentMemoryUsage;
@@ -48,55 +47,51 @@ public final class RemoteMemoryMonitor implements MemoryMonitor {
     }
 
     @Override
-    public int heapCommitted() {
+    public long heapCommitted() {
         if (getMemoryUsageData() == null) {
             return -1;
         }
-        return (int) ((Long) getMemoryUsageData().get("committed")
-                / BYTES_IN_MB);
+        return ((Long) getMemoryUsageData().get("committed"));
     }
 
     @Override
-    public int heapUsed() {
+    public long heapUsed() {
         if (getMemoryUsageData() == null) {
             return -1;
         }
-        return (int) ((Long) getMemoryUsageData().get("used") / BYTES_IN_MB);
+        return (Long) getMemoryUsageData().get("used");
     }
 
     @Override
-    public int heapMax() {
+    public long heapMax() {
         if (getMemoryUsageData() == null) {
             return -1;
         }
-        return (int) ((Long) getMemoryUsageData().get("max") / BYTES_IN_MB);
+        return (Long) getMemoryUsageData().get("max");
     }
 
     @Override
-    public int offHeapCommitted() {
+    public long offHeapCommitted() {
         if (getOffHeapMemoryUsageData() == null) {
             return -1;
         }
-        return (int) ((Long) getOffHeapMemoryUsageData().get("committed")
-                / BYTES_IN_MB);
+        return (Long) getOffHeapMemoryUsageData().get("committed");
     }
 
     @Override
-    public int offHeapUsed() {
+    public long offHeapUsed() {
         if (getOffHeapMemoryUsageData() == null) {
             return -1;
         }
-        return (int) ((Long) getOffHeapMemoryUsageData().get("used")
-                / BYTES_IN_MB);
+        return (Long) getOffHeapMemoryUsageData().get("used");
     }
 
     @Override
-    public int offHeapMax() {
+    public long offHeapMax() {
         if (getOffHeapMemoryUsageData() == null) {
             return -1;
         }
-        return (int) ((Long) getOffHeapMemoryUsageData().get("max")
-                / BYTES_IN_MB);
+        return (Long) getOffHeapMemoryUsageData().get("max");
     }
 
     /**
