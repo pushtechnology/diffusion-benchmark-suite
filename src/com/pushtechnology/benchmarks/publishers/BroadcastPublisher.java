@@ -15,31 +15,21 @@
  */
 package com.pushtechnology.benchmarks.publishers;
 
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.pushtechnology.diffusion.api.APIException;
-import com.pushtechnology.diffusion.api.TimeoutException;
 import com.pushtechnology.diffusion.api.config.ConfigManager;
 import com.pushtechnology.diffusion.api.config.ConflationPolicyConfig;
 import com.pushtechnology.diffusion.api.config.ConflationPolicyConfig.Mode;
 import com.pushtechnology.diffusion.api.conflation.MessageMerger;
-import com.pushtechnology.diffusion.api.data.TopicData;
 import com.pushtechnology.diffusion.api.data.TopicDataFactory;
-import com.pushtechnology.diffusion.api.data.TopicDataType;
 import com.pushtechnology.diffusion.api.data.metadata.MDataType;
 import com.pushtechnology.diffusion.api.data.single.SingleValueTopicData;
 import com.pushtechnology.diffusion.api.message.TopicMessage;
-import com.pushtechnology.diffusion.api.message.TopicMessageComparator;
-import com.pushtechnology.diffusion.api.message.TopicMessageComparators;
 import com.pushtechnology.diffusion.api.publisher.Client;
 import com.pushtechnology.diffusion.api.publisher.Publisher;
 import com.pushtechnology.diffusion.api.topic.Topic;
-import com.pushtechnology.diffusion.api.topic.TopicClient;
-import com.pushtechnology.diffusion.api.topic.TopicLoader;
-import com.pushtechnology.diffusion.api.topic.TopicTreeNode;
-import com.pushtechnology.diffusion.data.TopicDataImpl;
 
 public final class BroadcastPublisher extends Publisher implements
         MessagePublisher {
@@ -66,8 +56,6 @@ public final class BroadcastPublisher extends Publisher implements
                 setupDefaultPolicy(ConflationPolicyConfig.Mode.APPEND);
             } else if (conflationMode.equals("REPLACE")) {
                 setupDefaultPolicy(ConflationPolicyConfig.Mode.REPLACE);
-            } else if (conflationMode.equals("COMPARE")) {
-                setupDefaultComparator();
             } else if (conflationMode.equals("MERGE")) {
                 setupMergePolicy();
             } else {
@@ -121,19 +109,6 @@ public final class BroadcastPublisher extends Publisher implements
                 .getConflation().addPolicy("XXX", mode);
         ConfigManager.getConfig().getConflation()
                 .setDefaultPolicy(policy.getName());
-    }
-
-    protected static void setupDefaultComparator() {
-        TopicMessageComparators
-                .setDefaultComparator(new TopicMessageComparator() {
-
-                    @Override
-                    protected boolean equalsTopicMessage(TopicMessage message1,
-                            TopicMessage message2) {
-                        return message1.getTopicName().equals(
-                                message2.getTopicName());
-                    }
-                });
     }
 
     private double getProperty(String prop, double defaultVal) {
