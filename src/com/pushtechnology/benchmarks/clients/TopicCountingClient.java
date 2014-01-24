@@ -18,7 +18,6 @@ package com.pushtechnology.benchmarks.clients;
 import java.util.HashSet;
 import java.util.Set;
 
-
 import com.pushtechnology.benchmarks.monitoring.ExperimentCounters;
 import com.pushtechnology.diffusion.api.ServerConnection;
 import com.pushtechnology.diffusion.api.message.TopicMessage;
@@ -26,9 +25,9 @@ import com.pushtechnology.diffusion.api.message.TopicMessage;
 
 /**
  * A client which counts the number of available topics.
- * 
+ *
  * @author nitsanw
- * 
+ *
  */
 public class TopicCountingClient extends MessageCountingClient {
     /**
@@ -47,9 +46,7 @@ public class TopicCountingClient extends MessageCountingClient {
     @Override
     protected final void onMessage(ServerConnection serverConnection,
             TopicMessage topicMessage) {
-        int size = topics.size();
-        topics.add(topicMessage.getTopicName());
-        if (size != topics.size()) {
+        if (topics.add(topicMessage.getTopicName())) {
             experimentCounters.setTopicsCounter(topics.size());
         }
     }
