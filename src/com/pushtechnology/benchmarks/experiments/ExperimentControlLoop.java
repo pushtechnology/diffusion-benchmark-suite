@@ -16,12 +16,13 @@
 package com.pushtechnology.benchmarks.experiments;
 
 import java.io.PrintStream;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 import java.util.logging.Level;
-
 
 import com.pushtechnology.benchmarks.clients.ClientConnectionFactory;
 import com.pushtechnology.benchmarks.clients.ExperimentClient;
@@ -37,16 +38,18 @@ import com.pushtechnology.diffusion.api.threads.ThreadService;
 /**
  * Base frame for experiments setting up a monitoring/reporting thread and
  * driving load up over time.
- * 
+ *
  * @author nwakart
- * 
+ *
  */
 public class ExperimentControlLoop implements Runnable {
     /** async connect client task. */
     private final Runnable createClientTask = new Runnable() {
         @Override
         public void run() {
-
+            if(!shouldAttemptMoreConnections()){
+                return;
+            }
             connector.create();
             long clientCreatePauseNanos = getClientSettings()
                     .getClientCreatePauseNanos();
@@ -105,9 +108,19 @@ public class ExperimentControlLoop implements Runnable {
             // GO!
             long testStartTime = System.currentTimeMillis();
             Logs.info("Starting experiment");
-            ExecutorService connectThread =
-                    Executors.newSingleThreadExecutor();
+            int connectQCapacity = getClientSettings().getInitialClients() +
+                2 * getClientSettings().getClientIncrement();
+            BlockingQueue<Runnable> connectQ =
+                new ArrayBlockingQueue<Runnable>(connectQCapacity);
+            ThreadPoolExecutor connectThread =
+                new ThreadPoolExecutor(10, 100, 10, TimeUnit.SECONDS, connectQ);
             // generate initial load
+            connectThread.setRejectedExecutionHandler(new RejectedExecutionHandler() {
+                @Override
+                public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+                    // DO NOTHING
+                }
+            });
             for (int i = 0; i < getClientSettings().getInitialClients(); i++) {
                 connectThread.execute(createClientTask);
             }
@@ -178,7 +191,7 @@ public class ExperimentControlLoop implements Runnable {
 
     /**
      * setup the diffusion inbound thread pool.
-     * 
+     *
      * @param qSize ...
      * @param coreSize ...
      * @throws APIException ...
@@ -217,11 +230,20 @@ public class ExperimentControlLoop implements Runnable {
 
     /**
      * Only to be used in the wrapup phase...
-     * 
+     *
      * @return the experiment output stream
      */
     protected final PrintStream getOutput() {
         return experimentMonitor.getOutput();
+    }
+
+    private boolean shouldAttemptMoreConnections() {
+        long currOutstandingConns =
+            experimentCounters.getConnectionAttemptsCounter()-
+            (experimentCounters.getClientDisconnectCounter()+
+                experimentCounters.getConnectionRefusedCounter());
+        int maxConns = getClientSettings().getMaxClients();
+        return maxConns > currOutstandingConns;
     }
 
 }
