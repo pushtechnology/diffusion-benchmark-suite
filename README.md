@@ -74,6 +74,12 @@ If you run you client process via a single IP you may exhaust the IP range (by
 opening too many local connections, each client requires a local port). To
 avoid, either access your server via multiple addresses (explained below)
 or extend the IP range as described [here](http://stackoverflow.com/questions/6145108/problem-running-into-java-net-bindexception-cannot-assign-requested-address).
+
+Note that the default Diffusion start script is not optimized for running benchmarks. You may want to modify your start script (bin/diffusion.sh) to include the following:
+
+    numactl -N 1 -m 1 java -server -Xms4g -Xmx4g
+    
+This pins the server to one CPU socket and increases the default amount of memory available.
   
 ##Running the benchmarks
 The Ant scripts deployed with the application support running the benchmarks
