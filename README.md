@@ -77,7 +77,7 @@ or extend the IP range as described [here](http://stackoverflow.com/questions/61
 
 ###Tuning your Diffusion installation
 
-The default Diffusion configuration is not optimized for running benchmarks. You may want to consider making the following changes in order to achieve maximum performance.
+The default Diffusion configuration is not optimized for running benchmarks. You may want to consider making the following changes in order to achieve maximum performance in a server environment.
 
 Modify your Diffusion start script (`$DIFFUSION_HOME/bin/diffusion.sh`) to include the following:
 
@@ -97,6 +97,8 @@ This optimizes the number of inbound threads and associated queues to cope with 
 Run the benchmark scripts, pinning the client process to a CPU socket, so for example:
 
     numactl -N 0 -m 0 ant -f throughput-suite.xml -Dtest.name.contains=125
+    
+Note that you are pinning the client to the other CPU socket here (hence the 0 argument rather than 1).
   
 ##Running the benchmarks
 The Ant scripts deployed with the application support running the benchmarks
