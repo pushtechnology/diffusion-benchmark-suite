@@ -75,11 +75,28 @@ opening too many local connections, each client requires a local port). To
 avoid, either access your server via multiple addresses (explained below)
 or extend the IP range as described [here](http://stackoverflow.com/questions/6145108/problem-running-into-java-net-bindexception-cannot-assign-requested-address).
 
-Note that the default Diffusion start script is not optimized for running benchmarks. You may want to modify your start script (`bin/diffusion.sh`) to include the following:
+###Tuning your Diffusion installation
+
+The default Diffusion configuration is not optimized for running benchmarks. You may want to consider making the following changes in order to achieve maximum performance.
+
+Modify your Diffusion start script (`$DIFFUSION_HOME/bin/diffusion.sh`) to include the following:
 
     numactl -N 1 -m 1 java -server -Xms4g -Xmx4g
     
-This pins the server to one CPU socket and increases the default amount of memory available.
+This pins the server process to one CPU socket and increases the default amount of memory available.
+
+Modify `$DIFFUSION_HOME/etc/Server.xml` changing:
+
+    multiplexers/multiplexer-definition/size    -> 12
+    thread-pools/thread-pool-definition/core-size -> 2
+    thread-pools/thread-pool-definition/max-size -> 2
+    thread-pools/thread-pool-definition/queue-size -> 200000
+
+This optimizes the number of inbound threads and associated queues to cope with a large number of clients.
+
+Run the benchmark scripts, pinning the client process to a CPU socket, so for example:
+
+    numactl -N 0 -m 0 ant -f throughput-suite.xml -Dtest.name.contains=125
   
 ##Running the benchmarks
 The Ant scripts deployed with the application support running the benchmarks
@@ -90,6 +107,7 @@ Target names which start with *perfTest* are assumed benchmarks.
 We'll work through the options by example. First, open a terminal and change to the `benchamrk-server` directory.
 
 ####Run the throughput suite against localhost
+
     $ ant -f throughput-suite.xml
 
 The default target for the `throughput-suite.xml` is the __perf-suite__ target
@@ -104,12 +122,14 @@ manual tweaking. If you change the settings and re-run the settings from the
 file will be used.
 
 ####Run a subset of the throughput suite against localhost
+
     $ ant -f throughput-suite.xml -Dtest.name.contains=125b
 
 This will result in only the __perfTest-125b-50t__ benchmark being run, but
 within the framework of a suite so the before and after tasks are executed.
 
 ####Run the throughput suite against localhost with different transport/conflation
+
     $ ant -f throughput-suite.xml -Ddiffusion.transport=dpt -Dconflation.mode=REPLACE
 
 This will result in a full suite run for the DPT transport using `REPLACE` conflation.
@@ -117,12 +137,14 @@ You can read more about the different Diffusion transports and conflation modes
 in the User Manual.
 
 ####Run the throughput suite against localhost with different client jvm settings
+
     $ ant -f throughput-suite.xml -Dclient.threads=1 -Dclient.jvm.args="-server -Xms128m -Xmx128m"
 
 This will launch the full suite but with client JVM launched with above arguments
 and using a single incoming thread.
 
 ####Run the throughput suite against a different machine
+
     $ ant -f throughput-test.xml -Ddiffusion.host=test3
 
 If `diffusion.host` is not `localhost` the Ant scripts will attempt to
