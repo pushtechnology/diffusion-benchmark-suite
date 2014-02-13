@@ -82,8 +82,6 @@ public final class RemoteControlTLExperiment implements Runnable {
             Runnable publishCommand = new Runnable() {
                 private final byte[] message =
                         new byte[settings.getMessageSize()];
-                private final ByteBuffer messageBuffer =
-                        ByteBuffer.wrap(message);
                 private final boolean shouldIncTopics =
                         settings.getTopicIncrementIntervalInPauses() != 0;
                 private final boolean shouldIncMessages =
