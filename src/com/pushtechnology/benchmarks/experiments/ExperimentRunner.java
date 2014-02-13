@@ -56,11 +56,11 @@ public final class ExperimentRunner {
             }
 
             // Set up the experiment class and settings class
-            Class<?> experimentClass = Class.forName(args[0]);
+            final Class<?> experimentClass = Class.forName(args[0]);
             Class<?> settingsClass = CommonExperimentSettings.class;
             try {
                 // Use an experiment specific settings class
-                String settingsClassName = args[0] + "$Settings";
+                final String settingsClassName = args[0] + "$Settings";
                 settingsClass = Class.forName(settingsClassName);
                 Logs.info("Using " + settingsClassName + " settings class...");
             } catch (ClassNotFoundException e) {
@@ -69,8 +69,8 @@ public final class ExperimentRunner {
             }
 
             // Load the settings file and obtain an instance of the settings class
-            Properties experimentProperties = PropertiesUtil.load(args[1]);
-            CommonExperimentSettings settings =
+            final Properties experimentProperties = PropertiesUtil.load(args[1]);
+            final CommonExperimentSettings settings =
                     (CommonExperimentSettings) settingsClass.getConstructor(
                             Properties.class).newInstance(
                             experimentProperties);
@@ -84,9 +84,9 @@ public final class ExperimentRunner {
                     experimentClass.
                             getConstructor(settingsClass);
 
-            Runnable experiment = (Runnable) constructor.newInstance(settings);
+            final Runnable experiment = (Runnable) constructor.newInstance(settings);
             experiment.run();
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             // Could be a problem with logging
             // Do not log this error, print it
             System.err.println("An exception has been caught at the top level. Unable to complete experiment.");
