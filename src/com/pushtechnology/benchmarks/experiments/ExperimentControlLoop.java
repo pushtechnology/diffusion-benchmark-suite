@@ -173,13 +173,7 @@ public class ExperimentControlLoop implements Runnable {
     /**
      * Setup some Diffusion properties and start monitoring.
      */
-    @SuppressWarnings("deprecation")
     private void setUp() {
-        if (Boolean.getBoolean("verbose")) {
-            Logs.setLevel(Level.FINEST);
-        } else {
-            Logs.setLevel(Level.INFO);
-        }
         // configure
         int qSize = getClientSettings().getMaxClients();
         int coreSize = getClientSettings().getInboundThreadPoolSize();

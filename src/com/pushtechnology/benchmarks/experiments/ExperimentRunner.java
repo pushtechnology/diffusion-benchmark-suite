@@ -18,6 +18,7 @@ package com.pushtechnology.benchmarks.experiments;
 import java.io.FileOutputStream;
 import java.lang.reflect.Constructor;
 import java.util.Properties;
+import java.util.logging.Level;
 
 import com.pushtechnology.benchmarks.util.PropertiesUtil;
 import com.pushtechnology.diffusion.api.Logs;
@@ -43,6 +44,12 @@ public final class ExperimentRunner {
     @SuppressWarnings("deprecation")
     public static void main(final String[] args) {
         try {
+            if (Boolean.getBoolean("verbose")) {
+                Logs.setLevel(Level.FINEST);
+            } else {
+                Logs.setLevel(Level.INFO);
+            }
+
             Class<?> experimentClass = Class.forName(args[0]);
             Class<?> settingsClass = CommonExperimentSettings.class;
             try {
