@@ -25,6 +25,9 @@ import com.pushtechnology.diffusion.api.Logs;
 
 /**
  * A main class for all experiments.
+ * <P>
+ * Gets the experiment and the settings file from the command line arguments. Uses the settings file, system
+ * properties and experiment settings class for other configuration.
  * 
  * @author nitsanw
  * 
@@ -44,26 +47,35 @@ public final class ExperimentRunner {
     @SuppressWarnings("deprecation")
     public static void main(final String[] args) {
         try {
+            // This depends on the system properties not on the settings file
+            // Try putting this in the client.vm.args
             if (Boolean.getBoolean("verbose")) {
                 Logs.setLevel(Level.FINEST);
             } else {
                 Logs.setLevel(Level.INFO);
             }
 
+            // Set up the experiment class and settings class
             Class<?> experimentClass = Class.forName(args[0]);
             Class<?> settingsClass = CommonExperimentSettings.class;
             try {
+                // Use an experiment specific settings class
                 String settingsClassName = args[0] + "$Settings";
                 settingsClass = Class.forName(settingsClassName);
                 Logs.info("Using " + settingsClassName + " settings class...");
             } catch (ClassNotFoundException e) {
+                // Use the default settings class
                 Logs.info("Using default settings class...");
             }
+
+            // Load the settings file and obtain an instance of the settings class
             Properties experimentProperties = PropertiesUtil.load(args[1]);
             CommonExperimentSettings settings =
                     (CommonExperimentSettings) settingsClass.getConstructor(
                             Properties.class).newInstance(
                             experimentProperties);
+
+            // Update the settings file with the experiment settings
             final FileOutputStream out = new FileOutputStream(args[1]);
             experimentProperties.store(out, "");
             out.close();
@@ -77,6 +89,7 @@ public final class ExperimentRunner {
         } catch (Throwable t) {
             // Could be a problem with logging
             // Do not log this error, print it
+            System.err.println("An exception has been caught at the top level. Unable to complete experiment.");
             t.printStackTrace();
         } finally {
             System.exit(0);
