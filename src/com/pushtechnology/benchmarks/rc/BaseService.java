@@ -27,7 +27,8 @@ public abstract class BaseService {
 	protected RemoteService service = null;
 	protected BaseRemoteListener listener = null;
 	
-	public ServerDetails getServerDetails() {
+	@SuppressWarnings("deprecation")
+    public ServerDetails getServerDetails() {
 		if(serverDetails == null) {
 			try {
 				serverDetails = ConnectionFactory.createServerDetails("dpt://localhost:8080");

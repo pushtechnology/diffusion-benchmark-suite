@@ -86,6 +86,7 @@ public final class RemoteControlPingLatencyExperiment implements Runnable {
             service.publish(initialLoad);
         }
 
+        @SuppressWarnings("deprecation")
         public void register() throws APIException {
             service.getOptions().setAuthoriseSubscribeClients(false);
             service.getOptions().setClientConnectNotifications(false);

@@ -54,6 +54,7 @@ public final class JmxHelper {
      * @return a JMX connector to specified host
      * @throws IOException if connection fails/if resulting URL is malformed
      */
+    @SuppressWarnings("deprecation")
     public static JMXConnector getJmxConnector(String host, String service,
             String user, String pass)
             throws IOException {

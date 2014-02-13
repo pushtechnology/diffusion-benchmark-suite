@@ -40,6 +40,7 @@ public final class ExperimentRunner {
      * 
      * @param args expect experiment class name
      */
+    @SuppressWarnings("deprecation")
     public static void main(final String[] args) {
         try {
             Class<?> experimentClass = Class.forName(args[0]);

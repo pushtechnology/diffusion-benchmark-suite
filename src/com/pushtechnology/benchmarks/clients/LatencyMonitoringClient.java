@@ -54,6 +54,7 @@ public abstract class LatencyMonitoringClient extends MessageCountingClient {
     }
 
 
+    @SuppressWarnings("deprecation")
     @Override
     public final void onMessage(ServerConnection serverConnection,
             TopicMessage topicMessage) {

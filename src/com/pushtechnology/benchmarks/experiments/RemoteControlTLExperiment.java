@@ -29,7 +29,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.HdrHistogram.Histogram;
 
-
 import com.pushtechnology.benchmarks.clients.ExperimentClient;
 import com.pushtechnology.benchmarks.clients.LatencyMonitoringClient;
 import com.pushtechnology.benchmarks.clients.UnsafeLatencyMonitoringClient;
@@ -126,6 +125,7 @@ public final class RemoteControlTLExperiment implements Runnable {
                             % settings.getMessageIncrementIntervalInPauses();
                 }
 
+                @SuppressWarnings("deprecation")
                 public void incTopics() {
                     int targetTopics = topics + settings.getTopicIncrement();
                     for (int i = topics; i < targetTopics; i++) {
@@ -141,6 +141,7 @@ public final class RemoteControlTLExperiment implements Runnable {
                     topics = targetTopics;
                 }
 
+                @SuppressWarnings("deprecation")
                 public void publishToTopic(int i) {
                     try {
                         TopicMessage delta = messageForTopic.get(i);
@@ -171,6 +172,7 @@ public final class RemoteControlTLExperiment implements Runnable {
             delta.put(new byte[settings.getMessageSize()]);
             messageForTopic.add(delta);
         }
+        @SuppressWarnings("deprecation")
         public void register() throws APIException {
             service.getOptions().setAuthoriseSubscribeClients(false);
             service.getOptions().setClientConnectNotifications(false);

@@ -102,6 +102,7 @@ public class ExperimentControlLoop implements Runnable {
         this.loadStrategy = strategy;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public final void run() {
         try {
@@ -172,6 +173,7 @@ public class ExperimentControlLoop implements Runnable {
     /**
      * Setup some Diffusion properties and start monitoring.
      */
+    @SuppressWarnings("deprecation")
     private void setUp() {
         if (Boolean.getBoolean("verbose")) {
             Logs.setLevel(Level.FINEST);

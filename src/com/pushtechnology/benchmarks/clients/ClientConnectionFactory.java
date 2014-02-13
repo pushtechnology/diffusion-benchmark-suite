@@ -24,7 +24,6 @@ import java.security.cert.Certificate;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
-
 import com.pushtechnology.benchmarks.experiments.CommonExperimentSettings;
 import com.pushtechnology.benchmarks.monitoring.ExperimentCounters;
 import com.pushtechnology.benchmarks.util.Factory;
@@ -73,6 +72,7 @@ public class ClientConnectionFactory implements
      * @param topics ...
      * @return a new connection or null if failed to create one.
      */
+    @SuppressWarnings("deprecation")
     public final ExternalClientConnection createConnection(
             ServerConnectionListener client, String... topics) {
 

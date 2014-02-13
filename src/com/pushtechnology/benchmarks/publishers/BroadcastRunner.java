@@ -40,6 +40,7 @@ public class BroadcastRunner implements Runnable {
         this.config = config;
     }
 
+    @SuppressWarnings("deprecation")
     public void run() {
         running = true;
         

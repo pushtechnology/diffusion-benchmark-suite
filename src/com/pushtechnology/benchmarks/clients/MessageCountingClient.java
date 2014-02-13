@@ -105,6 +105,7 @@ public class MessageCountingClient implements ExperimentClient {
             Credentials credentials) {
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public final void serverDisconnected(ServerConnection serverConnection) {
         experimentCounters.incClientDisconnectCounter();

@@ -37,22 +37,26 @@ public class BaseRemoteListener implements RemoteServiceListener {
 		this.service = service;
 	}
 	
-	@Override
+	@SuppressWarnings("deprecation")
+    @Override
 	public void clientConnected(ClientDetails clientDetails) {
 		Logs.fine("clientConnected(" + clientDetails.getClientID() + ")");
 	}
 
-	@Override
+	@SuppressWarnings("deprecation")
+    @Override
 	public void clientDetailsChanged(ClientDetails clientDetails) {
 		Logs.fine("clientDetailsChanged(" + clientDetails.getClientID() + ")");
 	}
 
-	@Override
+	@SuppressWarnings("deprecation")
+    @Override
 	public void clientDisconnected(String clientId) {
 		Logs.fine("clientDisconnected(" + clientId + ")");
 	}
 
-	@Override
+	@SuppressWarnings("deprecation")
+    @Override
 	public void clientFetch(ClientDetails clientDetails, String topicName, List<String> headers) {
 		Logs.fine("clientFetch(" + clientDetails.getClientID() + ", " + topicName + ")");
 		try {
@@ -63,6 +67,7 @@ public class BaseRemoteListener implements RemoteServiceListener {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void clientSubscribe(ClientDetails clientDetails, String topicName) {
 		Logs.fine("clientSubscribe(" + clientDetails.getClientID() + ", " + topicName + ")");
@@ -74,32 +79,38 @@ public class BaseRemoteListener implements RemoteServiceListener {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void clientSubscribe(ClientDetails clientDetails, TopicSelector topicSelector) {
 		Logs.fine("clientSubscribe(" + clientDetails.getClientID() + ", " + topicSelector + ")");
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void clientUnsubscribe(String clientId, String topicName, boolean hasSubscribers) {
 		Logs.fine("clientUnSubscribe(" + clientId + ", " + topicName);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void closed(RemoteServiceCloseReason reason) {
 		Logs.fine("closed(" + reason + ")");
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void messageFromClient(ClientDetails clientDetails, String topicName,
 			TopicMessage message) {
 		Logs.fine("messageFromClient(" + clientDetails.getClientID() + ", " + topicName + ")");
 	}
 
-	@Override
+	@SuppressWarnings("deprecation")
+    @Override
 	public void messageFromPublisher(TopicMessage message) {
 		Logs.fine("messageFromPublisher(" + message.getTopicName() + ")");
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void registerFailed(String errorMessage) {
 		if(registrationLatch != null) {
@@ -108,6 +119,7 @@ public class BaseRemoteListener implements RemoteServiceListener {
 		Logs.warning("Registration failed: " + errorMessage);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void registered() {
 		if(registrationLatch != null) {
@@ -116,17 +128,20 @@ public class BaseRemoteListener implements RemoteServiceListener {
 		Logs.fine("Registered");
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void serviceRequest(RemoteRequest request) {
 		Logs.fine("serviceRequest(" + request + ")");
 
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void topicAddFailed(String topicName, String errorMessage) {
 		Logs.warning("topicAddFailed(" + topicName + ") : " + errorMessage);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void topicSubscribeFailed(String clientId, String topicName, String errorMessage) {
 		Logs.warning("topicSubscribeFailed(" + clientId + ", " + topicName + ") : " + errorMessage);
