@@ -20,6 +20,8 @@ import static com.pushtechnology.benchmarks.util.PropertiesUtil.getProperty;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import com.pushtechnology.diffusion.api.Logs;
+
 /**
  * A common set of settings for the client side of experiments. To be extended
  * should further settings be required.
@@ -104,6 +106,8 @@ public class CommonExperimentSettings {
         maxTestConnections = getProperty(settings, 
                 "max.test.connections", 0L);
         outputFileName = getProperty(settings, "experiment.output", "");
+
+        logSettings();
     }
 
     // CHECKSTYLE:OFF adding docs will add nothing...
@@ -166,4 +170,60 @@ public class CommonExperimentSettings {
         return diffusionHost;
     }
 
+    public String settingsAsString() {
+        final StringBuilder builder = new StringBuilder(300);
+        builder.append("Diffusion URLS: ");
+        builder.append(this.getDiffusionUrls());
+        builder.append('\n');
+        builder.append("Max clients: ");
+        builder.append(this.getMaxClients());
+        builder.append('\n');
+        builder.append("Client create pause nanos:      ");
+        builder.append(this.getClientCreatePauseNanos());
+        builder.append('\n');
+        builder.append("Inbound thread pool size:       ");
+        builder.append(this.getInboundThreadPoolSize());
+        builder.append('\n');
+        builder.append("Local interfaces:               ");
+        builder.append(this.getLocalInterfaces());
+        builder.append('\n');
+        builder.append("Max test time millis:           ");
+        builder.append(this.getMaxTestTimeMillis());
+        builder.append('\n');
+        builder.append("Initial clients:                ");
+        builder.append(this.getInitialClients());
+        builder.append('\n');
+        builder.append("Client increment:               ");
+        builder.append(this.getClientIncrement());
+        builder.append('\n');
+        builder.append("Root topic:                     ");
+        builder.append(this.getRootTopic());
+        builder.append('\n');
+        builder.append("Client increment pause seconds: ");
+        builder.append(this.getClientIncrementPauseSeconds());
+        builder.append('\n');
+        builder.append("Message size:                   ");
+        builder.append(this.getMessageSize());
+        builder.append('\n');
+        builder.append("Max test messages:              ");
+        builder.append(this.getMaxTestMessages());
+        builder.append('\n');
+        builder.append("Max test connections:           ");
+        builder.append(this.getMaxTestConnections());
+        builder.append('\n');
+        builder.append("Output file:                    ");
+        builder.append(this.getOutputFile());
+        builder.append('\n');
+        builder.append("Diffusion host:                 ");
+        builder.append(this.getDiffusionHost());
+        builder.append('\n');
+        return builder.toString();
+    }
+
+    @SuppressWarnings("deprecation")
+    public final void logSettings() {
+        if (Logs.isFinestLogging()) {
+            Logs.finest(settingsAsString());
+        }
+    }
 }
