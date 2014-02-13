@@ -50,7 +50,7 @@ public class ExperimentControlLoop implements Runnable {
                 return;
             }
             connector.create();
-            long clientCreatePauseNanos = getClientSettings()
+            final long clientCreatePauseNanos = getClientSettings()
                     .getClientCreatePauseNanos();
             if (clientCreatePauseNanos > 0L) {
                 LockSupport.parkNanos(clientCreatePauseNanos);
@@ -73,7 +73,7 @@ public class ExperimentControlLoop implements Runnable {
     /**
      * @param settings ...
      */
-    public ExperimentControlLoop(CommonExperimentSettings settings) {
+    public ExperimentControlLoop(final CommonExperimentSettings settings) {
         clientSettings = settings;
 
         experimentMonitor =
@@ -87,7 +87,7 @@ public class ExperimentControlLoop implements Runnable {
      * @param clientFactory ...
      */
     public final void setClientFactory(
-            Factory<ExperimentClient> clientFactory) {
+            final Factory<ExperimentClient> clientFactory) {
         connector = new ClientConnectionFactory(
                 getExperimentCounters(),
                 getClientSettings(),
@@ -97,7 +97,7 @@ public class ExperimentControlLoop implements Runnable {
     /**
      * @param strategy ...
      */
-    public final void setLoadStartegy(ExperimentLoadStrategy strategy) {
+    public final void setLoadStartegy(final ExperimentLoadStrategy strategy) {
         this.loadStrategy = strategy;
     }
 
@@ -106,13 +106,13 @@ public class ExperimentControlLoop implements Runnable {
     public final void run() {
         try {
             // GO!
-            long testStartTime = System.currentTimeMillis();
+            final long testStartTime = System.currentTimeMillis();
             Logs.info("Starting experiment");
-            int connectQCapacity = getClientSettings().getInitialClients() +
+            final int connectQCapacity = getClientSettings().getInitialClients() +
                 2 * getClientSettings().getClientIncrement();
-            BlockingQueue<Runnable> connectQ =
+            final BlockingQueue<Runnable> connectQ =
                 new ArrayBlockingQueue<Runnable>(connectQCapacity);
-            ThreadPoolExecutor connectThread =
+            final ThreadPoolExecutor connectThread =
                 new ThreadPoolExecutor(10, 100, 10, TimeUnit.SECONDS, connectQ);
             // generate initial load
             connectThread.setRejectedExecutionHandler(new RejectedExecutionHandler() {
@@ -132,9 +132,9 @@ public class ExperimentControlLoop implements Runnable {
                 // periodically increase load if required
                 if (loadStrategy.shouldIncrementLoad(lastIncrementTime)) {
                     lastIncrementTime = System.currentTimeMillis();
-                    long currConns =
+                    final long currConns =
                             experimentCounters.getCurrentlyConnected();
-                    int maxConns = getClientSettings().getMaxClients();
+                    final int maxConns = getClientSettings().getMaxClients();
                     int incBy = getClientSettings().getClientIncrement();
                     incBy = (int) Math.min(incBy, maxConns - currConns);
                     if (incBy > 0) {
@@ -147,7 +147,7 @@ public class ExperimentControlLoop implements Runnable {
                 LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(1));
             }
             connectThread.shutdownNow();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             Logs.severe("Error during experiment loop", e);
         }
         Logs.info("time is up, wrapping up");
@@ -174,11 +174,11 @@ public class ExperimentControlLoop implements Runnable {
      */
     private void setUp() {
         // configure
-        int qSize = getClientSettings().getMaxClients();
-        int coreSize = getClientSettings().getInboundThreadPoolSize();
+        final int qSize = getClientSettings().getMaxClients();
+        final int coreSize = getClientSettings().getInboundThreadPoolSize();
         try {
             setupThreadPool(qSize, coreSize);
-        } catch (APIException e) {
+        } catch (final APIException e) {
             throw new RuntimeException(e);
         }
         experimentMonitor.start();
@@ -192,7 +192,7 @@ public class ExperimentControlLoop implements Runnable {
      * @throws APIException ...
      */
     @SuppressWarnings("deprecation")
-    private void setupThreadPool(int qSize, int coreSize)
+    private void setupThreadPool(final int qSize, final int coreSize)
             throws APIException {
         APIProperties.setInboundThreadPoolQueueSize(qSize);
         // this will allow us to set the max
@@ -233,11 +233,11 @@ public class ExperimentControlLoop implements Runnable {
     }
 
     private boolean shouldAttemptMoreConnections() {
-        long currOutstandingConns =
+        final long currOutstandingConns =
             experimentCounters.getConnectionAttemptsCounter()-
             (experimentCounters.getClientDisconnectCounter()+
                 experimentCounters.getConnectionRefusedCounter());
-        int maxConns = getClientSettings().getMaxClients();
+        final int maxConns = getClientSettings().getMaxClients();
         return maxConns > currOutstandingConns;
     }
 
