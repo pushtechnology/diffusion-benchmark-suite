@@ -2,6 +2,7 @@ package com.pushtechnology.benchmarks.util;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
@@ -18,6 +19,8 @@ import com.pushtechnology.diffusion.api.Logs;
 public final class JmxHelper {
 
     // CHECKSTYLE:OFF
+    private static final String JMX_URL_PATTERN = "service:jmx:rmi://%s:%d/jndi/rmi://%s:%d/%s";
+    private static final String JMX_CREDENTIALS_KEY = "jmx.remote.credentials";
     private static final int DEFAULT_JNDI_PORT = 1100;
     private static final int DEFAULT_JMX_RMI_PORT = 1099;
 
@@ -27,6 +30,8 @@ public final class JmxHelper {
     // CHECKSTYLE:ON
 
     /**
+     * Connect using specific JMX ports.
+     * 
      * @param host target host
      * @param service target service
      * @param user JMX user name
@@ -36,12 +41,14 @@ public final class JmxHelper {
      * @return a JMX connector to specified host
      * @throws IOException if connection fails/if resulting URL is malformed
      */
-    public static JMXConnector getJmxConnector(String host, String service,
-            String user, String pass, int jmxRmiPort, int jmxJndiPort)
+    @SuppressWarnings("deprecation")
+    public static JMXConnector getJmxConnector(final String host, final String service,
+            final String user, final String pass, final int jmxRmiPort, final int jmxJndiPort)
             throws IOException {
-        String jmxUrl = getJmxUrl(host, service, jmxRmiPort, jmxJndiPort);
-        JMXServiceURL serviceUrl = new JMXServiceURL(jmxUrl);
-        return getJMXConnector(user, pass, serviceUrl);
+        final String jmxUrl = getJmxUrl(host, service, jmxRmiPort, jmxJndiPort);
+        Logs.advice("Using JMX URL: " + jmxUrl);
+        final JMXServiceURL serviceUrl = new JMXServiceURL(jmxUrl);
+        return getJmxConnector(user, pass, serviceUrl);
     }
 
     /**
@@ -54,14 +61,10 @@ public final class JmxHelper {
      * @return a JMX connector to specified host
      * @throws IOException if connection fails/if resulting URL is malformed
      */
-    @SuppressWarnings("deprecation")
-    public static JMXConnector getJmxConnector(String host, String service,
-            String user, String pass)
+    public static JMXConnector getJmxConnector(final String host, final String service,
+            final String user, final String pass)
             throws IOException {
-        String jmxUrl = getJmxUrl(host, service);
-        Logs.advice("Using JMX URL: " + jmxUrl);
-        JMXServiceURL serviceUrl = new JMXServiceURL(jmxUrl);
-        return getJMXConnector(user, pass, serviceUrl);
+        return getJmxConnector(host, service, user, pass, DEFAULT_JMX_RMI_PORT, DEFAULT_JNDI_PORT);
     }
 
     /**
@@ -73,25 +76,13 @@ public final class JmxHelper {
      * @return a JMX connector to specified host
      * @throws IOException if connection fails/if resulting URL is malformed
      */
-    private static JMXConnector getJMXConnector(String user, String pass,
-            JMXServiceURL serviceUrl) throws IOException {
-        HashMap<String, String[]> env = new HashMap<String, String[]>();
-        env.put("jmx.remote.credentials", new String[] {user, pass});
+    private static JMXConnector getJmxConnector(final String user, final String pass,
+            final JMXServiceURL serviceUrl) throws IOException {
+        final Map<String, String[]> env = new HashMap<String, String[]>();
+        env.put(JMX_CREDENTIALS_KEY, new String[] {user, pass});
 
-        JMXConnector connector = JMXConnectorFactory.connect(serviceUrl, env);
+        final JMXConnector connector = JMXConnectorFactory.connect(serviceUrl, env);
         return connector;
-    }
-
-    /**
-     * Create a JMX URL based on host using default JMX ports.
-     * 
-     * @param host ..
-     * @param service ..
-     * @return see {@link #getJmxUrl(String, int, int)}
-     */
-    public static String getJmxUrl(String host, String service) {
-        return getJmxUrl(host, service,
-                DEFAULT_JMX_RMI_PORT, DEFAULT_JNDI_PORT);
     }
 
     /**
@@ -104,10 +95,10 @@ public final class JmxHelper {
      * 
      * @return service:jmx:rmi://HOST:JNDI_P/jndi/rmi://HOST:RMI_P/SERVICE
      */
-    public static String getJmxUrl(String host, String service, int jmxRmiPort,
-            int jmxJndiPort) {
+    private static String getJmxUrl(final String host, final String service, final int jmxRmiPort,
+            final int jmxJndiPort) {
         return String.format(
-                "service:jmx:rmi://%s:%d/jndi/rmi://%s:%d/%s",
+                JMX_URL_PATTERN,
                 host,
                 jmxJndiPort,
                 host,
