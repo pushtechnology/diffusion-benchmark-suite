@@ -22,7 +22,6 @@ import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
-import java.util.logging.Level;
 
 import com.pushtechnology.benchmarks.clients.ClientConnectionFactory;
 import com.pushtechnology.benchmarks.clients.ExperimentClient;
