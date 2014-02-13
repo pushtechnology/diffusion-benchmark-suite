@@ -17,7 +17,6 @@ package com.pushtechnology.benchmarks.experiments;
 
 import static com.pushtechnology.benchmarks.util.PropertiesUtil.getProperty;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -80,8 +79,6 @@ public final class RemoteControlTLExperiment implements Runnable {
                 addTopic(i);
             }
             Runnable publishCommand = new Runnable() {
-                private final byte[] message =
-                        new byte[settings.getMessageSize()];
                 private final boolean shouldIncTopics =
                         settings.getTopicIncrementIntervalInPauses() != 0;
                 private final boolean shouldIncMessages =
