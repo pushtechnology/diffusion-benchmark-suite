@@ -48,7 +48,7 @@ public abstract class CpuMonitor {
         lastSampleSystemTime = systemTime;
         lastSampleProcessCpuTime = processCpuTime;
 
-        return Math.max(cpuUsage,0.0);
+        return Math.max(cpuUsage, 0.0);
     }
     
     /**
