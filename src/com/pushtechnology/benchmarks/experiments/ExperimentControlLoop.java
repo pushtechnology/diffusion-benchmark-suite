@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Push Technology
+ * Copyright 2013, 2014 Push Technology
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public class ExperimentControlLoop implements Runnable {
     private final Runnable createClientTask = new Runnable() {
         @Override
         public void run() {
-            if(!shouldAttemptMoreConnections()){
+            if (!shouldAttemptMoreConnections()) {
                 return;
             }
             connector.create();
@@ -108,19 +108,24 @@ public class ExperimentControlLoop implements Runnable {
             // GO!
             final long testStartTime = System.currentTimeMillis();
             Logs.info("Starting experiment");
-            final int connectQCapacity = getClientSettings().getInitialClients() +
-                2 * getClientSettings().getClientIncrement();
+            final int connectQCapacity =
+                    getClientSettings().getInitialClients()
+                            + 2 * getClientSettings().getClientIncrement();
             final BlockingQueue<Runnable> connectQ =
-                new ArrayBlockingQueue<Runnable>(connectQCapacity);
+                    new ArrayBlockingQueue<Runnable>(connectQCapacity);
             final ThreadPoolExecutor connectThread =
-                new ThreadPoolExecutor(10, 100, 10, TimeUnit.SECONDS, connectQ);
+                    new ThreadPoolExecutor(10, 100, 10, TimeUnit.SECONDS,
+                            connectQ);
             // generate initial load
-            connectThread.setRejectedExecutionHandler(new RejectedExecutionHandler() {
-                @Override
-                public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-                    // DO NOTHING
-                }
-            });
+            connectThread
+                    .setRejectedExecutionHandler(
+                            new RejectedExecutionHandler() {
+                                @Override
+                                public void rejectedExecution(Runnable r,
+                                        ThreadPoolExecutor executor) {
+                                    // DO NOTHING
+                                }
+                            });
             for (int i = 0; i < getClientSettings().getInitialClients(); i++) {
                 connectThread.execute(createClientTask);
             }
@@ -186,7 +191,7 @@ public class ExperimentControlLoop implements Runnable {
 
     /**
      * setup the diffusion inbound thread pool.
-     *
+     * 
      * @param qSize ...
      * @param coreSize ...
      * @throws APIException ...
@@ -225,18 +230,23 @@ public class ExperimentControlLoop implements Runnable {
 
     /**
      * Only to be used in the wrapup phase...
-     *
+     * 
      * @return the experiment output stream
      */
     protected final PrintStream getOutput() {
         return experimentMonitor.getOutput();
     }
 
+    /**
+     * Decides if more connections should be made to the server.
+     *
+     * @return {@code true} if more connections should be attempted.
+     */
     private boolean shouldAttemptMoreConnections() {
         final long currOutstandingConns =
-            experimentCounters.getConnectionAttemptsCounter()-
-            (experimentCounters.getClientDisconnectCounter()+
-                experimentCounters.getConnectionRefusedCounter());
+                experimentCounters.getConnectionAttemptsCounter()
+                        - (experimentCounters.getClientDisconnectCounter()
+                        + experimentCounters.getConnectionRefusedCounter());
         final int maxConns = getClientSettings().getMaxClients();
         return maxConns > currOutstandingConns;
     }

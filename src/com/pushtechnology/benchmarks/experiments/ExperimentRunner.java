@@ -27,10 +27,12 @@ import com.pushtechnology.diffusion.api.Logs;
 /**
  * A main class for all experiments.
  * <P>
- * Gets the experiment and the settings file from the command line arguments. Uses the settings file, system
- * properties and experiment settings class for other configuration.
+ * Gets the experiment and the settings file from the command line arguments.
+ * Uses the settings file, system properties and experiment settings class for
+ * other configuration.
  * <P>
- * Reflection is used to create instances of the settings class and the experiment class.
+ * Reflection is used to create instances of the settings class and the
+ * experiment class.
  * 
  * @author nitsanw
  * 
@@ -58,14 +60,16 @@ public final class ExperimentRunner {
                 Logs.setLevel(Level.INFO);
             }
 
-            final CommonExperimentSettings settings = getSettingsObject(args[0], args[1]);
+            final CommonExperimentSettings settings =
+                    getSettingsObject(args[0], args[1]);
 
             final Runnable experiment = getExperimentObject(args[0], settings);
             experiment.run();
         } catch (final Throwable t) {
             // Could be a problem with logging
             // Do not log this error, print it
-            System.err.println("An exception has been caught at the top level. Unable to complete experiment.");
+            System.err.println("An exception has been caught at the top"
+                    + " level. Unable to complete experiment.");
             t.printStackTrace();
         } finally {
             System.exit(0);
@@ -73,19 +77,21 @@ public final class ExperimentRunner {
     }
 
     /**
-     * Get the settings object to use for the experiment. It also writes the properties used back to the settings file.
-     *
+     * Get the settings object to use for the experiment. It also writes the
+     * properties used back to the settings file.
+     * 
      * @param experimentClassName Name of the experiment class.
      * @param settingsFile The name of the settings file.
      * @return The settings object.
      * @throws IOException Problem writing the settings to a file.
-     * @throws ReflectiveOperationException Problem with the reflection used to get the experiment settings.
-     * @throws SecurityException Problem with the reflection used to get the experiment settings.
+     * @throws ReflectiveOperationException Problem with the reflection used to
+     *             get the experiment settings.
      */
     @SuppressWarnings("deprecation")
     private static CommonExperimentSettings getSettingsObject(
             final String experimentClassName,
-            final String settingsFile) throws IOException, ReflectiveOperationException, SecurityException {
+            final String settingsFile) throws IOException,
+            ReflectiveOperationException {
         // Set up the experiment class and settings class
         Class<?> settingsClass;
         try {
@@ -100,7 +106,8 @@ public final class ExperimentRunner {
         }
 
         // Load the settings file and obtain an instance of the settings class
-        final Properties experimentProperties = PropertiesUtil.load(settingsFile);
+        final Properties experimentProperties =
+                PropertiesUtil.load(settingsFile);
         final CommonExperimentSettings settings =
                 (CommonExperimentSettings) settingsClass.getConstructor(
                         Properties.class).newInstance(
@@ -116,16 +123,17 @@ public final class ExperimentRunner {
 
     /**
      * Get the experiment object.
-     *
+     * 
      * @param experimentClassName The name of the experiment.
      * @param settings The settings object to use in the experiment.
      * @return The experiment object.
-     * @throws ReflectiveOperationException Problem with the reflection used to get the experiment object.
-     * @throws SecurityException Problem with the reflection used to get the experiment object.
+     * @throws ReflectiveOperationException Problem with the reflection used to
+     *             get the experiment object.
      */
     private static Runnable getExperimentObject(
             final String experimentClassName,
-            final CommonExperimentSettings settings) throws ReflectiveOperationException, SecurityException {
+            final CommonExperimentSettings settings)
+            throws ReflectiveOperationException {
         final Class<?> experimentClass = Class.forName(experimentClassName);
         final Constructor<?> constructor =
                 experimentClass.getConstructor(settings.getClass());
