@@ -56,6 +56,23 @@ public final class RemoteControlPingLatencyExperiment implements Runnable {
     private static final SimpleTopicSpecification TOPIC_SPECIFICATION =
             new SimpleTopicSpecification();
     /**
+     * Number of milliseconds to wait for registration.
+     */
+    private static final long REGISTRATION_WAIT = 1000L;
+    /**
+     * The size of the input and output buffers.
+     */
+    private static final int BUFFER_SIZE = 64 * 1024;
+    /**
+     * The size of the message queue.
+     */
+    private static final int MESSAGE_QUEUE_SIZE = 10000;
+    /**
+     * The initial size of messages.
+     */
+    private static final int INITIAL_SIZE_OF_MESSAGES = 20;
+
+    /**
      * client connections to be closed on close of factory and queried for
      * latency stats.
      */
@@ -67,23 +84,6 @@ public final class RemoteControlPingLatencyExperiment implements Runnable {
      * The remote service to use in the experiment. 
      */
     private final class Service extends BaseService {
-        /**
-         * Number of milliseconds to wait for registration.
-         */
-        private static final long REGISTRATION_WAIT = 1000L;
-        /**
-         * The size of the input and output buffers.
-         */
-        private static final int BUFFER_SIZE = 64 * 1024;
-        /**
-         * The size of the message queue.
-         */
-        private static final int MESSAGE_QUEUE_SIZE = 10000;
-        /**
-         * The initial size of messages.
-         */
-        private static final int INITIAL_SIZE_OF_MESSAGES = 20;
-
         /**
          * Start the service.
          * @throws APIException If unable to start the service.
@@ -226,7 +226,7 @@ public final class RemoteControlPingLatencyExperiment implements Runnable {
     }
 
     /**
-     * Set up the remote control.
+     * Set up and start the service for the experiment.
      */
     public void setUpRC() {
         Service service = new Service();
