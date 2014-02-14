@@ -70,6 +70,7 @@ max.test.messages=${max.messages}
                     <echo message="...Starting test client..."/>
                     <java classname="com.pushtechnology.benchmarks.experiments.ExperimentRunner" fork="true" 
                           failonerror="true" jvmargs="${client.jvm.args}">
+                        <sysproperty key="verbose" value="${verbose}" />
                         <sysproperty key="log.connection.exception" value="false" />
                         <arg value="com.pushtechnology.benchmarks.experiments.RemoteControlPingLatencyExperiment"/>
                         <arg value="${full-test-name}.settings"/>
@@ -77,7 +78,7 @@ max.test.messages=${max.messages}
                     </java>
                     <echo message="...Test client finished..."/>
                 </else>
-            </if>           
+            </if>
         </sequential>
     </macrodef>
 </project>

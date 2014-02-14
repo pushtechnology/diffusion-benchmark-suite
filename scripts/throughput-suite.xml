@@ -10,7 +10,7 @@
     <property environment="env"/>
     <property name="suite.ant.file" value="throughput-suite.xml"/>
 	<property name="client.jvm.args" value="-server -Xms2g -Xmx2g"/>
-	<property name="client.threads" value="10"/>        
+	<property name="client.threads" value="10"/>
     <property name="max.time" value="5.0"/>
 	<import file="perf-test-server-tasks.xml" />
 	<!-- Further common settings are available in the test-suite-common file
@@ -192,6 +192,7 @@ max.test.time.minutes=${max.time}
 			<echo message="...Starting test client..."/>
 			<java classname="com.pushtechnology.benchmarks.experiments.ExperimentRunner" fork="true" 
 				  failonerror="true" jvmargs="${client.jvm.args}">
+				<sysproperty key="verbose" value="${verbose}" />
                 <sysproperty key="log.connection.exception" value="false" />
 				<arg value="com.pushtechnology.benchmarks.experiments.ThroughputExperiment"/>
 				<arg value="@{testname}.settings"/>
