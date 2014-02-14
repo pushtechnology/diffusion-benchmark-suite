@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Push Technology
+ * Copyright 2013, 2014 Push Technology
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.pushtechnology.benchmarks.clients.ExperimentClient;
 import com.pushtechnology.benchmarks.clients.MessageCountingClient;
 import com.pushtechnology.benchmarks.util.Factory;
 import com.pushtechnology.diffusion.api.APIException;
+import com.pushtechnology.diffusion.api.Logs;
 import com.pushtechnology.diffusion.api.ServerConnection;
 
 /**
@@ -35,6 +36,11 @@ import com.pushtechnology.diffusion.api.ServerConnection;
  *
  */
 public final class ConnectAndSubscribeChurnExperiment implements Runnable {
+    /**
+     * Probability that a subscription event will be a subscribe not an
+     * unsubscribe.
+     */
+    private static final double SUBSCRIBE_PROBABILITY = 0.5;
     /** the experiment loop. */
     private final ExperimentControlLoop loop;
 
@@ -60,7 +66,11 @@ public final class ConnectAndSubscribeChurnExperiment implements Runnable {
         // CHECKSTYLE:ON
     }
 
-    final ThreadLocal<Random> tlr = new ThreadLocal<Random>() {
+    /**
+     * Thread local random number generator. Uses the thread ID as the seed so
+     * generators provide difference sequences for each thread. 
+     */
+    private final ThreadLocal<Random> tlr = new ThreadLocal<Random>() {
         @Override
         protected Random initialValue() {
             return new Random(Thread.currentThread().getId());
@@ -73,8 +83,10 @@ public final class ConnectAndSubscribeChurnExperiment implements Runnable {
      */
     public ConnectAndSubscribeChurnExperiment(final Settings settings) {
         final Timer timer = new Timer();
-        final int disconnectCheckIntervalMs = (int) (settings.disconnectCheckInterval * 1000);
-        final int subscribeCheckIntervalMs = (int) (settings.subscribeCheckInterval * 1000);
+        final int disconnectCheckIntervalMs =
+                (int) (settings.disconnectCheckInterval * 1000);
+        final int subscribeCheckIntervalMs =
+                (int) (settings.subscribeCheckInterval * 1000);
         final String[] topics = new String[settings.topicCount];
         for (int i = 0; i < settings.topicCount; i++) {
             topics[i] = settings.subscriptionsRoot + "/" + i;
@@ -88,23 +100,35 @@ public final class ConnectAndSubscribeChurnExperiment implements Runnable {
         loop.setClientFactory(new Factory<ExperimentClient>() {
             @Override
             public ExperimentClient create() {
-                MessageCountingClient client =
-                    new MessageCountingClient(loop.getExperimentCounters(), false, settings.getRootTopic()) {
+                MessageCountingClient client = new MessageCountingClient(
+                        loop.getExperimentCounters(),
+                        false,
+                        settings.getRootTopic()) {
                     @Override
-                    public void afterServerConnect(final ServerConnection serverConnection) {
+                    public void afterServerConnect(
+                            final ServerConnection serverConnection) {
                         final TimerTask subscribeTask = new TimerTask() {
+                            @SuppressWarnings("deprecation")
                             @Override
                             public void run() {
-                                if (nextDouble() < settings.subscribeEventProbability) {
+                                if (nextDouble() < settings
+                                        .subscribeEventProbability) {
                                     try {
-                                        if (nextDouble() < 0.5) {
-                                            serverConnection.subscribe(topics[nextInt(settings.topicCount)]);
+                                        if (nextDouble()
+                                                < SUBSCRIBE_PROBABILITY) {
+                                            serverConnection.subscribe(
+                                                topics[nextInt(
+                                                        settings.topicCount)]);
+                                        } else {
+                                            serverConnection.unsubscribe(
+                                                topics[nextInt(
+                                                        settings.topicCount)]);
                                         }
-                                        else {
-                                            serverConnection.unsubscribe(topics[nextInt(settings.topicCount)]);
-                                        }
-                                    }
-                                    catch (APIException e) {
+                                    } catch (final APIException e) {
+                                        Logs.finest(
+                                            "Exception performing"
+                                            + "subscription event",
+                                            e);
                                     }
                                 }
                             }
@@ -112,16 +136,22 @@ public final class ConnectAndSubscribeChurnExperiment implements Runnable {
                         TimerTask disconnectTask = new TimerTask() {
                             @Override
                             public void run() {
-                                if (nextDouble() < settings.disconnectProbability || !serverConnection.isConnected()) {
+                                if (nextDouble()
+                                        < settings.disconnectProbability
+                                        || !serverConnection.isConnected()) {
                                     serverConnection.close();
                                     this.cancel();
                                     subscribeTask.cancel();
                                 }
                             }
                         };
-                        timer.schedule(disconnectTask, nextInt(disconnectCheckIntervalMs),
+                        timer.schedule(
+                            disconnectTask,
+                            nextInt(disconnectCheckIntervalMs),
                             disconnectCheckIntervalMs);
-                        timer.schedule(subscribeTask, nextInt(subscribeCheckIntervalMs),
+                        timer.schedule(
+                            subscribeTask,
+                            nextInt(subscribeCheckIntervalMs),
                             subscribeCheckIntervalMs);
                     }
                 };
@@ -133,7 +163,8 @@ public final class ConnectAndSubscribeChurnExperiment implements Runnable {
             }
         });
         ExperimentLoadStrategy defaultLoadStrategy =
-            new DefaultLoadStrategy(loop.getClientSettings(), loop.getExperimentCounters());
+            new DefaultLoadStrategy(loop.getClientSettings(),
+                    loop.getExperimentCounters());
         loop.setLoadStartegy(defaultLoadStrategy);
     }
 
@@ -142,10 +173,23 @@ public final class ConnectAndSubscribeChurnExperiment implements Runnable {
         loop.run();
     }
 
+    /**
+     * Get a double from the random number generator.
+     *
+     * @return Randomly generated double.
+     */
     private double nextDouble() {
         return tlr.get().nextDouble();
     }
 
+    /**
+     * Get an integer from the random number generator.
+     * <P>
+     * The number returned will range between 0 and the parameter (exclusive).
+     *
+     * @param i The upper bound (exclusive)
+     * @return Randomly generated integer.
+     */
     private int nextInt(int i) {
         return tlr.get().nextInt(i);
     }
