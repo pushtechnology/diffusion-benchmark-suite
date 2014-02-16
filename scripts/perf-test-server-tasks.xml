@@ -18,7 +18,7 @@
 	</path>
 	<macrodef name="assert-no-diffusion-running">
 		<sequential>
-		 	<exec executable="jps" output="pid.out.file" />
+			<exec executable="jps" output="pid.out.file" />
 			<loadfile srcfile="pid.out.file" property="pid.out">
 				<filterchain>
 					<linecontains>
@@ -33,7 +33,7 @@
 				</filterchain>
 			</loadfile>
 			<fail if="pid.out" message="Diffusion server already running: ${pid.out}" />
-			<var name="pid.out" unset="true" />			
+			<var name="pid.out" unset="true" />
 		</sequential>
 	</macrodef>
 	<macrodef name="kill-diffusion">
@@ -73,7 +73,7 @@
 	</macrodef>
 	<macrodef name="clean-diffusion">
 		<sequential>
-			<delete dir="${diffusion.dir}/deploy"/>
+			<delete dir="${diffusion.dir}/deploy" />
 			<mkdir dir="${diffusion.dir}/deploy" />
 			<delete dir="${diffusion.dir}/logs" />
 			<mkdir dir="${diffusion.dir}/logs" />
@@ -101,25 +101,24 @@
 			<delete dir="deploy/@{publisher.name}" />
 		</sequential>
 	</macrodef>
-    <macrodef name="dar-generic">
-    	<attribute name="publisher.name" />
-    	<attribute name="package" default="com.pushtechnology.benchmarks.publishers"/>
-        <sequential>
-            <mkdir dir="deploy/@{publisher.name}" />
-            <copy file="etc/GenericPublisher.xml" tofile="deploy/@{publisher.name}/etc/Publishers.xml">
-                <filterset begintoken="@" endtoken="@">
-                    <filter token="publisher.name" value="@{publisher.name}" />
-                    <filter token="package" value="@{package}" />
-        	    </filterset>
-            </copy>
-            <copy tofile="deploy/@{publisher.name}/ext/diffusionbenchmark.jar" file="lib/diffusionbenchmark.jar" />
-            <jar jarfile="@{publisher.name}.dar" includes="@{publisher.name}/**" basedir="deploy" manifest="META-INF/MANIFEST.MF" />
-            <delete dir="deploy/@{publisher.name}" />
-        </sequential>
-    </macrodef>
+	<macrodef name="dar-generic">
+		<attribute name="publisher.name" />
+		<attribute name="package" default="com.pushtechnology.benchmarks.publishers" />
+		<sequential>
+			<mkdir dir="deploy/@{publisher.name}" />
+			<copy file="etc/GenericPublisher.xml" tofile="deploy/@{publisher.name}/etc/Publishers.xml">
+				<filterset begintoken="@" endtoken="@">
+					<filter token="publisher.name" value="@{publisher.name}" />
+					<filter token="package" value="@{package}" />
+				</filterset>
+			</copy>
+			<copy tofile="deploy/@{publisher.name}/ext/diffusionbenchmark.jar" file="lib/diffusionbenchmark.jar" />
+			<jar jarfile="@{publisher.name}.dar" includes="@{publisher.name}/**" basedir="deploy" manifest="META-INF/MANIFEST.MF" />
+			<delete dir="deploy/@{publisher.name}" />
+		</sequential>
+	</macrodef>
 	<!-- TODO:
 		- Configure diffusion
 	 -->
-
 
 </project>

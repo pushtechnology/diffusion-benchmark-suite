@@ -4,52 +4,54 @@
 	<property name="suite.ant.file" value="rc-latency-suite.xml" />
 	<property name="client.jvm.args" value="-server -Xms2g -Xmx2g" />
 	<property name="client.threads" value="1" />
-    <property name="max.time" value="5.0" />
-    <property name="max.messages" value="100000" />
+	<property name="max.time" value="5.0" />
+	<property name="max.messages" value="100000" />
 	<property name="rc.host" value="dpt://localhost:8080" />
 	<!-- Further common settings are available in the test-suite-common file
 	-->
 	<import file="rc-test-suite-common.xml" />
 
 	<target name="perfTest-1000b-rc-ping-latency">
-        <run-rc-ping-test test.name="1000b-rc-ping-latency" message.size="1000" />
-    </target>
-    <target name="perfTest-2000b-rc-ping-latency">
-        <run-rc-ping-test test.name="2000b-rc-ping-latency" message.size="2000" />
-    </target>
-    <target name="perfTest-500b-rc-ping-latency">
-        <run-rc-ping-test test.name="500b-rc-ping-latency" message.size="500" />
-    </target>
-    <target name="perfTest-250b-rc-ping-latency">
-        <run-rc-ping-test test.name="250b-rc-ping-latency" message.size="250" />
-    </target>
-    <target name="perfTest-250b-rc-ping-throughput">
-        <run-rc-ping-test test.name="250b-rc-ping-latency" message.size="250"  />
-    </target>
-    <target name="perfTest-125b-rc-ping-latency">
-        <run-rc-ping-test test.name="125b-rc-ping-latency" message.size="125" />
-    </target>
+		<run-rc-ping-test test.name="1000b-rc-ping-latency" message.size="1000" />
+	</target>
+	<target name="perfTest-2000b-rc-ping-latency">
+		<run-rc-ping-test test.name="2000b-rc-ping-latency" message.size="2000" />
+	</target>
+	<target name="perfTest-500b-rc-ping-latency">
+		<run-rc-ping-test test.name="500b-rc-ping-latency" message.size="500" />
+	</target>
+	<target name="perfTest-250b-rc-ping-latency">
+		<run-rc-ping-test test.name="250b-rc-ping-latency" message.size="250" />
+	</target>
+	<target name="perfTest-250b-rc-ping-throughput">
+		<run-rc-ping-test test.name="250b-rc-ping-latency" message.size="250" />
+	</target>
+	<target name="perfTest-125b-rc-ping-latency">
+		<run-rc-ping-test test.name="125b-rc-ping-latency" message.size="125" />
+	</target>
 
-    <macrodef name="run-rc-ping-test">
-        <!-- Client attributes -->
-        <attribute name="initial.clients" default="0" />
-        <attribute name="max.clients" default="1" />
-        <attribute name="message.size" default="10" />
-        <attribute name="test.name" />
-        <sequential>
-            <!-- Start Client -->
-            <var name="full-test-name" value="@{test.name}-${diffusion.protocol}"/>
-            <if>
-             <equals arg1="${skip.client}" arg2="true" />
-                <then><input>Press Return key to continue...</input></then>
-                <else>
-                    <if>
-                        <available file="${full-test-name}.settings"/>
-                        <then>
-                            <echo message="Using existing settings file: ${full-test-name}.settings"/>
-                        </then>
-                        <else>
-                            <echo file="${full-test-name}.settings">
+	<macrodef name="run-rc-ping-test">
+		<!-- Client attributes -->
+		<attribute name="initial.clients" default="0" />
+		<attribute name="max.clients" default="1" />
+		<attribute name="message.size" default="10" />
+		<attribute name="test.name" />
+		<sequential>
+			<!-- Start Client -->
+			<var name="full-test-name" value="@{test.name}-${diffusion.protocol}" />
+			<if>
+				<equals arg1="${skip.client}" arg2="true" />
+				<then>
+					<input>Press Return key to continue...</input>
+				</then>
+				<else>
+					<if>
+						<available file="${full-test-name}.settings" />
+						<then>
+							<echo message="Using existing settings file: ${full-test-name}.settings" />
+						</then>
+						<else>
+							<echo file="${full-test-name}.settings">
 #Client settings:
 initial.clients=@{initial.clients}
 max.clients=@{max.clients}
@@ -58,27 +60,27 @@ client.create.pause.seconds=@{client.create.pause.seconds}
 inbound.threadpool.size=${client.threads}
 client.jvm.args=${client.jvm.args}
 diffusion.url=${diffusion.url}
-diffusion.host=${diffusion.host}                            
+diffusion.host=${diffusion.host}
 local.interfaces=${diffusion.client.nics}
 experiment.output=${full-test-name}.csv
 clients.output=${full-test-name}-clients.log
 max.test.time.minutes=${max.time}
 max.test.messages=${max.messages}
-                            </echo>
-                        </else>
-                    </if>
-                    <echo message="...Starting test client..."/>
-                    <java classname="com.pushtechnology.benchmarks.experiments.ExperimentRunner" fork="true" 
-                          failonerror="true" jvmargs="${client.jvm.args}">
-                        <sysproperty key="verbose" value="${verbose}" />
-                        <sysproperty key="log.connection.exception" value="false" />
-                        <arg value="com.pushtechnology.benchmarks.experiments.RemoteControlPingLatencyExperiment"/>
-                        <arg value="${full-test-name}.settings"/>
-                        <classpath refid="test.runtime.classpath" />
-                    </java>
-                    <echo message="...Test client finished..."/>
-                </else>
-            </if>
-        </sequential>
-    </macrodef>
+</echo>
+						</else>
+					</if>
+					<echo message="...Starting test client..." />
+					<java classname="com.pushtechnology.benchmarks.experiments.ExperimentRunner"
+						fork="true" failonerror="true" jvmargs="${client.jvm.args}">
+						<sysproperty key="verbose" value="${verbose}" />
+						<sysproperty key="log.connection.exception" value="false" />
+						<arg value="com.pushtechnology.benchmarks.experiments.RemoteControlPingLatencyExperiment" />
+						<arg value="${full-test-name}.settings" />
+						<classpath refid="test.runtime.classpath" />
+					</java>
+					<echo message="...Test client finished..." />
+				</else>
+			</if>
+		</sequential>
+	</macrodef>
 </project>

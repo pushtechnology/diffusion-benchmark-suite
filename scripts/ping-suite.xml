@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <project name="ping-suite" default="perf-suite" basedir=".">
-	<property environment="env"/>
-    <property name="client.jvm.args" value="-server -Xms2g -Xmx2g"/>
-    <property name="client.threads" value="1"/>
-    <property name="max.messages" value="1000000"/>
-    <property name="max.time" value="3.0"/>
-	<property name="ping.type" value="ClientSend"/>
-	    
-    <property name="suite.ant.file" value="ping-suite.xml"/>
+	<property environment="env" />
+	<property name="client.jvm.args" value="-server -Xms2g -Xmx2g" />
+	<property name="client.threads" value="1" />
+	<property name="max.messages" value="1000000" />
+	<property name="max.time" value="3.0" />
+	<property name="ping.type" value="ClientSend" />
+
+	<property name="suite.ant.file" value="ping-suite.xml" />
 	<import file="perf-test-server-tasks.xml" />
 	<import file="perf-test-suite-common.xml" />
 	<!-- before/after are empty as we want the server up for duration of suite -->
@@ -15,52 +15,56 @@
 	<target name="after" />
 	<target name="before-suite">
 		<if>
-		    <equals arg1="${skip.server}" arg2="true" /><then/>
-            <elseif>
-            	<equals arg1="${diffusion.host}" arg2="localhost" />
-			<then>
-				<assert-no-diffusion-running />
-				<clean-diffusion />
-				<antcall target="start-echo"/>
-				<start-diffusion />
-			</then>
-        	</elseif>
+			<equals arg1="${skip.server}" arg2="true" />
+			<then />
+			<elseif>
+				<equals arg1="${diffusion.host}" arg2="localhost" />
+				<then>
+					<assert-no-diffusion-running />
+					<clean-diffusion />
+					<antcall target="start-echo" />
+					<start-diffusion />
+				</then>
+			</elseif>
 			<else>
-				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd ${benchmark-server.dir};ant -f ping-suite.xml before-suite -Dping.type=${ping.type}" />
+				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}"
+					command="cd ${benchmark-server.dir};ant -f ping-suite.xml before-suite -Dping.type=${ping.type}" />
 			</else>
 		</if>
 	</target>
 	<target name="after-suite">
-        <if>
-            <equals arg1="${skip.server}" arg2="true" /><then/>
-            <elseif>
-			<equals arg1="${diffusion.host}" arg2="localhost" />
-			<then>
-				<kill-diffusion />
-			</then>
-        	</elseif>
+		<if>
+			<equals arg1="${skip.server}" arg2="true" />
+			<then />
+			<elseif>
+				<equals arg1="${diffusion.host}" arg2="localhost" />
+				<then>
+					<kill-diffusion />
+				</then>
+			</elseif>
 			<else>
-				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd ${benchmark-server.dir};ant -f ping-suite.xml after-suite" />
+				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}"
+					command="cd ${benchmark-server.dir};ant -f ping-suite.xml after-suite" />
 			</else>
 		</if>
 	</target>
 	<target name="perfTest-1000b-ping-latency">
-        <run-ping-test test.name="1000b-ping-latency" message.size="1000" />
+		<run-ping-test test.name="1000b-ping-latency" message.size="1000" />
 	</target>
-    <target name="perfTest-2000b-ping-latency">
-        <run-ping-test test.name="2000b-ping-latency" message.size="2000" />
-    </target>
-    <target name="perfTest-500b-ping-latency">
-        <run-ping-test test.name="500b-ping-latency" message.size="500" />
-    </target>
-    <target name="perfTest-250b-ping-latency">
-        <run-ping-test test.name="250b-ping-latency" message.size="250" />
-    </target>
-    <target name="perfTest-250b-ping-throughput">
-        <run-ping-test test.name="250b-ping-latency" message.size="250"  />
-    </target>
+	<target name="perfTest-2000b-ping-latency">
+		<run-ping-test test.name="2000b-ping-latency" message.size="2000" />
+	</target>
+	<target name="perfTest-500b-ping-latency">
+		<run-ping-test test.name="500b-ping-latency" message.size="500" />
+	</target>
+	<target name="perfTest-250b-ping-latency">
+		<run-ping-test test.name="250b-ping-latency" message.size="250" />
+	</target>
+	<target name="perfTest-250b-ping-throughput">
+		<run-ping-test test.name="250b-ping-latency" message.size="250" />
+	</target>
 	<target name="perfTest-125b-ping-latency">
-        <run-ping-test test.name="125b-ping-latency" message.size="125" />
+		<run-ping-test test.name="125b-ping-latency" message.size="125" />
 	</target>
 
 	<macrodef name="run-ping-test">
@@ -72,18 +76,20 @@
 		<attribute name="test.name" />
 		<sequential>
 			<!-- Start Client -->
-			<var name="full-test-name" value="@{test.name}-${diffusion.protocol}"/>
-            <if>
-             <equals arg1="${skip.client}" arg2="true" />
-                <then><input>Press Return key to continue...</input></then>
-                <else>
-                    <if>
-                        <available file="${full-test-name}.settings"/>
-                        <then>
-                            <echo message="Using existing settings file: ${full-test-name}.settings"/>
-                        </then>
-                        <else>
-                            <echo file="${full-test-name}.settings">
+			<var name="full-test-name" value="@{test.name}-${diffusion.protocol}" />
+			<if>
+				<equals arg1="${skip.client}" arg2="true" />
+				<then>
+					<input>Press Return key to continue...</input>
+				</then>
+				<else>
+					<if>
+						<available file="${full-test-name}.settings" />
+						<then>
+							<echo message="Using existing settings file: ${full-test-name}.settings" />
+						</then>
+						<else>
+							<echo file="${full-test-name}.settings">
 #Client settings:
 initial.clients=@{initial.clients}
 max.clients=@{max.clients}
@@ -98,21 +104,21 @@ experiment.output=${full-test-name}.csv
 clients.output=${full-test-name}-clients.log
 max.test.time.minutes=${max.time}
 max.test.messages=${max.messages}
-                            </echo>
-                        </else>
-                    </if>
-                    <echo message="...Starting test client..."/>
-                    <java classname="com.pushtechnology.benchmarks.experiments.ExperimentRunner" fork="true" 
-                          failonerror="true" jvmargs="${client.jvm.args}">
-                        <sysproperty key="verbose" value="${verbose}" />
-                        <sysproperty key="log.connection.exception" value="false" />
-                        <arg value="com.pushtechnology.benchmarks.experiments.PingLatencyExperiment"/>
-                        <arg value="${full-test-name}.settings"/>
-                        <classpath refid="test.runtime.classpath" />
-                    </java>
-                    <echo message="...Test client finished..."/>
-                </else>
-            </if>           
+</echo>
+						</else>
+					</if>
+					<echo message="...Starting test client..." />
+					<java classname="com.pushtechnology.benchmarks.experiments.ExperimentRunner"
+						fork="true" failonerror="true" jvmargs="${client.jvm.args}">
+						<sysproperty key="verbose" value="${verbose}" />
+						<sysproperty key="log.connection.exception" value="false" />
+						<arg value="com.pushtechnology.benchmarks.experiments.PingLatencyExperiment" />
+						<arg value="${full-test-name}.settings" />
+						<classpath refid="test.runtime.classpath" />
+					</java>
+					<echo message="...Test client finished..." />
+				</else>
+			</if>
 		</sequential>
 	</macrodef>
 	<target name="start-echo">
