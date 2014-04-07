@@ -24,16 +24,15 @@ import java.security.cert.Certificate;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
-
 import com.pushtechnology.benchmarks.experiments.CommonExperimentSettings;
 import com.pushtechnology.benchmarks.monitoring.ExperimentCounters;
 import com.pushtechnology.benchmarks.util.Factory;
+import com.pushtechnology.benchmarks.util.JVMSupport;
 import com.pushtechnology.diffusion.api.Logs;
 import com.pushtechnology.diffusion.api.ServerConnectionListener;
 import com.pushtechnology.diffusion.api.client.ExternalClientConnection;
 import com.pushtechnology.diffusion.api.connection.ConnectionFactory;
 import com.pushtechnology.diffusion.api.connection.ServerDetails;
-import com.pushtechnology.diffusion.utils.JVMSupport;
 
 
 /**
