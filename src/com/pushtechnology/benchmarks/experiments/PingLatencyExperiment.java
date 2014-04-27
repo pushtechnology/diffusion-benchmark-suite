@@ -27,8 +27,6 @@ import com.pushtechnology.benchmarks.clients.PingClient;
 import com.pushtechnology.benchmarks.publishers.PingClientSendPublisher;
 import com.pushtechnology.benchmarks.util.Factory;
 
-
-
 /**
  * A latency measuring experiment benchmarking the RTT latency of messages.
  * 

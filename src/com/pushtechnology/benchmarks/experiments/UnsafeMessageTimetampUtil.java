@@ -50,7 +50,7 @@ public final class UnsafeMessageTimetampUtil {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * Steal the header length so we know where data starts.
      * 
@@ -60,7 +60,7 @@ public final class UnsafeMessageTimetampUtil {
     public static int getHeaderLength(TopicMessage m) {
         return UnsafeAccess.UNSAFE.getInt(m, HEADER_LEN_OFFSET);
     }
-    
+
     /**
      * Steal the message ByteBuffer.
      * 
@@ -70,7 +70,7 @@ public final class UnsafeMessageTimetampUtil {
     public static ByteBuffer getBuffer(TopicMessage m) {
         return (ByteBuffer) UnsafeAccess.UNSAFE.getObject(m, BB_OFFSET);
     }
-    
+
     /**
      * Directly write the time value into the message.
      * 
@@ -80,7 +80,7 @@ public final class UnsafeMessageTimetampUtil {
     public static void insertTimsetamp(TopicMessage m, long time) {
         getBuffer(m).putLong(getHeaderLength(m), time);
     }
-    
+
     /**
      * Directly write the time value into the message.
      * 

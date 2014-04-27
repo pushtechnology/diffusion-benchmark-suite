@@ -16,12 +16,11 @@ import com.pushtechnology.diffusion.api.message.TopicMessage;
 public final class PingClient extends LatencyMonitoringClient {
     /** message size. */
     private final int size;
-    
+
     /** ping exchange topic. */
     private final String pingTopic;
     /** sent time. */
     private long sentTimeNanos;
-    
 
     /**
      * @param experimentCountersP ...

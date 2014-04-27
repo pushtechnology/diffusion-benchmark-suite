@@ -15,7 +15,6 @@
  */
 package com.pushtechnology.benchmarks.util;
 
-
 /**
  * A factory interface...
  * @author nitsanw
@@ -23,14 +22,14 @@ package com.pushtechnology.benchmarks.util;
  * @param <T>
  */
 public interface Factory<T> {
-    
+
     /**
      * @return a new T instance.
      */
     T create();
-    
+
     /**
-     * cleanup. 
+     * cleanup.
      */
     void close();
 }

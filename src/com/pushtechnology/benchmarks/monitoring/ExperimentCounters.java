@@ -78,14 +78,14 @@ public class ExperimentCounters {
     }
 
     public void incConnectionAttemptsCounter() {
-        connectionAttemptsCounter.incrementAndGet();        
+        connectionAttemptsCounter.incrementAndGet();
     }
     public long getMessageCounter() {
         return messageCounter.sum();
     }
 
     public void incMessageCounter() {
-        messageCounter.increment();        
+        messageCounter.increment();
     }
 
     public long getBytesCounter() {
