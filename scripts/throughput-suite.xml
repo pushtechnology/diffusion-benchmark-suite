@@ -50,14 +50,24 @@
                 initial.messages="1" message.increment="0"
                 initial.topic.num="50"  topic.increment="0"/>
         </target>
+	<!-- reflect recent benchmark runs, we can ramp up connections faster-->
 	<target name="perfTest-125b-50t">
 		<run-ramping-throughput-test test.name="125b-xC-4M-50T" 
 			message.size="125" publish.pause.seconds="0.25"
-			initial.clients="0" max.clients="100000"
-			clients.increment="750"
+			initial.clients="0" max.clients="50000"
+			clients.increment="1000" client.increment.pause.seconds="2"
 			initial.messages="1" message.increment="0"
 			initial.topic.num="50"  topic.increment="0"/>
 	</target>
+	<!-- added very small message benchmark to push server harder before sturation-->
+	<target name="perfTest-10b-50t">
+        <run-ramping-throughput-test test.name="10b-xC-4M-50T" 
+            message.size="10" publish.pause.seconds="0.25"
+            initial.clients="0" max.clients="50000"
+            clients.increment="1000" client.increment.pause.seconds="2"
+    	    initial.messages="1" message.increment="0"
+            initial.topic.num="50"  topic.increment="0"/>
+    </target>
 
 	<macrodef name="run-ramping-throughput-test">
 		<!-- Client attributes -->
