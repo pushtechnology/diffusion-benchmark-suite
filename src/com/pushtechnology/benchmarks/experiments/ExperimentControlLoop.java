@@ -30,11 +30,11 @@ import com.pushtechnology.benchmarks.monitoring.ExperimentCounters;
 import com.pushtechnology.benchmarks.monitoring.ExperimentMonitor;
 import com.pushtechnology.benchmarks.util.Factory;
 import com.pushtechnology.diffusion.api.APIException;
-import com.pushtechnology.diffusion.api.APIProperties;
 import com.pushtechnology.diffusion.api.Logs;
 import com.pushtechnology.diffusion.api.client.ExternalClientConnection;
-import com.pushtechnology.diffusion.api.config.Config;
 import com.pushtechnology.diffusion.api.config.ConfigManager;
+import com.pushtechnology.diffusion.api.config.ThreadPoolConfig;
+import com.pushtechnology.diffusion.api.config.ThreadsConfig;
 import com.pushtechnology.diffusion.api.threads.ThreadService;
 
 /**
@@ -201,8 +201,11 @@ public class ExperimentControlLoop implements Runnable {
     @SuppressWarnings("deprecation")
     private void setupThreadPool(int qSize, int coreSize)
             throws APIException {
-    	String inboundPool = ConfigManager.getConfig().getThreads().getInboundPool();
-    	ConfigManager.getConfig().getThreads().getPool(inboundPool).setQueueSize(qSize);
+    	ThreadsConfig threadsConfig = ConfigManager.getConfig().getThreads();
+    	ThreadPoolConfig pool = threadsConfig.addPool("in");
+    	pool.setQueueSize(qSize);
+    	threadsConfig.setInboundPool("in");
+		
         // this will allow us to set the max
         ThreadService.getInboundThreadPool().setCoreSize(0);
         // set the max
