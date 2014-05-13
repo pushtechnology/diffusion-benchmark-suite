@@ -206,4 +206,13 @@ start:
 
     $ rm -rf /var/lib/javad/jvm-1
 
+##Working with the code
+###Checkstyle
+In the `fomatter` directory there is a checkstyle style file `sun_checks.xml`.
+That the code has been developed against this can be integrated into your
+development process to ensure that the style is consistent through out the
+suite. Worth noting is that you may need to change the line ending required
+at the end of the file, its correctness will depend on how you checkout the
+source code.
+
 Enjoy!

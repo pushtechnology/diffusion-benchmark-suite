@@ -4,7 +4,7 @@
 	<property environment="env" />
 	<import file="perf-test-server-tasks.xml" />
 	<import file="perf-test-suite-common.xml" />
-	
+
 	<!-- Setup the RC publisher before we start Diffusion -->
 	<target name="before-suite">
 		<if>
@@ -15,57 +15,59 @@
 				<then>
 					<assert-no-diffusion-running />
 					<clean-diffusion />
-					<antcall target="deploy-remote-control-dar"/>
+					<antcall target="deploy-remote-control-dar" />
 				</then>
 			</elseif>
 			<else>
-				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd ${benchmark-server.dir};ant -f ${suite.ant.file} before-suite" />
+				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}"
+					command="cd ${benchmark-server.dir};ant -f ${suite.ant.file} before-suite" />
 			</else>
 		</if>
 	</target>
-	
-    <!-- Remover the RC publisher and kill Diffusion -->
+
+	<!-- Remover the RC publisher and kill Diffusion -->
 	<target name="after-suite">
 		<if>
-            <equals arg1="${skip.server}" arg2="true" />
-            <then />
-            <elseif>
-                <equals arg1="${diffusion.host}" arg2="localhost" />
-                <then>
-                	<antcall target="undeploy-remote-control-dar"/>
-                </then>
-            </elseif>
-            <else>
-                <sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd ${benchmark-server.dir};ant -f ${suite.ant.file} after-suite" />
-            </else>
-        </if>
-    </target>
-	
+			<equals arg1="${skip.server}" arg2="true" />
+			<then />
+			<elseif>
+				<equals arg1="${diffusion.host}" arg2="localhost" />
+				<then>
+					<antcall target="undeploy-remote-control-dar" />
+				</then>
+			</elseif>
+			<else>
+				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}"
+					command="cd ${benchmark-server.dir};ant -f ${suite.ant.file} after-suite" />
+			</else>
+		</if>
+	</target>
+
 	<!-- Start server -->
 	<target name="before">
-        <if>
-            <equals arg1="${skip.server}" arg2="true" />
-            <then />
-            <elseif>
-                <equals arg1="${diffusion.host}" arg2="localhost" />
-                <then>
-                    <assert-no-diffusion-running />
-                    <start-diffusion />
-                </then>
-            </elseif>
-            <else>
-                <sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}" command="cd ${benchmark-server.dir};ant -f ${suite.ant.file} before" />
-            </else>
-        </if>
-    </target>
-	
+		<if>
+			<equals arg1="${skip.server}" arg2="true" />
+			<then />
+			<elseif>
+				<equals arg1="${diffusion.host}" arg2="localhost" />
+				<then>
+					<assert-no-diffusion-running />
+					<start-diffusion />
+				</then>
+			</elseif>
+			<else>
+				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}"
+					command="cd ${benchmark-server.dir};ant -f ${suite.ant.file} before" />
+			</else>
+		</if>
+	</target>
+
 	<target name="deploy-remote-control-dar">
-		<dar-generic publisher.name="RemoteControlPublisher" 
-                     package="com.pushtechnology.diffusion.api.publisher"/>
-        <deploy-dar dar.name="RemoteControlPublisher.dar" />
+		<dar-generic publisher.name="RemoteControlPublisher" package="com.pushtechnology.diffusion.api.publisher" />
+		<deploy-dar dar.name="RemoteControlPublisher.dar" />
 	</target>
 	<target name="undeploy-remote-control-dar">
-        <undeploy-dar dar.name="RemoteControlPublisher.dar" />
+		<undeploy-dar dar.name="RemoteControlPublisher.dar" />
 		<delete file="RemoteControlPublisher.dar" />
 	</target>
 </project>

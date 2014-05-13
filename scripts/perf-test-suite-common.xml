@@ -2,7 +2,7 @@
 <project name="perf-test-suite-common" default="perf-suite" basedir=".">
 	<!-- the protocol to use: ws, dpt, http, wss, dpts, https-->
 	<property name="diffusion.protocol" value="ws" />
-    <!-- the diffusion host, will also determine how server is launched -->
+	<!-- the diffusion host, will also determine how server is launched -->
 	<property name="diffusion.host" value="localhost" />
 	<!-- port is 8080 for non-secure protocols, 8443 for secure -->
 	<condition property="diffusion.port" value="8443" else="8080">
@@ -15,7 +15,7 @@
 	<!-- url is a protocol://host:port
 	   This property supports a comma separated list of values for connecting
 	   clients to several hosts or protocols -->
-	<property name="diffusion.url" value="${diffusion.protocol}://${diffusion.host}:${diffusion.port}"/>
+	<property name="diffusion.url" value="${diffusion.protocol}://${diffusion.host}:${diffusion.port}" />
 	<!-- this is a comma separated list of local interfaces to bind clients
 	   to. -->
 	<property name="diffusion.client.nics" value="" />
@@ -26,66 +26,64 @@
 	<property name="ssh.password" value="ds10hd" />
 	<!-- This property allows filtering tests from test suites-->
 	<property name="test.name.contains" value="perfTest" />
-    
+
 	<!-- Skip client/server actions for interactive runs -->
-	<property name="skip.server" value="false"/>
-    <property name="skip.client" value="false"/>
-	
+	<property name="skip.server" value="false" />
+	<property name="skip.client" value="false" />
+
 	<!-- Log all exceptions and set client side logging to FINEST, ony for debug
 	     purposes -->
-    <property name="verbose" value="false"/>
-    <property name="benchmark-server.dir" value="/root/benchmark-server"/>
+	<property name="verbose" value="false" />
+	<property name="benchmark-server.dir" value="/root/benchmark-server" />
 
 	<import file="perf-test-server-tasks.xml" />
-	
+
 	<target name="before-suite" />
 	<target name="after-suite" />
 	<target name="before">
 		<if>
-         <equals arg1="${skip.server}" arg2="true" /><then/>
-        <elseif>
-		 <equals arg1="${diffusion.host}" arg2="localhost" />
-		 <then>
-			<assert-no-diffusion-running />
-			<clean-diffusion />
-			<start-diffusion />
-		 </then>
-    	</elseif>
-		 <else>
-			<sshexec host="${diffusion.host}"
-				username="${ssh.username}"
-				password="${ssh.password}" 
-				command="cd ${benchmark-server.dir};ant -f ${suite.ant.file} before" />
-		 </else>
+			<equals arg1="${skip.server}" arg2="true" />
+			<then />
+			<elseif>
+				<equals arg1="${diffusion.host}" arg2="localhost" />
+				<then>
+					<assert-no-diffusion-running />
+					<clean-diffusion />
+					<start-diffusion />
+				</then>
+			</elseif>
+			<else>
+				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}"
+					command="cd ${benchmark-server.dir};ant -f ${suite.ant.file} before" />
+			</else>
 		</if>
 	</target>
 	<target name="after">
 		<if>
-         <equals arg1="${skip.server}" arg2="true" /><then/>
-        <elseif>
-		 <equals arg1="${diffusion.host}" arg2="localhost" />
-		 <then>
-			<kill-diffusion />
-		 </then>
-    	</elseif>
-		<else>
-			<sshexec host="${diffusion.host}"
-				username="${ssh.username}"
-				password="${ssh.password}" 
-				command="cd ${benchmark-server.dir};ant -f ${suite.ant.file} after" />
-		</else>
+			<equals arg1="${skip.server}" arg2="true" />
+			<then />
+			<elseif>
+				<equals arg1="${diffusion.host}" arg2="localhost" />
+				<then>
+					<kill-diffusion />
+				</then>
+			</elseif>
+			<else>
+				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}"
+					command="cd ${benchmark-server.dir};ant -f ${suite.ant.file} after" />
+			</else>
 		</if>
 	</target>
 	<target name="perf-suite">
 		<script language="javascript">
 			<![CDATA[
-		    importClass( java.util.Vector );
-		    importClass( java.util.Collections );
+			importClass( java.util.Vector );
+			importClass( java.util.Collections );
 
-		    targets = new Vector( project.getTargets().keySet() );
+			targets = new Vector( project.getTargets().keySet() );
 			testNameContains = project.getProperty("test.name.contains");
 			Collections.sort(targets);
-		    perfTargets = new Vector();
+			perfTargets = new Vector();
 			perfTargets.add("before-suite");
 			for(i=0;i<targets.size();i++){
 				testName = targets.get(i);
@@ -97,7 +95,7 @@
 				}
 			}
 			perfTargets.add("after-suite");
-		    project.executeTargets( perfTargets );
+			project.executeTargets( perfTargets );
 		]]>
 		</script>
 	</target>

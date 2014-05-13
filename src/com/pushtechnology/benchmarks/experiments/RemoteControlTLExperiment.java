@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Push Technology
+ * Copyright 2013, 2014 Push Technology
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package com.pushtechnology.benchmarks.experiments;
 
 import static com.pushtechnology.benchmarks.util.PropertiesUtil.getProperty;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -29,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.HdrHistogram.Histogram;
 
-
 import com.pushtechnology.benchmarks.clients.ExperimentClient;
 import com.pushtechnology.benchmarks.clients.LatencyMonitoringClient;
 import com.pushtechnology.benchmarks.clients.UnsafeLatencyMonitoringClient;
@@ -39,7 +37,6 @@ import com.pushtechnology.benchmarks.util.Factory;
 import com.pushtechnology.diffusion.api.APIException;
 import com.pushtechnology.diffusion.api.Logs;
 import com.pushtechnology.diffusion.api.connection.ConnectionFactory;
-import com.pushtechnology.diffusion.api.message.MessageException;
 import com.pushtechnology.diffusion.api.message.TopicMessage;
 import com.pushtechnology.diffusion.api.remote.RemoteServiceFactory;
 import com.pushtechnology.diffusion.api.remote.topics.SimpleTopicSpecification;
@@ -51,8 +48,32 @@ import com.pushtechnology.diffusion.api.remote.topics.SimpleTopicSpecification;
  * 
  */
 public final class RemoteControlTLExperiment implements Runnable {
+    /**
+     * The ratio used by the histogram to scale its output.
+     */
+    private static final double HISTOGRAM_SCALING_RATIO = 1000.0;
+    /**
+     * Topic specification for experiment.
+     */
     private static final SimpleTopicSpecification TOPIC_SPECIFICATION =
             new SimpleTopicSpecification();
+    /**
+     * Number of milliseconds to wait for registration.
+     */
+    private static final long REGISTRATION_WAIT = 1000L;
+    /**
+     * The size of the input and output buffers.
+     */
+    private static final int BUFFER_SIZE = 64 * 1024;
+    /**
+     * The size of the message queue.
+     */
+    private static final int MESSAGE_QUEUE_SIZE = 10000;
+    /**
+     * The initial size of messages.
+     */
+    private static final int INITIAL_SIZE_OF_MESSAGES = 20;
+
     /**
      * client connections to be closed on close of factory and queried for
      * latency stats.
@@ -61,9 +82,19 @@ public final class RemoteControlTLExperiment implements Runnable {
             Collections.newSetFromMap(
                     new ConcurrentHashMap<LatencyMonitoringClient, Boolean>());
 
+    /**
+     * The remote service to use in the experiment. 
+     */
     private final class Service extends BaseService {
-        List<TopicMessage> messageForTopic = 
+        /**
+         * Messages published on the topic.
+         */
+        private final List<TopicMessage> messageForTopic =
                 new ArrayList<TopicMessage>();
+        /**
+         * Start the service.
+         * @throws APIException If unable to start the service.
+         */
         public void startService() throws APIException {
             listener = new BaseRemoteListener(this);
 
@@ -81,10 +112,6 @@ public final class RemoteControlTLExperiment implements Runnable {
                 addTopic(i);
             }
             Runnable publishCommand = new Runnable() {
-                private final byte[] message =
-                        new byte[settings.getMessageSize()];
-                private final ByteBuffer messageBuffer =
-                        ByteBuffer.wrap(message);
                 private final boolean shouldIncTopics =
                         settings.getTopicIncrementIntervalInPauses() != 0;
                 private final boolean shouldIncMessages =
@@ -126,6 +153,7 @@ public final class RemoteControlTLExperiment implements Runnable {
                             % settings.getMessageIncrementIntervalInPauses();
                 }
 
+                @SuppressWarnings("deprecation")
                 public void incTopics() {
                     int targetTopics = topics + settings.getTopicIncrement();
                     for (int i = topics; i < targetTopics; i++) {
@@ -141,10 +169,13 @@ public final class RemoteControlTLExperiment implements Runnable {
                     topics = targetTopics;
                 }
 
+                @SuppressWarnings("deprecation")
                 public void publishToTopic(int i) {
                     try {
                         TopicMessage delta = messageForTopic.get(i);
-                        UnsafeMessageTimetampUtil.insertTimsetamp(delta, System.nanoTime());
+                        UnsafeMessageTimetampUtil.insertTimsetamp(
+                            delta,
+                            System.nanoTime());
                         service.publish(delta);
                     } catch (APIException ex) {
                         if (service.isRegistered()) {
@@ -158,12 +189,17 @@ public final class RemoteControlTLExperiment implements Runnable {
                             settings.intervalPauseNanos, TimeUnit.NANOSECONDS);
         }
 
-        public void addTopic(int i) throws APIException,
-                MessageException {
+        /**
+         * Add a topic.
+         *
+         * @param i The topic to add
+         * @throws APIException It the topic could not be added
+         */
+        public void addTopic(int i) throws APIException {
             String topic = String.valueOf(i);
             service.addTopic(topic, TOPIC_SPECIFICATION);
             TopicMessage initialLoad =
-                    service.createLoadMessage(topic, 20);
+                    service.createLoadMessage(topic, INITIAL_SIZE_OF_MESSAGES);
             initialLoad.put("INIT");
             service.publish(initialLoad);
             TopicMessage delta = service.createDeltaMessage(topic,
@@ -171,17 +207,25 @@ public final class RemoteControlTLExperiment implements Runnable {
             delta.put(new byte[settings.getMessageSize()]);
             messageForTopic.add(delta);
         }
+
+        /**
+         * Register the service.
+         *
+         * @throws APIException If the service could not be registered.
+         */
+        @SuppressWarnings("deprecation")
         public void register() throws APIException {
             service.getOptions().setAuthoriseSubscribeClients(false);
             service.getOptions().setClientConnectNotifications(false);
             service.getOptions().setRouteSelectorSubscribes(false);
-            service.setMessageQueueSize(10000);
-            service.getServerDetails().setOutputBufferSize(64 * 1024);
-            service.getServerDetails().setInputBufferSize(64 * 1024);
+            service.setMessageQueueSize(MESSAGE_QUEUE_SIZE);
+            service.getServerDetails().setOutputBufferSize(BUFFER_SIZE);
+            service.getServerDetails().setInputBufferSize(BUFFER_SIZE);
             listener.resetRegisterLatch();
             service.register();
             while (!service.isRegistered()) {
-                listener.waitForRegistration(1000L, TimeUnit.MILLISECONDS);
+                listener.waitForRegistration(REGISTRATION_WAIT,
+                        TimeUnit.MILLISECONDS);
                 Logs.info("Registering RC with server...");
             }
         }
@@ -258,7 +302,12 @@ public final class RemoteControlTLExperiment implements Runnable {
 
         // CHECKSTYLE:ON
 
-        public String getRcUrl() {
+        /**
+         * Get the URL of the remote control.
+         *
+         * @return The URL for the remote control.
+         */
+        public final String getRcUrl() {
             return rcUrl;
         }
     }
@@ -266,6 +315,9 @@ public final class RemoteControlTLExperiment implements Runnable {
     /** the experiment loop. */
     private final ExperimentControlLoop loop;
 
+    /**
+     * The settings used by the experiment.
+     */
     private final Settings settings;
 
     /**
@@ -289,7 +341,10 @@ public final class RemoteControlTLExperiment implements Runnable {
                     histogramSummary.add(connection.getHistogram());
                 }
                 histogramSummary.getHistogramData().
-                        outputPercentileDistribution(getOutput(), 1, 1000.0);
+                    outputPercentileDistribution(
+                        getOutput(),
+                        1,
+                        HISTOGRAM_SCALING_RATIO);
             }
         };
         loop.setClientFactory(new Factory<ExperimentClient>() {
@@ -321,6 +376,9 @@ public final class RemoteControlTLExperiment implements Runnable {
         loop.run();
     }
 
+    /**
+     * Set up and start the service for the experiment.
+     */
     public void setUpRC() {
         Service service = new Service();
         try {
@@ -329,5 +387,4 @@ public final class RemoteControlTLExperiment implements Runnable {
             new RuntimeException(e);
         }
     }
-
 }

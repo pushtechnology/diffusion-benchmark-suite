@@ -31,14 +31,14 @@ import com.pushtechnology.diffusion.api.message.TopicMessage;
  *
  */
 public final class SafeLatencyMonitoringClient extends LatencyMonitoringClient {
-    
+
     /** 8 bytes, aye. */
     private static final int SIZEOF_LONG = 8;
     /** we copy the first 8 bytes of the message out into this array. */
     private final byte[] timestamp = new byte[SIZEOF_LONG];
     /** we extract the long by using this byte buffer. */
     private final ByteBuffer tsWrapperBuffer = ByteBuffer.wrap(timestamp);
-    
+
     /**
      * @param experimentCountersP ... 
      * @param reconnectP ...
@@ -48,7 +48,7 @@ public final class SafeLatencyMonitoringClient extends LatencyMonitoringClient {
             boolean reconnectP, String... initialTopicsP) {
         super(experimentCountersP, reconnectP, initialTopicsP);
     }
-    
+
     @Override
     protected long getArrivedTimestamp() {
         return System.nanoTime();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Push Technology
+ * Copyright 2013, 2014 Push Technology
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,31 +21,64 @@ import com.pushtechnology.diffusion.api.connection.ConnectionFactory;
 import com.pushtechnology.diffusion.api.connection.ServerDetails;
 import com.pushtechnology.diffusion.api.remote.RemoteService;
 
+/**
+ * Base service implementation.
+ */
 public abstract class BaseService {
 
-	protected ServerDetails serverDetails = null;
-	protected RemoteService service = null;
-	protected BaseRemoteListener listener = null;
-	
-	public ServerDetails getServerDetails() {
-		if(serverDetails == null) {
-			try {
-				serverDetails = ConnectionFactory.createServerDetails("dpt://localhost:8080");
-			}
-			catch(APIException ex) {
-				Logs.warning("Failed to create server details", ex);
-			}
-		}
-		return serverDetails;
-	}
-	
-	public String getControlTopicName() {
-		return "RemoteControl";
-	}
-	
-	public abstract String getDomainTopicName();
-	
-	public RemoteService getRemoteService() {
-		return service;
-	}
+    /**
+     * The server details to connect to.
+     */
+    protected ServerDetails serverDetails = null;
+    /**
+     * The remote service.
+     */
+    protected RemoteService service = null;
+    /**
+     * The remote service listener.
+     */
+    protected BaseRemoteListener listener = null;
+
+    /**
+     * Get the server details.
+     *
+     * @return The server details.
+     */
+    @SuppressWarnings("deprecation")
+    public final ServerDetails getServerDetails() {
+        if (serverDetails == null) {
+            try {
+                serverDetails = ConnectionFactory
+                    .createServerDetails("dpt://localhost:8080");
+            } catch (final APIException ex) {
+                Logs.warning("Failed to create server details", ex);
+            }
+        }
+        return serverDetails;
+    }
+
+    /**
+     * Get the control topic name.
+     *
+     * @return The name of the control topic.
+     */
+    public final String getControlTopicName() {
+        return "RemoteControl";
+    }
+
+    /**
+     * Get the name of the domain topic.
+     *
+     * @return The name of the domain topic.
+     */
+    public abstract String getDomainTopicName();
+
+    /**
+     * Get the remote service.
+     *
+     * @return The remote service.
+     */
+    public final RemoteService getRemoteService() {
+        return service;
+    }
 }

@@ -15,8 +15,6 @@
  */
 package com.pushtechnology.benchmarks.monitoring;
 
-
-
 /**
  * A utility for monitoring CPU usage. Only works on the Oracle/Sun JVM.
  * 
@@ -48,9 +46,9 @@ public abstract class CpuMonitor {
         lastSampleSystemTime = systemTime;
         lastSampleProcessCpuTime = processCpuTime;
 
-        return Math.max(cpuUsage,0.0);
+        return Math.max(cpuUsage, 0.0);
     }
-    
+
     /**
      * @return cpu time for the process in nanos
      */

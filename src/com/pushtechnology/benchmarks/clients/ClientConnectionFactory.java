@@ -72,6 +72,7 @@ public class ClientConnectionFactory implements
      * @param topics ...
      * @return a new connection or null if failed to create one.
      */
+    @SuppressWarnings("deprecation")
     public final ExternalClientConnection createConnection(
             ServerConnectionListener client, String... topics) {
 

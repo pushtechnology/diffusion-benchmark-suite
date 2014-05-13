@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Push Technology
+ * Copyright 2013, 2014 Push Technology
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
-import java.util.logging.Level;
 
 import com.pushtechnology.benchmarks.clients.ClientConnectionFactory;
 import com.pushtechnology.benchmarks.clients.ExperimentClient;
@@ -49,11 +48,11 @@ public class ExperimentControlLoop implements Runnable {
     private final Runnable createClientTask = new Runnable() {
         @Override
         public void run() {
-            if(!shouldAttemptMoreConnections()){
+            if (!shouldAttemptMoreConnections()) {
                 return;
             }
             connector.create();
-            long clientCreatePauseNanos = getClientSettings()
+            final long clientCreatePauseNanos = getClientSettings()
                     .getClientCreatePauseNanos();
             if (clientCreatePauseNanos > 0L) {
                 LockSupport.parkNanos(clientCreatePauseNanos);
@@ -76,7 +75,7 @@ public class ExperimentControlLoop implements Runnable {
     /**
      * @param settings ...
      */
-    public ExperimentControlLoop(CommonExperimentSettings settings) {
+    public ExperimentControlLoop(final CommonExperimentSettings settings) {
         clientSettings = settings;
 
         experimentMonitor =
@@ -90,7 +89,7 @@ public class ExperimentControlLoop implements Runnable {
      * @param clientFactory ...
      */
     public final void setClientFactory(
-            Factory<ExperimentClient> clientFactory) {
+            final Factory<ExperimentClient> clientFactory) {
         connector = new ClientConnectionFactory(
                 getExperimentCounters(),
                 getClientSettings(),
@@ -100,29 +99,35 @@ public class ExperimentControlLoop implements Runnable {
     /**
      * @param strategy ...
      */
-    public final void setLoadStartegy(ExperimentLoadStrategy strategy) {
+    public final void setLoadStartegy(final ExperimentLoadStrategy strategy) {
         this.loadStrategy = strategy;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public final void run() {
         try {
             // GO!
-            long testStartTime = System.currentTimeMillis();
+            final long testStartTime = System.currentTimeMillis();
             Logs.info("Starting experiment");
-            int connectQCapacity = getClientSettings().getInitialClients() +
-                2 * getClientSettings().getClientIncrement();
-            BlockingQueue<Runnable> connectQ =
-                new ArrayBlockingQueue<Runnable>(connectQCapacity);
-            ThreadPoolExecutor connectThread =
-                new ThreadPoolExecutor(10, 100, 10, TimeUnit.SECONDS, connectQ);
+            final int connectQCapacity =
+                    getClientSettings().getInitialClients()
+                            + 2 * getClientSettings().getClientIncrement();
+            final BlockingQueue<Runnable> connectQ =
+                    new ArrayBlockingQueue<Runnable>(connectQCapacity);
+            final ThreadPoolExecutor connectThread =
+                    new ThreadPoolExecutor(10, 100, 10, TimeUnit.SECONDS,
+                            connectQ);
             // generate initial load
-            connectThread.setRejectedExecutionHandler(new RejectedExecutionHandler() {
-                @Override
-                public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-                    // DO NOTHING
-                }
-            });
+            connectThread
+                    .setRejectedExecutionHandler(
+                            new RejectedExecutionHandler() {
+                                @Override
+                                public void rejectedExecution(Runnable r,
+                                        ThreadPoolExecutor executor) {
+                                    // DO NOTHING
+                                }
+                            });
             for (int i = 0; i < getClientSettings().getInitialClients(); i++) {
                 connectThread.execute(createClientTask);
             }
@@ -134,9 +139,9 @@ public class ExperimentControlLoop implements Runnable {
                 // periodically increase load if required
                 if (loadStrategy.shouldIncrementLoad(lastIncrementTime)) {
                     lastIncrementTime = System.currentTimeMillis();
-                    long currConns =
+                    final long currConns =
                             experimentCounters.getCurrentlyConnected();
-                    int maxConns = getClientSettings().getMaxClients();
+                    final int maxConns = getClientSettings().getMaxClients();
                     int incBy = getClientSettings().getClientIncrement();
                     incBy = (int) Math.min(incBy, maxConns - currConns);
                     if (incBy > 0) {
@@ -149,7 +154,7 @@ public class ExperimentControlLoop implements Runnable {
                 LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(1));
             }
             connectThread.shutdownNow();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             Logs.severe("Error during experiment loop", e);
         }
         Logs.info("time is up, wrapping up");
@@ -175,17 +180,12 @@ public class ExperimentControlLoop implements Runnable {
      * Setup some Diffusion properties and start monitoring.
      */
     private void setUp() {
-        if (Boolean.getBoolean("verbose")) {
-            Logs.setLevel(Level.FINEST);
-        } else {
-            Logs.setLevel(Level.INFO);
-        }
         // configure
-        int qSize = getClientSettings().getMaxClients();
-        int coreSize = getClientSettings().getInboundThreadPoolSize();
+        final int qSize = getClientSettings().getMaxClients();
+        final int coreSize = getClientSettings().getInboundThreadPoolSize();
         try {
             setupThreadPool(qSize, coreSize);
-        } catch (APIException e) {
+        } catch (final APIException e) {
             throw new RuntimeException(e);
         }
         experimentMonitor.start();
@@ -193,13 +193,13 @@ public class ExperimentControlLoop implements Runnable {
 
     /**
      * setup the diffusion inbound thread pool.
-     *
+     * 
      * @param qSize ...
      * @param coreSize ...
      * @throws APIException ...
      */
     @SuppressWarnings("deprecation")
-    private void setupThreadPool(int qSize, int coreSize)
+    private void setupThreadPool(final int qSize, final int coreSize)
             throws APIException {
     	ThreadsConfig threadsConfig = ConfigManager.getConfig().getThreads();
     	ThreadPoolConfig pool = threadsConfig.addPool("in");
@@ -236,19 +236,24 @@ public class ExperimentControlLoop implements Runnable {
 
     /**
      * Only to be used in the wrapup phase...
-     *
+     * 
      * @return the experiment output stream
      */
     protected final PrintStream getOutput() {
         return experimentMonitor.getOutput();
     }
 
+    /**
+     * Decides if more connections should be made to the server.
+     *
+     * @return {@code true} if more connections should be attempted.
+     */
     private boolean shouldAttemptMoreConnections() {
-        long currOutstandingConns =
-            experimentCounters.getConnectionAttemptsCounter()-
-            (experimentCounters.getClientDisconnectCounter()+
-                experimentCounters.getConnectionRefusedCounter());
-        int maxConns = getClientSettings().getMaxClients();
+        final long currOutstandingConns =
+                experimentCounters.getConnectionAttemptsCounter()
+                        - (experimentCounters.getClientDisconnectCounter()
+                        + experimentCounters.getConnectionRefusedCounter());
+        final int maxConns = getClientSettings().getMaxClients();
         return maxConns > currOutstandingConns;
     }
 

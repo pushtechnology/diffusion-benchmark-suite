@@ -25,7 +25,7 @@ import com.pushtechnology.diffusion.api.ServerConnectionListener;
  */
 public interface ExperimentClient extends ServerConnectionListener {
     /**
-     * @return the topics to be subsribed to on connection
+     * @return the topics to be subscribed to on connection
      */
     String[] getInitialTopics();
 }

@@ -6,55 +6,55 @@
 	   NONE - no conflation
 	   COMPARE - conflation using the now deprecated comparator facility
 	-->
-    <property name="conflation.mode" value="NONE"/>
-    <property environment="env"/>
-    <property name="suite.ant.file" value="stable-suite.xml"/>
+	<property name="conflation.mode" value="NONE"/>
+	<property environment="env"/>
+	<property name="suite.ant.file" value="stable-suite.xml"/>
 	<property name="client.jvm.args" value="-server -Xms2g -Xmx2g"/>
-	<property name="client.threads" value="10"/>        
-    <property name="max.time" value="5.0"/>
+	<property name="client.threads" value="10"/>
+	<property name="max.time" value="5.0"/>
 	<import file="perf-test-server-tasks.xml" />
 	<!-- Further common settings are available in the test-suite-common file
 	-->
 	<import file="perf-test-suite-common.xml" />
 
-    <target name="perfTest-stable-125b-15k">
-        <run-ramping-throughput-test test.name="stable-125b-15k" 
-            message.size="125" 
-            publish.pause.seconds="0.25"
-            initial.clients="15000"
-            max.clients="15000"
-            clients.increment="0"
-            initial.messages="1"
-            message.increment="0"
-            initial.topic.num="50"
-            topic.increment="0"/>
-    </target>
+	<target name="perfTest-stable-125b-15k">
+		<run-ramping-throughput-test test.name="stable-125b-15k"
+			message.size="125"
+			publish.pause.seconds="0.25"
+			initial.clients="15000"
+			max.clients="15000"
+			clients.increment="0"
+			initial.messages="1"
+			message.increment="0"
+			initial.topic.num="50"
+			topic.increment="0"/>
+	</target>
 
-   <target name="perfTest-stable-125b-10k">
-        <run-ramping-throughput-test test.name="stable-125b-10k" 
-            message.size="125" 
-            publish.pause.seconds="0.25"
-            initial.clients="10000"
-            max.clients="10000"
-            clients.increment="0"
-            initial.messages="1"
-            message.increment="0"
-            initial.topic.num="50"
-            topic.increment="0"/>
-    </target>
+	<target name="perfTest-stable-125b-10k">
+		<run-ramping-throughput-test test.name="stable-125b-10k"
+			message.size="125"
+			publish.pause.seconds="0.25"
+			initial.clients="10000"
+			max.clients="10000"
+			clients.increment="0"
+			initial.messages="1"
+			message.increment="0"
+			initial.topic.num="50"
+			topic.increment="0"/>
+	</target>
 
-  <target name="perfTest-stable-125b-5k">
-        <run-ramping-throughput-test test.name="stable-125b-5k" 
-            message.size="125" 
-            publish.pause.seconds="0.25"
-            initial.clients="5000"
-            max.clients="5000"
-            clients.increment="0"
-            initial.messages="1"
-            message.increment="0"
-            initial.topic.num="50"
-            topic.increment="0"/>
-    </target>
+	<target name="perfTest-stable-125b-5k">
+		<run-ramping-throughput-test test.name="stable-125b-5k"
+			message.size="125"
+			publish.pause.seconds="0.25"
+			initial.clients="5000"
+			max.clients="5000"
+			clients.increment="0"
+			initial.messages="1"
+			message.increment="0"
+			initial.topic.num="50"
+			topic.increment="0"/>
+	</target>
 
 	<macrodef name="run-ramping-throughput-test">
 		<!-- Client attributes -->
@@ -75,47 +75,48 @@
 		<attribute name="test.name" />
 		<sequential>
 			<var name="full-test-name" value="@{test.name}-${diffusion.protocol}-${conflation.mode}"/>
-			
-			<if>
-             <equals arg1="${skip.server}" arg2="true" /><then/>
-			<elseif>
-			 <equals arg1="${diffusion.host}" arg2="localhost" />
-			 <then>
-			 	<!-- Create publisher configuration -->
-			 	<configure-injector output="@{test.name}.xml"
- 					publish.pause.seconds="@{publish.pause.seconds}"
- 					message.size="@{message.size}" 
- 					initial.messages="@{initial.messages}"
- 					message.increment.interval="@{message.increment.interval}"
- 					message.increment="@{message.increment}"
- 					initial.topic.num="@{initial.topic.num}"
- 					topic.increment.interval="@{topic.increment.interval}"
- 					topic.increment="@{topic.increment}" />
-			 	<!-- package and deliver to diffusion server to be auto-deployed -->
- 				<dar publisher.name="@{test.name}" />
- 				<deploy-dar dar.name="@{test.name}.dar" />
-			 </then>
-			 </elseif>
-			 <else>
-				<sshexec host="${diffusion.host}"
-					username="${ssh.username}"
-					password="${ssh.password}" 
-                    command="cd ${benchmark-server.dir};ant -f ${suite.ant.file} -Dtest.name=@{test.name} -Dpublish.pause.seconds=@{publish.pause.seconds} -Dmessage.size=@{message.size} -Dinitial.messages=@{initial.messages} -Dmessage.increment.interval=@{message.increment.interval} -Dmessage.increment=@{message.increment} -Dinitial.topic.num=@{initial.topic.num} -Dtopic.increment.interval=@{topic.increment.interval} -Dtopic.increment=@{topic.increment} -Dconflation.mode=${conflation.mode} start-injector" />
 
-			 </else>
+			<if>
+				<equals arg1="${skip.server}" arg2="true" />
+				<then/>
+				<elseif>
+					<equals arg1="${diffusion.host}" arg2="localhost" />
+					<then>
+						<!-- Create publisher configuration -->
+						<configure-injector output="@{test.name}.xml"
+							publish.pause.seconds="@{publish.pause.seconds}"
+							message.size="@{message.size}"
+							initial.messages="@{initial.messages}"
+							message.increment.interval="@{message.increment.interval}"
+							message.increment="@{message.increment}"
+							initial.topic.num="@{initial.topic.num}"
+							topic.increment.interval="@{topic.increment.interval}"
+							topic.increment="@{topic.increment}" />
+						<!-- package and deliver to diffusion server to be auto-deployed -->
+						<dar publisher.name="@{test.name}" />
+						<deploy-dar dar.name="@{test.name}.dar" />
+					</then>
+				</elseif>
+				<else>
+					<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}"
+						command="cd ${benchmark-server.dir};ant -f ${suite.ant.file} -Dtest.name=@{test.name} -Dpublish.pause.seconds=@{publish.pause.seconds} -Dmessage.size=@{message.size} -Dinitial.messages=@{initial.messages} -Dmessage.increment.interval=@{message.increment.interval} -Dmessage.increment=@{message.increment} -Dinitial.topic.num=@{initial.topic.num} -Dtopic.increment.interval=@{topic.increment.interval} -Dtopic.increment=@{topic.increment} -Dconflation.mode=${conflation.mode} start-injector" />
+
+				</else>
 			</if>
 			<!-- Start Client -->
-            <if>
-             <equals arg1="${skip.client}" arg2="true" />
-            	<then><input>Press Return key to continue...</input></then>
-            	<else>
-                    <if>
-                        <available file="${full-test-name}.settings"/>
-                        <then>
-                            <echo message="Using existing settings file: ${full-test-name}.settings"/>
-                        </then>
-                        <else>
-                            <echo file="${full-test-name}.settings">
+			<if>
+				<equals arg1="${skip.client}" arg2="true" />
+				<then>
+					<input>Press Return key to continue...</input>
+				</then>
+				<else>
+					<if>
+						<available file="${full-test-name}.settings"/>
+						<then>
+							<echo message="Using existing settings file: ${full-test-name}.settings"/>
+						</then>
+						<else>
+							<echo file="${full-test-name}.settings">
 #Publisher settings:
 publish.pause.seconds=@{publish.pause.seconds}
 message.size=@{message.size}
@@ -139,29 +140,31 @@ local.interfaces=${diffusion.client.nics}
 experiment.output=${full-test-name}.csv
 clients.output=${full-test-name}-clients.log
 max.test.time.minutes=${max.time}
-                            </echo>
-                        </else>
-                    </if>
-        	    <run-ramping-client testname="${full-test-name}"/>
-        	    </else>
-            </if>			
+</echo>
+						</else>
+					</if>
+					<run-ramping-client testname="${full-test-name}"/>
+				</else>
+			</if>
 			<!-- Cleanup server deployment -->
 			<if>
-             <equals arg1="${skip.server}" arg2="true" />
-			 <then><input>Press Return key to continue...</input></then>
-			<elseif>
-			 <equals arg1="${diffusion.host}" arg2="localhost" />
-			 <then>
-			 	<undeploy-dar dar.name="@{test.name}.dar" />
- 				<delete file="@{test.name}.dar"/>
-			 </then>
-			</elseif>
-		    <else>
-				<sshexec host="${diffusion.host}"
+				<equals arg1="${skip.server}" arg2="true" />
+				<then>
+					<input>Press Return key to continue...</input>
+				</then>
+				<elseif>
+					<equals arg1="${diffusion.host}" arg2="localhost" />
+					<then>
+						<undeploy-dar dar.name="@{test.name}.dar" />
+						<delete file="@{test.name}.dar"/>
+					</then>
+				</elseif>
+				<else>
+					<sshexec host="${diffusion.host}"
 					username="${ssh.username}"
 					password="${ssh.password}" 
 					command="cd ${benchmark-server.dir};ant -f ${suite.ant.file} -Dtest.name=@{test.name} stop-injector" />
-			 </else>
+				</else>
 			</if>
 		</sequential>
 	</macrodef>
@@ -182,19 +185,20 @@ max.test.time.minutes=${max.time}
 		<undeploy-dar dar.name="${test.name}.dar" />
 		<delete file="${test.name}.dar"/>
 	</target>
-	
+
 	<macrodef name="run-ramping-client">
 		<attribute name="testname" />
-        <sequential>
+		<sequential>
 			<echo message="...Starting test client..."/>
 			<java classname="com.pushtechnology.benchmarks.experiments.ExperimentRunner" fork="true" 
 				  failonerror="true" jvmargs="${client.jvm.args}">
-                <sysproperty key="log.connection.exception" value="false" />
+				<sysproperty key="verbose" value="${verbose}" />
+				<sysproperty key="log.connection.exception" value="false" />
 				<arg value="com.pushtechnology.benchmarks.experiments.ThroughputExperiment"/>
 				<arg value="@{testname}.settings"/>
-                <classpath refid="test.runtime.classpath" />
+				<classpath refid="test.runtime.classpath" />
 			</java>
-	        <echo message="...Test client finished..."/>
+			<echo message="...Test client finished..."/>
 		</sequential>
 	</macrodef>
 	<macrodef name="configure-injector">
@@ -211,8 +215,8 @@ max.test.time.minutes=${max.time}
 		<sequential>
 			<copy file="etc/Injector.xml" tofile="etc/@{output}" overwrite="true">
 				<filterset begintoken="@" endtoken="@">
-                    <filter token="conflationMode" value="${conflation.mode}" />
-                    <filter token="pauseSeconds" value="@{publish.pause.seconds}" />
+					<filter token="conflationMode" value="${conflation.mode}" />
+					<filter token="pauseSeconds" value="@{publish.pause.seconds}" />
 					<filter token="messageSize" value="@{message.size}" />
 					<filter token="initialMessages" value="@{initial.messages}" />
 					<filter token="messageIncrementIntervalInPauses" value="@{message.increment.interval}" />

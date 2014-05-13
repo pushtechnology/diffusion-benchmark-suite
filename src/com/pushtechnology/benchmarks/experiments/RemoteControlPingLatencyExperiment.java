@@ -46,23 +46,56 @@ import com.pushtechnology.diffusion.api.remote.topics.SimpleTopicSpecification;
  * 
  */
 public final class RemoteControlPingLatencyExperiment implements Runnable {
+    /**
+     * The ratio used by the histogram to scale its output.
+     */
+    private static final double HISTOGRAM_SCALING_RATIO = 1000.0;
+    /**
+     * Topic specification for experiment.
+     */
     private static final SimpleTopicSpecification TOPIC_SPECIFICATION =
             new SimpleTopicSpecification();
+    /**
+     * Number of milliseconds to wait for registration.
+     */
+    private static final long REGISTRATION_WAIT = 1000L;
+    /**
+     * The size of the input and output buffers.
+     */
+    private static final int BUFFER_SIZE = 64 * 1024;
+    /**
+     * The size of the message queue.
+     */
+    private static final int MESSAGE_QUEUE_SIZE = 10000;
+    /**
+     * The initial size of messages.
+     */
+    private static final int INITIAL_SIZE_OF_MESSAGES = 20;
+
     /**
      * client connections to be closed on close of factory and queried for
      * latency stats.
      */
     private final Set<LatencyMonitoringClient> clients =
-            Collections.newSetFromMap(new ConcurrentHashMap<LatencyMonitoringClient, Boolean>());
+        Collections.newSetFromMap(
+            new ConcurrentHashMap<LatencyMonitoringClient, Boolean>());
 
+    /**
+     * The remote service to use in the experiment. 
+     */
     private final class Service extends BaseService {
+        /**
+         * Start the service.
+         * @throws APIException If unable to start the service.
+         */
         public void startService() throws APIException {
-            listener = new BaseRemoteListener(this){
+            listener = new BaseRemoteListener(this) {
                 @Override
                 public void messageFromClient(ClientDetails clientDetails,
                         String topicName, TopicMessage message) {
                     try {
-                        service.getRemoteService().sendToClient(clientDetails.getClientID(), message);
+                        service.getRemoteService().sendToClient(
+                                clientDetails.getClientID(), message);
                     } catch (APIException e) {
                         e.printStackTrace();
                     }
@@ -81,22 +114,29 @@ public final class RemoteControlPingLatencyExperiment implements Runnable {
             register();
             service.addTopic("PING", TOPIC_SPECIFICATION);
             TopicMessage initialLoad =
-                    service.createLoadMessage("PING", 20);
+                    service.createLoadMessage("PING", INITIAL_SIZE_OF_MESSAGES);
             initialLoad.put("INIT");
             service.publish(initialLoad);
         }
 
+        /**
+         * Register the service.
+         *
+         * @throws APIException If the service could not be registered.
+         */
+        @SuppressWarnings("deprecation")
         public void register() throws APIException {
             service.getOptions().setAuthoriseSubscribeClients(false);
             service.getOptions().setClientConnectNotifications(false);
             service.getOptions().setRouteSelectorSubscribes(false);
-            service.setMessageQueueSize(10000);
-            service.getServerDetails().setOutputBufferSize(64 * 1024);
-            service.getServerDetails().setInputBufferSize(64 * 1024);
+            service.setMessageQueueSize(MESSAGE_QUEUE_SIZE);
+            service.getServerDetails().setOutputBufferSize(BUFFER_SIZE);
+            service.getServerDetails().setInputBufferSize(BUFFER_SIZE);
             listener.resetRegisterLatch();
             service.register();
             while (!service.isRegistered()) {
-                listener.waitForRegistration(1000L, TimeUnit.MILLISECONDS);
+                listener.waitForRegistration(REGISTRATION_WAIT,
+                        TimeUnit.MILLISECONDS);
                 Logs.info("Registering RC with server...");
             }
         }
@@ -116,6 +156,7 @@ public final class RemoteControlPingLatencyExperiment implements Runnable {
             super(settings);
             rcUrl = getProperty(settings, "rc.host", "dpt://localhost:8080");
         }
+
         public String getRcUrl() {
             return rcUrl;
         }
@@ -149,7 +190,10 @@ public final class RemoteControlPingLatencyExperiment implements Runnable {
                     histogramSummary.add(connection.getHistogram());
                 }
                 histogramSummary.getHistogramData().
-                        outputPercentileDistribution(getOutput(), 1, 1000.0);
+                    outputPercentileDistribution(
+                            getOutput(),
+                            1,
+                            HISTOGRAM_SCALING_RATIO);
             }
         };
         loop.setClientFactory(new Factory<ExperimentClient>() {
@@ -181,6 +225,9 @@ public final class RemoteControlPingLatencyExperiment implements Runnable {
         loop.run();
     }
 
+    /**
+     * Set up and start the service for the experiment.
+     */
     public void setUpRC() {
         Service service = new Service();
         try {
@@ -189,5 +236,4 @@ public final class RemoteControlPingLatencyExperiment implements Runnable {
             new RuntimeException(e);
         }
     }
-
 }

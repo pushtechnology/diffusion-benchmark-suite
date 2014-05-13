@@ -88,6 +88,5 @@ public final class GradualFeedbackLoadStrategy implements
     public boolean testNotOver(long testStartTime) {
         return testStartTime + clientSettings.getMaxTestTimeMillis()
         < System.currentTimeMillis();
-
     }
 }

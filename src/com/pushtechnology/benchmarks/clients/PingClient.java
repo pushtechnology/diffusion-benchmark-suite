@@ -16,12 +16,11 @@ import com.pushtechnology.diffusion.api.message.TopicMessage;
 public final class PingClient extends LatencyMonitoringClient {
     /** message size. */
     private final int size;
-    
+
     /** ping exchange topic. */
     private final String pingTopic;
     /** sent time. */
     private long sentTimeNanos;
-    
 
     /**
      * @param experimentCountersP ...
@@ -45,6 +44,7 @@ public final class PingClient extends LatencyMonitoringClient {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void afterServerConnect(ServerConnection serverConnection) {
         TopicMessage m;
@@ -63,6 +63,7 @@ public final class PingClient extends LatencyMonitoringClient {
      * send a ping to server.
      * @param topicMessage 
      */
+    @SuppressWarnings("deprecation")
     void ping(TopicMessage topicMessage) {
         try {
             sentTimeNanos = System.nanoTime();

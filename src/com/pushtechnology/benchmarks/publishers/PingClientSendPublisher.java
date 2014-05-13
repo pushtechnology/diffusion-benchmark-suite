@@ -43,6 +43,7 @@ public final class PingClientSendPublisher extends Publisher {
         rootTopic.setAutoSubscribe(true);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected void messageFromClient(TopicMessage message, Client client) {
         try {

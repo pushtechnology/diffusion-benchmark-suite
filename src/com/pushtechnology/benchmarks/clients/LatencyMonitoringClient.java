@@ -40,7 +40,7 @@ public abstract class LatencyMonitoringClient extends MessageCountingClient {
             new Histogram(TimeUnit.SECONDS.toNanos(10), 3);
     protected ServerConnection connection;
     private Object connectionLock = new Object();
-    
+
     public LatencyMonitoringClient(ExperimentCounters experimentCountersP,
             boolean reconnectP, String... initialTopicsP) {
         super(experimentCountersP, reconnectP, initialTopicsP);
@@ -54,6 +54,7 @@ public abstract class LatencyMonitoringClient extends MessageCountingClient {
     }
 
 
+    @SuppressWarnings("deprecation")
     @Override
     public final void onMessage(ServerConnection serverConnection,
             TopicMessage topicMessage) {

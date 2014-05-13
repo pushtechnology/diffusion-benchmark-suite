@@ -13,11 +13,11 @@ import com.pushtechnology.benchmarks.util.LongAdder;
  */
 public class ExperimentCounters {
     // CHECKSTYLE:OFF
-    private final AtomicLong connectionAttemptsCounter = new AtomicLong();
-    private final AtomicLong clientConnectCounter = new AtomicLong();
-    private final AtomicLong clientDisconnectCounter = new AtomicLong();
-    private final AtomicLong connectionRefusedCounter = new AtomicLong();
-    private final AtomicLong topicsCounter = new AtomicLong();
+    private final AtomicLong connectionAttemptsCounter = new AtomicLong(0L);
+    private final AtomicLong clientConnectCounter = new AtomicLong(0L);
+    private final AtomicLong clientDisconnectCounter = new AtomicLong(0L);
+    private final AtomicLong connectionRefusedCounter = new AtomicLong(0L);
+    private final AtomicLong topicsCounter = new AtomicLong(0L);
     private final AtomicLong lastMessagesPerSecond = new AtomicLong(0L);
     private final LongAdder messageCounter = new LongAdder();
     private final LongAdder bytesCounter = new LongAdder();
@@ -78,14 +78,14 @@ public class ExperimentCounters {
     }
 
     public void incConnectionAttemptsCounter() {
-        connectionAttemptsCounter.incrementAndGet();        
+        connectionAttemptsCounter.incrementAndGet();
     }
     public long getMessageCounter() {
         return messageCounter.sum();
     }
 
     public void incMessageCounter() {
-        messageCounter.increment();        
+        messageCounter.increment();
     }
 
     public long getBytesCounter() {

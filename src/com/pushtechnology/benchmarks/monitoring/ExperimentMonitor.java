@@ -62,7 +62,7 @@ public class ExperimentMonitor implements Runnable {
      * @param outputFilename Name of output file
      * @param host Name of server host
      */
-    @SuppressWarnings("resource")
+    @SuppressWarnings({ "resource", "deprecation" })
     public ExperimentMonitor(final ExperimentCounters experimentCountersP,
             final String outputFilename, final String host) {
         this.experimentCounters = experimentCountersP;
@@ -307,6 +307,7 @@ public class ExperimentMonitor implements Runnable {
     /**
      * stop the monitoring the experiment.
      */
+    @SuppressWarnings("deprecation")
     public final synchronized void stop() {
         if (monitorThread == null) {
             throw new IllegalStateException();

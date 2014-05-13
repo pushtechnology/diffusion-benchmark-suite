@@ -27,7 +27,7 @@ public interface ExperimentLoadStrategy {
      * @return true if we should
      */
     boolean shouldIncrementLoad(long lastIncrementTime);
-    
+
     /**
      * @param testStartTime ...
      * @return true if test is over
