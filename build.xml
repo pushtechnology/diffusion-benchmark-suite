@@ -10,7 +10,8 @@
 	<property name="dir.main.dist" value="target/dist" />
 	<path id="test.classpath">
 		<pathelement location="${dir.main.build}" />
-		<fileset dir="${dir.main.lib}">
+		<pathelement location="${dir.main.lib}/HdrHistogram.jar" />
+		<fileset dir="${diffusion.dir}/lib">
 			<include name="*.jar" />
 		</fileset>
 	</path>
