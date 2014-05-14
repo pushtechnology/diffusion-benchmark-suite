@@ -70,6 +70,8 @@ max.test.messages=${max.messages}
 						</else>
 					</if>
 					<echo message="...Starting test client..." />
+					<pathconvert property="classpathProp" refid="test.runtime.classpath"/>
+					<echo>Classpath is ${classpathProp}</echo>
 					<java classname="com.pushtechnology.benchmarks.experiments.ExperimentRunner"
 						fork="true" failonerror="true" jvmargs="${client.jvm.args}">
 						<sysproperty key="verbose" value="${verbose}" />
