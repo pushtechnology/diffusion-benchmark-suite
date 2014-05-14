@@ -15,7 +15,6 @@
 				<then>
 					<assert-no-diffusion-running />
 					<clean-diffusion />
-					<antcall target="deploy-remote-control-dar" />
 				</then>
 			</elseif>
 			<else>
@@ -33,7 +32,6 @@
 			<elseif>
 				<equals arg1="${diffusion.host}" arg2="localhost" />
 				<then>
-					<antcall target="undeploy-remote-control-dar" />
 				</then>
 			</elseif>
 			<else>
@@ -60,14 +58,5 @@
 					command="cd ${benchmark-server.dir};ant -f ${suite.ant.file} before" />
 			</else>
 		</if>
-	</target>
-
-	<target name="deploy-remote-control-dar">
-		<dar-generic publisher.name="RemoteControlPublisher" package="com.pushtechnology.diffusion.api.publisher" />
-		<deploy-dar dar.name="RemoteControlPublisher.dar" />
-	</target>
-	<target name="undeploy-remote-control-dar">
-		<undeploy-dar dar.name="RemoteControlPublisher.dar" />
-		<delete file="RemoteControlPublisher.dar" />
 	</target>
 </project>
