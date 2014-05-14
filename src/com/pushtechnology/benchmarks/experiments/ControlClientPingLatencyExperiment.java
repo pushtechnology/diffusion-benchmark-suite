@@ -30,6 +30,8 @@ import com.pushtechnology.diffusion.client.session.Session;
 import com.pushtechnology.diffusion.client.session.SessionId;
 import com.pushtechnology.diffusion.client.topics.details.TopicType;
 import com.pushtechnology.diffusion.client.types.ReceiveContext;
+import com.pushtechnology.diffusion.client.types.UpdateOptions;
+import com.pushtechnology.diffusion.client.types.UpdateType;
 
 public class ControlClientPingLatencyExperiment implements Runnable {
     /**
@@ -51,6 +53,11 @@ public class ControlClientPingLatencyExperiment implements Runnable {
             @Override
             public void initialise(final Session session) {
                 final TopicUpdateControl updateControl = session.feature(TopicUpdateControl.class);
+                final UpdateOptions options = updateControl
+                    .updateOptionsBuilder()
+                        .updateType(UpdateType.DELTA)
+                        .build();
+
                 updateControl.addTopicSource(PING_TOPIC, new TopicSource() {
                     @Override
                     public void onActive(String topicPath, RegisteredHandler handler, final Updater updater) {
@@ -64,7 +71,7 @@ public class ControlClientPingLatencyExperiment implements Runnable {
                             }
                             @Override
                             public void onTopicAdded(String topic) {
-                                updater.update(PING_TOPIC, Diffusion.content().newContent("INIT"), new UpdateCallback() {
+                                updater.update(PING_TOPIC, Diffusion.content().newContent("INIT"), options, new UpdateCallback() {
                                     @Override
                                     public void onError(String topic, UpdateError error) {
                                     }
