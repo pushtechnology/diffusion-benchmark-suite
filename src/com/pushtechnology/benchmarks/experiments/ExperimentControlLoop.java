@@ -198,7 +198,6 @@ public class ExperimentControlLoop implements Runnable {
      * @param coreSize ...
      * @throws APIException ...
      */
-    @SuppressWarnings("deprecation")
     private void setupThreadPool(final int qSize, final int coreSize)
             throws APIException {
     	ThreadsConfig threadsConfig = ConfigManager.getConfig().getThreads();
