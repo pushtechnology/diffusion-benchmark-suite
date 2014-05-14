@@ -5,7 +5,7 @@
 	<property name="client.jvm.args" value="-server -Xms2g -Xmx2g" />
 	<property name="client.threads" value="10" />
 	<property name="max.time" value="5.0" />
-	<property name="rc.host" value="dpt://localhost:8080" />
+	<property name="cc.host" value="dpt://localhost:8081" />
 	<!-- Further common settings are available in the test-suite-common file
 	-->
 	<import file="rc-test-suite-common.xml" />

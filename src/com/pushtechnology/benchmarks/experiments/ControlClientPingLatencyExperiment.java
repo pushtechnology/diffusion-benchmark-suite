@@ -1,6 +1,7 @@
 package com.pushtechnology.benchmarks.experiments;
 
 import java.util.Collections;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -11,6 +12,7 @@ import com.pushtechnology.benchmarks.clients.ExperimentClient;
 import com.pushtechnology.benchmarks.clients.PingClient;
 import com.pushtechnology.benchmarks.control.clients.BaseControlClient;
 import com.pushtechnology.benchmarks.util.Factory;
+import com.pushtechnology.benchmarks.util.PropertiesUtil;
 import com.pushtechnology.diffusion.client.Diffusion;
 import com.pushtechnology.diffusion.client.content.Content;
 import com.pushtechnology.diffusion.client.features.RegisteredHandler;
@@ -44,8 +46,8 @@ public class ControlClientPingLatencyExperiment implements Runnable {
     private final Set<PingClient> clients = Collections
             .newSetFromMap(new ConcurrentHashMap<PingClient, Boolean>());
 
-    public ControlClientPingLatencyExperiment(final CommonExperimentSettings settings) {
-        controlClient = new BaseControlClient(2) {
+    public ControlClientPingLatencyExperiment(final Settings settings) {
+        controlClient = new BaseControlClient(settings.getControlClientURL(), 2) {
             @Override
             public void initialise(final Session session) {
                 final TopicUpdateControl updateControl = session.feature(TopicUpdateControl.class);
@@ -157,5 +159,18 @@ public class ControlClientPingLatencyExperiment implements Runnable {
     @Override
     public void run() {
         loop.run();
+    }
+
+    public final static class Settings extends CommonExperimentSettings {
+        private final String controlClientURL;
+
+        public Settings(Properties settings) {
+            super(settings);
+            controlClientURL = PropertiesUtil.getProperty(settings, "cc.host", "dpt://localhost:8081");
+        }
+
+        public String getControlClientURL() {
+            return controlClientURL;
+        }
     }
 }

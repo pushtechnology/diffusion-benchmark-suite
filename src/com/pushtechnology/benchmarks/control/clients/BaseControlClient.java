@@ -18,10 +18,11 @@ public abstract class BaseControlClient {
 
     /**
      * Constructor.
+     * @param url The connection URL
      * @param countDown Number of times initialised must be called before start unblocks.
      */
-    public BaseControlClient(int countDown) {
-        session = Diffusion.sessions().open("dpt://localhost:8081");
+    public BaseControlClient(String url, int countDown) {
+        session = Diffusion.sessions().open(url);
         initialised = new CountDownLatch(countDown);
     }
 
