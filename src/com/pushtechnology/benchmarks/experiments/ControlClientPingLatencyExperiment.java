@@ -10,7 +10,6 @@ import org.HdrHistogram.Histogram;
 import com.pushtechnology.benchmarks.clients.ExperimentClient;
 import com.pushtechnology.benchmarks.clients.PingClient;
 import com.pushtechnology.benchmarks.control.clients.BaseControlClient;
-import com.pushtechnology.benchmarks.experiments.ConnectAndSubscribeChurnExperiment.Settings;
 import com.pushtechnology.benchmarks.util.Factory;
 import com.pushtechnology.diffusion.client.Diffusion;
 import com.pushtechnology.diffusion.client.content.Content;
@@ -45,7 +44,7 @@ public class ControlClientPingLatencyExperiment implements Runnable {
     private final Set<PingClient> clients = Collections
             .newSetFromMap(new ConcurrentHashMap<PingClient, Boolean>());
 
-    public ControlClientPingLatencyExperiment(final Settings settings) {
+    public ControlClientPingLatencyExperiment(final CommonExperimentSettings settings) {
         controlClient = new BaseControlClient(2) {
             @Override
             public void initialise(final Session session) {
