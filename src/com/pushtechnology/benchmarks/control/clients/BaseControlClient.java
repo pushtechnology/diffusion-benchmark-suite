@@ -21,7 +21,7 @@ public abstract class BaseControlClient {
      * @param countDown Number of times initialised must be called before start unblocks.
      */
     public BaseControlClient(int countDown) {
-        session = Diffusion.sessions().open("dpt://localhost:8080");
+        session = Diffusion.sessions().open("dpt://localhost:8081");
         initialised = new CountDownLatch(countDown);
     }
 
