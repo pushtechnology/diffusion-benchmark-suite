@@ -12,8 +12,7 @@
 		<filelist>
 			<file name="${dir.main.lib}/diffusionbenchmark.jar" />
 			<file name="${dir.main.lib}/HdrHistogram.jar" />
-			<file name="${diffusion.dir}/lib/diffusionremote.jar" />
-			<file name="${diffusion.dir}/lib/diffusionclient.jar" />
+			<file name="${diffusion.dir}/clients/java/diffusion-client-5.0.0.jar" />
 		</filelist>
 	</path>
 	<macrodef name="assert-no-diffusion-running">
