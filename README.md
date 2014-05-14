@@ -16,19 +16,15 @@ Currently implemented experiments are:
 
 A broadcasting publisher is set up, publishing at a uniform rate across a set number of topics. A population of clients subscribes to all topics.
     
-The experiment can be set up to examine server behaviour for different types of load resulting from a growing client population / increase of topics / increase of messages / message size. The experiment reports throughput from the clients' perspective.
+The experiment can be set up to examine server behavior for different types of load resulting from a growing client population / increase of topics / increase of messages / message size. The experiment reports throughput from the clients' perspective.
     
 #### Latency
 
 A pong/echo publisher is set up which "echo"s clients messages back to them. The experiment allows the number concurrently pinging clients to be controlled. Clients ping as fast as they can. The ping service can either respond to the particular client or broadcast on the ping topic.
     
-#### Remote Control Latency
+#### Control Client Latency
 
-A RemoteControl client is connected and sets up an Echo topic as described above. We connect clients to it and measure response time (Client <-> Server <-> RC).
-    
-#### Remote Control Throughput + Latency
-
-A RemoteControl client is connected and sets up a topic tree similar to the one used in the throughput experiment. Latency is measured from RemoteControl client to clients (RC -> Server -> Client)
+A client is connected and uses Control features to set up an Echo topic as described above. We connect clients to the server and measure response time (Client <-> Server <-> Control Client). The Control Client must connect to a Connector that supports the client type UCI. It does not require a publisher to be configured.
 
 ##Building the benchmarks distributable
 To build and run the benchmarks it is assumed that you have the following installed:
@@ -37,7 +33,7 @@ To build and run the benchmarks it is assumed that you have the following instal
 * Java JDK (>1.6)
 * Diffusion (>4)
 
-You will need to add the JDK and Ant `bin` folders to your `PATH`. You will also need to define `DIFFUSION_HOME` to point to the Difussion installation.
+You will need to add the JDK and Ant `bin` folders to your `PATH`. You will also need to define `DIFFUSION_HOME` to point to the Diffusion installation.
 
 At this point you can use the `build.xml` in the project directory to build the
 benchmarks distributable. Invoking `ant` or `ant dist` should result
@@ -106,7 +102,7 @@ in a variety of configurations. The benchmarks can be run as a suite (similar
 to JUnit test suites) with before/after tasks run before/after every benchmark.
 Target names which start with *perfTest* are assumed benchmarks.
 
-We'll work through the options by example. First, open a terminal and change to the `benchamrk-server` directory.
+We'll work through the options by example. First, open a terminal and change to the `benchmark-server` directory.
 
 ####Run the throughput suite against localhost
 
