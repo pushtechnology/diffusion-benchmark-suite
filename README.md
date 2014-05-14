@@ -30,10 +30,10 @@ A client is connected and uses Control features to set up an Echo topic as descr
 To build and run the benchmarks it is assumed that you have the following installed:
 
 * Ant (>1.8)
-* Java JDK (>1.6)
-* Diffusion (>4)
+* Java JDK (>1.7)
+* Diffusion (>5)
 
-You will need to add the JDK and Ant `bin` folders to your `PATH`. You will also need to define `DIFFUSION_HOME` to point to the Diffusion installation.
+You will need to add the JDK and Ant `bin` folders to your `PATH`. You will also need to define `DIFFUSION_HOME` to point to the Diffusion installation. On Unix-like systems it is possible to use the `env` command to setup a temporary environment.
 
 At this point you can use the `build.xml` in the project directory to build the
 benchmarks distributable. Invoking `ant` or `ant dist` should result
