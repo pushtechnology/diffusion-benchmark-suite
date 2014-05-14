@@ -148,6 +148,10 @@ public class ControlClientPingLatencyExperiment implements Runnable {
                 }
             }
         });
+        final ExperimentLoadStrategy defaultLoadStrategy =
+            new DefaultLoadStrategy(loop.getClientSettings(),
+                    loop.getExperimentCounters());
+        loop.setLoadStartegy(defaultLoadStrategy);
     }
 
     @Override
