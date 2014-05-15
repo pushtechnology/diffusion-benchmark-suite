@@ -7,6 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.HdrHistogram.Histogram;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pushtechnology.benchmarks.clients.ExperimentClient;
 import com.pushtechnology.benchmarks.clients.PingClient;
@@ -28,11 +30,13 @@ import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateCo
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater.UpdateCallback;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater.UpdateError;
 import com.pushtechnology.diffusion.client.session.Session;
+import com.pushtechnology.diffusion.client.session.SessionClosedException;
 import com.pushtechnology.diffusion.client.session.SessionId;
 import com.pushtechnology.diffusion.client.topics.details.TopicType;
 import com.pushtechnology.diffusion.client.types.ReceiveContext;
 
-public class ControlClientPingLatencyExperiment implements Runnable {
+public final class ControlClientPingLatencyExperiment implements Runnable {
+    private static final Logger LOG = LoggerFactory.getLogger(ControlClientPingLatencyExperiment.class);
     /**
      * The ratio used by the histogram to scale its output.
      */
@@ -60,7 +64,7 @@ public class ControlClientPingLatencyExperiment implements Runnable {
                         controlClient.start();
                     }
                     catch (InterruptedException e) {
-                        e.printStackTrace();
+                        LOG.debug("Interrupted while waiting for control client");
                     }
             }
             @Override
@@ -127,6 +131,7 @@ public class ControlClientPingLatencyExperiment implements Runnable {
                 }
                 @Override
                 public void onStandBy(String topicPath) {
+                    LOG.warn("Failed to become source for {}", topicPath);
                 }
             });
 
@@ -141,12 +146,14 @@ public class ControlClientPingLatencyExperiment implements Runnable {
                 }
                 @Override
                 public void onTopicAddFailed(String topic, TopicAddFailReason failure) {
+                    LOG.warn("Failed to create topic {}", topic);
                 }
                 @Override
                 public void onTopicAdded(String topic) {
                     updater.update(PING_TOPIC, Diffusion.content().newContent("INIT"), new UpdateCallback() {
                         @Override
                         public void onError(String topic, UpdateError error) {
+                            LOG.warn("Failed to initialise {}", topic);
                         }
                         @Override
                         public void onSuccess(String topic) {
@@ -174,14 +181,19 @@ public class ControlClientPingLatencyExperiment implements Runnable {
             }
             @Override
             public void onMessage(SessionId session, String topic, Content message, ReceiveContext context) {
-                messagingControl.send(session, PING_TOPIC, message, new SendCallback() {
-                    @Override
-                    public void onDiscard() {
-                    }
-                    @Override
-                    public void onComplete() {
-                    }
-                });
+                try {
+                    messagingControl.send(session, PING_TOPIC, message, new SendCallback() {
+                        @Override
+                        public void onDiscard() {
+                        }
+                        @Override
+                        public void onComplete() {
+                        }
+                    });
+                }
+                catch (SessionClosedException e) {
+                    LOG.debug("Session {} has closed", session);
+                }
             }
         }
     }

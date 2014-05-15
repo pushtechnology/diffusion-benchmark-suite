@@ -11,6 +11,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.HdrHistogram.Histogram;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pushtechnology.benchmarks.clients.ExperimentClient;
 import com.pushtechnology.benchmarks.clients.LatencyMonitoringClient;
@@ -30,7 +32,8 @@ import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateCo
 import com.pushtechnology.diffusion.client.session.Session;
 import com.pushtechnology.diffusion.client.topics.details.TopicType;
 
-public class ControlClientTLExperiment implements Runnable {
+public final class ControlClientTLExperiment implements Runnable {
+    private static final Logger LOG = LoggerFactory.getLogger(ControlClientTLExperiment.class);
     private static final double HISTOGRAM_SCALING_RATIO = 1000.0;
     /**
      * The size of the input and output buffers.
@@ -43,7 +46,7 @@ public class ControlClientTLExperiment implements Runnable {
     private final ExperimentControlLoop loop;
 
     /**
-     * @param settingsP ...
+     * @param settings ...
      */
     public ControlClientTLExperiment(final Settings settings) {
         loop = new ExperimentControlLoop(settings) {
@@ -54,7 +57,7 @@ public class ControlClientTLExperiment implements Runnable {
                     controlClient.start();
                 }
                 catch (InterruptedException e) {
-                    e.printStackTrace();
+                    LOG.debug("Interrupted while waiting for control client");
                 }
             }
             @Override
@@ -139,6 +142,7 @@ public class ControlClientTLExperiment implements Runnable {
                 }
                 @Override
                 public void onStandBy(String topicPath) {
+                    LOG.warn("Failed to become source for {}", topicPath);
                 }
             });
         }
@@ -150,12 +154,14 @@ public class ControlClientTLExperiment implements Runnable {
                 }
                 @Override
                 public void onTopicAddFailed(String topic, TopicAddFailReason reason) {
+                    LOG.debug("Failed to add topic {}", topic);
                 }
                 @Override
                 public void onTopicAdded(String topic) {
                     updater.update(topic, initialContent, new UpdateCallback() {
                         @Override
                         public void onError(String topic, UpdateError error) {
+                            LOG.debug("Failed to update topic {}", topic);
                         }
                         @Override
                         public void onSuccess(String topic) {
@@ -173,6 +179,7 @@ public class ControlClientTLExperiment implements Runnable {
             updater.update("DOMAIN/"+i, content, new UpdateCallback() {
                 @Override
                 public void onError(String topic, UpdateError error) {
+                    LOG.debug("Failed to update topic {}", topic);
                 }
                 @Override
                 public void onSuccess(String topic) {
