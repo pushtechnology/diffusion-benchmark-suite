@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
 <publishers>
-
-	
 	<publisher name="Diffusion">
 		<topics>Diffusion</topics>
 		<class>com.pushtechnology.diffusion.publishers.diffusion.DiffusionPublisher</class>
@@ -35,12 +33,6 @@
    
     <publisher name="Ping">
         <class>com.pushtechnology.benchmarks.publishers.PingClientSendPublisher
-        </class>
-        <enabled>true</enabled>
-        <start>true</start>
-    </publisher>
-    <publisher name="RemoteControl">
-        <class>com.pushtechnology.diffusion.api.publisher.RemoteControlPublisher
         </class>
         <enabled>true</enabled>
         <start>true</start>
