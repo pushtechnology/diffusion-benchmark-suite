@@ -38,7 +38,11 @@ public class ControlClientPingLatencyExperiment implements Runnable {
      * The ratio used by the histogram to scale its output.
      */
     private static final double HISTOGRAM_SCALING_RATIO = 1000.0;
-    protected static final String PING_TOPIC = "CC/Ping";
+    /**
+     * The size of the input and output buffers.
+     */
+    private static final int BUFFER_SIZE = 64 * 1024;
+    private static final String PING_TOPIC = "CC/Ping";
     private final ExperimentControlLoop loop;
     private final BaseControlClient controlClient;
     /**
@@ -49,7 +53,7 @@ public class ControlClientPingLatencyExperiment implements Runnable {
             .newSetFromMap(new ConcurrentHashMap<PingClient, Boolean>());
 
     public ControlClientPingLatencyExperiment(final Settings settings) {
-        controlClient = new BaseControlClient(settings.getControlClientURL(), 2) {
+        controlClient = new BaseControlClient(settings.getControlClientURL(), BUFFER_SIZE, 2) {
             @Override
             public void initialise(final Session session) {
                 final TopicUpdateControl updateControl = session.feature(TopicUpdateControl.class);

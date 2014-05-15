@@ -21,8 +21,11 @@ public abstract class BaseControlClient {
      * @param url The connection URL
      * @param countDown Number of times initialised must be called before start unblocks.
      */
-    public BaseControlClient(String url, int countDown) {
-        session = Diffusion.sessions().open(url);
+    public BaseControlClient(String url, int bufferSize, int countDown) {
+        session = Diffusion.sessions()
+            .outputBufferSize(bufferSize)
+            .inputBufferSize(bufferSize)
+            .open(url);
         initialised = new CountDownLatch(countDown);
     }
 
