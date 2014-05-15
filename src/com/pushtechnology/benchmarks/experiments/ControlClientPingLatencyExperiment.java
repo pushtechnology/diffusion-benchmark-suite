@@ -25,6 +25,8 @@ import com.pushtechnology.diffusion.client.features.control.topics.TopicControl;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater;
+import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater.UpdateCallback;
+import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater.UpdateError;
 import com.pushtechnology.diffusion.client.session.Session;
 import com.pushtechnology.diffusion.client.session.SessionClosedException;
 import com.pushtechnology.diffusion.client.session.SessionId;
@@ -173,7 +175,17 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
                 final Updater updater) {
             final Content content = Diffusion.content().newContent("INIT");
             topicControl.addTopic(PING_TOPIC, TopicType.STATELESS,
-                new PublishValueOnTopicCreation(content, updater));
+                new PublishValueOnTopicCreation(content, updater) {
+                @Override
+                public UpdateCallback getUpdateCallback() {
+                    return new UCallback() {
+                        public void onSuccess(String topic) {
+                            super.onSuccess(topic);
+                            initialised();
+                        }
+                    };
+                }
+            });
         }
 
         /**

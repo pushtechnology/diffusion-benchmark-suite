@@ -1,6 +1,7 @@
 package com.pushtechnology.benchmarks.control.clients;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import com.pushtechnology.diffusion.client.Diffusion;
 import com.pushtechnology.diffusion.client.session.Session;
@@ -8,7 +9,7 @@ import com.pushtechnology.diffusion.client.session.Session;
 /**
  * Base implementation of a control client.
  * <P>
- * Makes initialising the client behavior blocking.
+ * Makes initialising the client behavior blocking. Times out after 10 seconds.
  *
  * @author matt - created 14 May 2014
  */
@@ -38,7 +39,7 @@ public abstract class BaseControlClient {
     public final void start() throws InterruptedException {
         session.start();
         initialise(session);
-        initialised.await();
+        initialised.await(10L ,TimeUnit.SECONDS);
     }
 
     public final void stop() {
