@@ -35,8 +35,15 @@ import com.pushtechnology.diffusion.client.session.SessionId;
 import com.pushtechnology.diffusion.client.topics.details.TopicType;
 import com.pushtechnology.diffusion.client.types.ReceiveContext;
 
+/**
+ * Experiment to measure latency from control client.
+ */
 public final class ControlClientPingLatencyExperiment implements Runnable {
-    private static final Logger LOG = LoggerFactory.getLogger(ControlClientPingLatencyExperiment.class);
+    /**
+     * Log.
+     */
+    private static final Logger LOG =
+        LoggerFactory.getLogger(ControlClientPingLatencyExperiment.class);
     /**
      * The ratio used by the histogram to scale its output.
      */
@@ -45,9 +52,15 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
      * The size of the input and output buffers.
      */
     private static final int BUFFER_SIZE = 64 * 1024;
+    /**
+     * Ping topic.
+     */
     private static final String PING_TOPIC = "CC/Ping";
+    /**
+     * Control loop.
+     */
     private final ExperimentControlLoop loop;
-    private final BaseControlClient controlClient;
+    
     /**
      * client connections to be closed on close of factory and queried for
      * latency stats.
@@ -55,17 +68,20 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
     private final Set<PingClient> clients = Collections
             .newSetFromMap(new ConcurrentHashMap<PingClient, Boolean>());
 
+    /**
+     * Constructor.
+     * @param settings ..
+     */
     public ControlClientPingLatencyExperiment(final Settings settings) {
-        controlClient = new ControlClient(settings);
+        final ControlClient controlClient = new ControlClient(settings);
         loop = new ExperimentControlLoop(settings) {
             @Override
             protected void postInitialLoadCreated() {
-                    try {
-                        controlClient.start();
-                    }
-                    catch (InterruptedException e) {
-                        LOG.debug("Interrupted while waiting for control client");
-                    }
+                try {
+                    controlClient.start();
+                } catch (InterruptedException e) {
+                    LOG.debug("Interrupted while waiting for control client");
+                }
             }
             @Override
             protected void wrapupAndReport() {
@@ -111,19 +127,30 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
         loop.run();
     }
 
-    public static final class ControlClient extends BaseControlClient {
+    /**
+     * Experiment control client.
+     */
+    private static final class ControlClient extends BaseControlClient {
+        /**
+         * Constructor.
+         * @param settings ..
+         */
         private ControlClient(Settings settings) {
             super(settings.getControlClientURL(), BUFFER_SIZE, 2);
         }
 
         @Override
         public void initialise(final Session session) {
-            final TopicUpdateControl updateControl = session.feature(TopicUpdateControl.class);
+            final TopicUpdateControl updateControl =
+                session.feature(TopicUpdateControl.class);
 
             updateControl.addTopicSource(PING_TOPIC, new TopicSource() {
                 @Override
-                public void onActive(String topicPath, RegisteredHandler handler, final Updater updater) {
-                    final TopicControl topicControl = session.feature(TopicControl.class);
+                public void onActive(String topicPath,
+                        RegisteredHandler handler,
+                        final Updater updater) {
+                    final TopicControl topicControl =
+                        session.feature(TopicControl.class);
                     createInitalTopic(topicControl, updater);
                 }
                 @Override
@@ -135,22 +162,34 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
                 }
             });
 
-            final MessagingControl messagingControl = session.feature(MessagingControl.class);
-            messagingControl.addMessageHandler(PING_TOPIC, new EchoHandler(messagingControl));
+            final MessagingControl messagingControl =
+                session.feature(MessagingControl.class);
+            messagingControl.addMessageHandler(PING_TOPIC,
+                new EchoHandler(messagingControl));
         }
 
-        private void createInitalTopic(TopicControl topicControl, final Updater updater) {
-            topicControl.addTopic(PING_TOPIC, TopicType.STATELESS, new AddCallback() {
+        /**
+         * Create ping topic.
+         * @param topicControl ..
+         * @param updater ..
+         */
+        private void createInitalTopic(TopicControl topicControl,
+                final Updater updater) {
+            topicControl.addTopic(PING_TOPIC, TopicType.STATELESS,
+                    new AddCallback() {
                 @Override
                 public void onDiscard() {
                 }
                 @Override
-                public void onTopicAddFailed(String topic, TopicAddFailReason failure) {
+                public void onTopicAddFailed(String topic,
+                        TopicAddFailReason failure) {
                     LOG.warn("Failed to create topic {}", topic);
                 }
                 @Override
                 public void onTopicAdded(String topic) {
-                    updater.update(PING_TOPIC, Diffusion.content().newContent("INIT"), new UpdateCallback() {
+                    updater.update(PING_TOPIC,
+                            Diffusion.content().newContent("INIT"),
+                            new UpdateCallback() {
                         @Override
                         public void onError(String topic, UpdateError error) {
                             LOG.warn("Failed to initialise {}", topic);
@@ -168,9 +207,16 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
          * Echo any messages received on a topic.
          */
         private final class EchoHandler implements MessageHandler {
+            /**
+             * Messaging control.
+             */
             private final MessagingControl messagingControl;
-            public EchoHandler(MessagingControl messagingControl) {
-                this.messagingControl = messagingControl;
+            /**
+             * Constructor.
+             * @param messaging ..
+             */
+            public EchoHandler(MessagingControl messaging) {
+                this.messagingControl = messaging;
             }
             @Override
             public void onActive(String topicPath, RegisteredHandler handler) {
@@ -180,9 +226,11 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
             public void onClose(String topicPath) {
             }
             @Override
-            public void onMessage(SessionId session, String topic, Content message, ReceiveContext context) {
+            public void onMessage(SessionId session, String topic,
+                    Content message, ReceiveContext context) {
                 try {
-                    messagingControl.send(session, PING_TOPIC, message, new SendCallback() {
+                    messagingControl.send(session, PING_TOPIC, message,
+                            new SendCallback() {
                         @Override
                         public void onDiscard() {
                         }
@@ -190,22 +238,35 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
                         public void onComplete() {
                         }
                     });
-                }
-                catch (SessionClosedException e) {
+                } catch (SessionClosedException e) {
                     LOG.debug("Session {} has closed", session);
                 }
             }
         }
     }
 
-    public final static class Settings extends CommonExperimentSettings {
+    /**
+     * Experiment specific settings.
+     */
+    public static final class Settings extends CommonExperimentSettings {
+        /**
+         * Control client URL.
+         */
         private final String controlClientURL;
 
+        /**
+         * Constructor.
+         * @param settings ..
+         */
         public Settings(Properties settings) {
             super(settings);
-            controlClientURL = PropertiesUtil.getProperty(settings, "cc.host", "dpt://localhost:8081");
+            controlClientURL = PropertiesUtil.
+                getProperty(settings, "cc.host", "dpt://localhost:8081");
         }
 
+        /**
+         * @return The URL for the control client to connect to.
+         */
         public String getControlClientURL() {
             return controlClientURL;
         }

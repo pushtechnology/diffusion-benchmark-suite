@@ -32,17 +32,33 @@ import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateCo
 import com.pushtechnology.diffusion.client.session.Session;
 import com.pushtechnology.diffusion.client.topics.details.TopicType;
 
+/**
+ * Experiment to measure throughput from control client.
+ */
 public final class ControlClientTLExperiment implements Runnable {
-    private static final Logger LOG = LoggerFactory.getLogger(ControlClientTLExperiment.class);
+    /**
+     * Log.
+     */
+    private static final Logger LOG =
+        LoggerFactory.getLogger(ControlClientTLExperiment.class);
+    /**
+     * The ratio used by the histogram to scale its output.
+     */
     private static final double HISTOGRAM_SCALING_RATIO = 1000.0;
     /**
      * The size of the input and output buffers.
      */
     private static final int BUFFER_SIZE = 64 * 1024;
 
+    /**
+     * The clients.
+     */
     private final Set<LatencyMonitoringClient> clients =
             Collections.newSetFromMap(
                     new ConcurrentHashMap<LatencyMonitoringClient, Boolean>());
+    /**
+     * Control loop.
+     */
     private final ExperimentControlLoop loop;
 
     /**
@@ -55,8 +71,7 @@ public final class ControlClientTLExperiment implements Runnable {
                 final ControlClient controlClient = new ControlClient(settings);
                 try {
                     controlClient.start();
-                }
-                catch (InterruptedException e) {
+                } catch (InterruptedException e) {
                     LOG.debug("Interrupted while waiting for control client");
                 }
             }
@@ -109,15 +124,35 @@ public final class ControlClientTLExperiment implements Runnable {
      * The Control Client used by the experiment.
      */
     private static final class ControlClient extends BaseControlClient {
-        private static final Content initialContent = Diffusion.content().newContent("INIT");
+        /**
+         * Initial message.
+         */
+        private static final Content INITIAL_CONTENT =
+            Diffusion.content().newContent("INIT");
+        /**
+         * The settings.
+         */
         private final Settings settings;
+        /**
+         * The topic control.
+         */
         private TopicControl topicControl;
+        /**
+         * The update control.
+         */
         private TopicUpdateControl updateControl;
+        /**
+         * The updater.
+         */
         private Updater updater;
 
-        private ControlClient(Settings settings) {
-            super(settings.getControlClientUrl(), BUFFER_SIZE, 1);
-            this.settings = settings;
+        /**
+         * Constructor.
+         * @param settingsP ..
+         */
+        private ControlClient(Settings settingsP) {
+            super(settingsP.getControlClientUrl(), BUFFER_SIZE, 1);
+            settings = settingsP;
         }
 
         @Override
@@ -125,15 +160,20 @@ public final class ControlClientTLExperiment implements Runnable {
             updateControl = session.feature(TopicUpdateControl.class);
             updateControl.addTopicSource("DOMAIN", new TopicSource() {
                 @Override
-                public void onActive(String topicPath, RegisteredHandler handler, final Updater updater) {
-                    ControlClient.this.updater = updater;
+                public void onActive(String topicPath,
+                        RegisteredHandler handler, final Updater updaterP) {
+                    updater = updaterP;
                     topicControl = session.feature(TopicControl.class);
                     for (int i = 0; i < settings.getInitialTopics(); i++) {
                         addTopic(i);
                     }
 
-                    Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(new LoadTask(),
-                        0L, settings.intervalPauseNanos, TimeUnit.NANOSECONDS);
+                    Executors.newSingleThreadScheduledExecutor()
+                        .scheduleAtFixedRate(
+                            new LoadTask(),
+                            0L,
+                            settings.intervalPauseNanos,
+                            TimeUnit.NANOSECONDS);
                     initialised();
                 }
 
@@ -147,18 +187,26 @@ public final class ControlClientTLExperiment implements Runnable {
             });
         }
 
+        /**
+         * Create a topic.
+         *
+         * @param i ..
+         */
         private void addTopic(int i) {
-            topicControl.addTopic("DOMAIN/" + i, TopicType.STATELESS, new TopicControl.AddCallback() {
+            topicControl.addTopic("DOMAIN/" + i, TopicType.STATELESS,
+                    new TopicControl.AddCallback() {
                 @Override
                 public void onDiscard() {
                 }
                 @Override
-                public void onTopicAddFailed(String topic, TopicAddFailReason reason) {
+                public void onTopicAddFailed(String topic,
+                        TopicAddFailReason reason) {
                     LOG.debug("Failed to add topic {}", topic);
                 }
                 @Override
                 public void onTopicAdded(String topic) {
-                    updater.update(topic, initialContent, new UpdateCallback() {
+                    updater.update(topic, INITIAL_CONTENT,
+                            new UpdateCallback() {
                         @Override
                         public void onError(String topic, UpdateError error) {
                             LOG.debug("Failed to update topic {}", topic);
@@ -171,12 +219,17 @@ public final class ControlClientTLExperiment implements Runnable {
             });
         }
 
+        /**
+         * Publish message to topic.
+         *
+         * @param i ..
+         */
         public void publishToTopic(int i) {
             final byte[] bytes = new byte[settings.getMessageSize()];
             final ByteBuffer buffer = ByteBuffer.wrap(bytes);
             buffer.putLong(System.nanoTime());
             final Content content = Diffusion.content().newContent(bytes);
-            updater.update("DOMAIN/"+i, content, new UpdateCallback() {
+            updater.update("DOMAIN/" + i, content, new UpdateCallback() {
                 @Override
                 public void onError(String topic, UpdateError error) {
                     LOG.debug("Failed to update topic {}", topic);
@@ -191,12 +244,27 @@ public final class ControlClientTLExperiment implements Runnable {
          * Runnable to publish messages and increase number of topics.
          */
         private final class LoadTask implements Runnable {
+            /**
+             * Increment the topics.
+             */
             private final boolean shouldIncTopics =
                 settings.getTopicIncrementIntervalInPauses() != 0;
+            /**
+             * Increment the messages.
+             */
             private final boolean shouldIncMessages =
                 settings.getMessageIncrementIntervalInPauses() != 0;
+            /**
+             * Number of topics.
+             */
             private int topics = settings.getInitialTopics();
+            /**
+             * Number of messages.
+             */
             private int messages = settings.getInitialMessages();
+            /**
+             * Iterations counter.
+             */
             private int pubPauseCounter = 0;
 
             @Override
@@ -215,16 +283,25 @@ public final class ControlClientTLExperiment implements Runnable {
                 }
             }
 
+            /**
+             * @return The topics to increment by.
+             */
             public int getTopInc() {
                 return pubPauseCounter
                     % settings.getTopicIncrementIntervalInPauses();
             }
 
+            /**
+             * @return The messages to increment by.
+             */
             public int getMessInc() {
                 return pubPauseCounter
                     % settings.getMessageIncrementIntervalInPauses();
             }
 
+            /**
+             * Increment the topics.
+             */
             public void incTopics() {
                 int targetTopics = topics + settings.getTopicIncrement();
                 for (int i = topics; i < targetTopics; i++) {
