@@ -24,6 +24,7 @@ import com.pushtechnology.diffusion.client.content.Content;
 import com.pushtechnology.diffusion.client.features.RegisteredHandler;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicAddFailReason;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicControl;
+import com.pushtechnology.diffusion.client.features.control.topics.TopicControl.AddCallback;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater;
@@ -145,6 +146,10 @@ public final class ControlClientTLExperiment implements Runnable {
          * The updater.
          */
         private Updater updater;
+        /**
+         * 
+         */
+        private AddCallback addTopicCallback;
 
         /**
          * Constructor.
@@ -153,48 +158,8 @@ public final class ControlClientTLExperiment implements Runnable {
         private ControlClient(Settings settingsP) {
             super(settingsP.getControlClientUrl(), BUFFER_SIZE, 1);
             settings = settingsP;
-        }
 
-        @Override
-        public void initialise(final Session session) {
-            updateControl = session.feature(TopicUpdateControl.class);
-            updateControl.addTopicSource("DOMAIN", new TopicSource() {
-                @Override
-                public void onActive(String topicPath,
-                        RegisteredHandler handler, final Updater updaterP) {
-                    updater = updaterP;
-                    topicControl = session.feature(TopicControl.class);
-                    for (int i = 0; i < settings.getInitialTopics(); i++) {
-                        addTopic(i);
-                    }
-
-                    Executors.newSingleThreadScheduledExecutor()
-                        .scheduleAtFixedRate(
-                            new LoadTask(),
-                            0L,
-                            settings.intervalPauseNanos,
-                            TimeUnit.NANOSECONDS);
-                    initialised();
-                }
-
-                @Override
-                public void onClosed(String topicPath) {
-                }
-                @Override
-                public void onStandBy(String topicPath) {
-                    LOG.warn("Failed to become source for {}", topicPath);
-                }
-            });
-        }
-
-        /**
-         * Create a topic.
-         *
-         * @param i ..
-         */
-        private void addTopic(int i) {
-            topicControl.addTopic("DOMAIN/" + i, TopicType.STATELESS,
-                    new TopicControl.AddCallback() {
+            addTopicCallback = new TopicControl.AddCallback() {
                 @Override
                 public void onDiscard() {
                 }
@@ -215,6 +180,39 @@ public final class ControlClientTLExperiment implements Runnable {
                         public void onSuccess(String topic) {
                         }
                     });
+                }
+            };
+        }
+
+        @Override
+        public void initialise(final Session session) {
+            updateControl = session.feature(TopicUpdateControl.class);
+            updateControl.addTopicSource("DOMAIN", new TopicSource() {
+                @Override
+                public void onActive(String topicPath,
+                        RegisteredHandler handler, final Updater updaterP) {
+                    updater = updaterP;
+                    topicControl = session.feature(TopicControl.class);
+                    for (int i = 0; i < settings.getInitialTopics(); i++) {
+                        topicControl.addTopic("DOMAIN/" + i,
+                            TopicType.STATELESS, addTopicCallback);
+                    }
+
+                    Executors.newSingleThreadScheduledExecutor()
+                        .scheduleAtFixedRate(
+                            new LoadTask(),
+                            0L,
+                            settings.intervalPauseNanos,
+                            TimeUnit.NANOSECONDS);
+                    initialised();
+                }
+
+                @Override
+                public void onClosed(String topicPath) {
+                }
+                @Override
+                public void onStandBy(String topicPath) {
+                    LOG.warn("Failed to become source for {}", topicPath);
                 }
             });
         }
@@ -305,7 +303,8 @@ public final class ControlClientTLExperiment implements Runnable {
             public void incTopics() {
                 int targetTopics = topics + settings.getTopicIncrement();
                 for (int i = topics; i < targetTopics; i++) {
-                    addTopic(i);
+                    topicControl.addTopic("DOMAIN/" + i, TopicType.STATELESS,
+                        addTopicCallback);
                 }
                 topics = targetTopics;
             }
