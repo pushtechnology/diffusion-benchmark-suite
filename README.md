@@ -26,6 +26,10 @@ A pong/echo publisher is set up which "echo"s clients messages back to them. The
 
 A client is connected and uses Control features to set up an Echo topic as described above. We connect clients to the server and measure response time (Client <-> Server <-> Control Client). The Control Client must connect to a Connector that supports the client type UCI. It does not require a publisher to be configured.
 
+#### Control Client Throughput + Latency
+
+A client is connected and uses Control features to set up a topic tree similar to the one used in the throughput experiment. Latency is measured from Control Client client to clients (Control Client -> Server -> Client). The Control Client must connect to a Connector that supports the client type UCI. It does not require a publisher to be configured.
+
 ##Building the benchmarks distributable
 To build and run the benchmarks it is assumed that you have the following installed:
 
