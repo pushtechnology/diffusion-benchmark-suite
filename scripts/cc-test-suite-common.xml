@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<project name="rc-test-suite-common" default="perf-suite" basedir=".">
-	<!-- Common setup actions for RC suites -->
+<project name="cc-test-suite-common" default="perf-suite" basedir=".">
+	<!-- Common setup actions for CC suites -->
 	<property environment="env" />
 	<import file="perf-test-server-tasks.xml" />
 	<import file="perf-test-suite-common.xml" />
 
-	<!-- Setup the RC publisher before we start Diffusion -->
 	<target name="before-suite">
 		<if>
 			<equals arg1="${skip.server}" arg2="true" />
@@ -24,7 +23,6 @@
 		</if>
 	</target>
 
-	<!-- Remover the RC publisher and kill Diffusion -->
 	<target name="after-suite">
 		<if>
 			<equals arg1="${skip.server}" arg2="true" />
