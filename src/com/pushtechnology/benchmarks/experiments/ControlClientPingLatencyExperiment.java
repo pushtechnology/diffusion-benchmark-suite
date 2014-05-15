@@ -21,14 +21,10 @@ import com.pushtechnology.diffusion.client.features.RegisteredHandler;
 import com.pushtechnology.diffusion.client.features.control.topics.MessagingControl;
 import com.pushtechnology.diffusion.client.features.control.topics.MessagingControl.MessageHandler;
 import com.pushtechnology.diffusion.client.features.control.topics.MessagingControl.SendCallback;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicAddFailReason;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicControl;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicControl.AddCallback;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater.UpdateCallback;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater.UpdateError;
 import com.pushtechnology.diffusion.client.session.Session;
 import com.pushtechnology.diffusion.client.session.SessionClosedException;
 import com.pushtechnology.diffusion.client.session.SessionId;
@@ -175,32 +171,9 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
          */
         private void createInitialTopic(TopicControl topicControl,
                 final Updater updater) {
+            final Content content = Diffusion.content().newContent("INIT");
             topicControl.addTopic(PING_TOPIC, TopicType.STATELESS,
-                    new AddCallback() {
-                @Override
-                public void onDiscard() {
-                }
-                @Override
-                public void onTopicAddFailed(String topic,
-                        TopicAddFailReason failure) {
-                    LOG.warn("Failed to create topic {}", topic);
-                }
-                @Override
-                public void onTopicAdded(String topic) {
-                    updater.update(PING_TOPIC,
-                            Diffusion.content().newContent("INIT"),
-                            new UpdateCallback() {
-                        @Override
-                        public void onError(String topic, UpdateError error) {
-                            LOG.warn("Failed to initialise {}", topic);
-                        }
-                        @Override
-                        public void onSuccess(String topic) {
-                            initialised();
-                        }
-                    });
-                }
-            });
+                new PublishValueOnTopicCreation(content, updater));
         }
 
         /**

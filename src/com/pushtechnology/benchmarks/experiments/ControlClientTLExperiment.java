@@ -22,7 +22,6 @@ import com.pushtechnology.benchmarks.util.Factory;
 import com.pushtechnology.diffusion.client.Diffusion;
 import com.pushtechnology.diffusion.client.content.Content;
 import com.pushtechnology.diffusion.client.features.RegisteredHandler;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicAddFailReason;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicControl;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicControl.AddCallback;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl;
@@ -126,11 +125,6 @@ public final class ControlClientTLExperiment implements Runnable {
      */
     private static final class ControlClient extends BaseControlClient {
         /**
-         * Initial message.
-         */
-        private static final Content INITIAL_CONTENT =
-            Diffusion.content().newContent("INIT");
-        /**
          * The settings.
          */
         private final Settings settings;
@@ -147,7 +141,7 @@ public final class ControlClientTLExperiment implements Runnable {
          */
         private Updater updater;
         /**
-         * 
+         * Callback to publish 'init' message when a topic is created.
          */
         private AddCallback addTopicCallback;
 
@@ -158,30 +152,6 @@ public final class ControlClientTLExperiment implements Runnable {
         private ControlClient(Settings settingsP) {
             super(settingsP.getControlClientUrl(), BUFFER_SIZE, 1);
             settings = settingsP;
-
-            addTopicCallback = new TopicControl.AddCallback() {
-                @Override
-                public void onDiscard() {
-                }
-                @Override
-                public void onTopicAddFailed(String topic,
-                        TopicAddFailReason reason) {
-                    LOG.debug("Failed to add topic {}", topic);
-                }
-                @Override
-                public void onTopicAdded(String topic) {
-                    updater.update(topic, INITIAL_CONTENT,
-                            new UpdateCallback() {
-                        @Override
-                        public void onError(String topic, UpdateError error) {
-                            LOG.debug("Failed to update topic {}", topic);
-                        }
-                        @Override
-                        public void onSuccess(String topic) {
-                        }
-                    });
-                }
-            };
         }
 
         @Override
@@ -192,6 +162,10 @@ public final class ControlClientTLExperiment implements Runnable {
                 public void onActive(String topicPath,
                         RegisteredHandler handler, final Updater updaterP) {
                     updater = updaterP;
+                    final Content initialContent = Diffusion.content()
+                        .newContent("INIT");
+                    addTopicCallback = new PublishValueOnTopicCreation(
+                        initialContent, updater);
                     topicControl = session.feature(TopicControl.class);
                     for (int i = 0; i < settings.getInitialTopics(); i++) {
                         topicControl.addTopic("DOMAIN/" + i,
