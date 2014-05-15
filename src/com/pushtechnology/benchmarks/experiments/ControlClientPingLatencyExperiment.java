@@ -24,14 +24,13 @@ import com.pushtechnology.diffusion.client.features.control.topics.TopicControl;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicControl.AddCallback;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource;
+import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater.UpdateCallback;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater.UpdateError;
 import com.pushtechnology.diffusion.client.session.Session;
 import com.pushtechnology.diffusion.client.session.SessionId;
 import com.pushtechnology.diffusion.client.topics.details.TopicType;
 import com.pushtechnology.diffusion.client.types.ReceiveContext;
-import com.pushtechnology.diffusion.client.types.UpdateOptions;
-import com.pushtechnology.diffusion.client.types.UpdateType;
 
 public class ControlClientPingLatencyExperiment implements Runnable {
     /**
@@ -53,71 +52,7 @@ public class ControlClientPingLatencyExperiment implements Runnable {
             .newSetFromMap(new ConcurrentHashMap<PingClient, Boolean>());
 
     public ControlClientPingLatencyExperiment(final Settings settings) {
-        controlClient = new BaseControlClient(settings.getControlClientURL(), BUFFER_SIZE, 2) {
-            @Override
-            public void initialise(final Session session) {
-                final TopicUpdateControl updateControl = session.feature(TopicUpdateControl.class);
-                final UpdateOptions options = updateControl
-                    .updateOptionsBuilder()
-                        .updateType(UpdateType.DELTA)
-                        .build();
-
-                updateControl.addTopicSource(PING_TOPIC, new TopicSource() {
-                    @Override
-                    public void onActive(String topicPath, RegisteredHandler handler, final Updater updater) {
-                        final TopicControl topicControl = session.feature(TopicControl.class);
-                        topicControl.addTopic(PING_TOPIC, TopicType.STATELESS, new AddCallback() {
-                            @Override
-                            public void onDiscard() {
-                            }
-                            @Override
-                            public void onTopicAddFailed(String topic, TopicAddFailReason failure) {
-                            }
-                            @Override
-                            public void onTopicAdded(String topic) {
-                                updater.update(PING_TOPIC, Diffusion.content().newContent("INIT"), options, new UpdateCallback() {
-                                    @Override
-                                    public void onError(String topic, UpdateError error) {
-                                    }
-                                    @Override
-                                    public void onSuccess(String topic) {
-                                        controlClient.initialised();
-                                    }
-                                });
-                            }
-                        });
-                    }
-                    @Override
-                    public void onClosed(String topicPath) {
-                    }
-                    @Override
-                    public void onStandBy(String topicPath) {
-                    }
-                });
-
-                final MessagingControl messagingControl = session.feature(MessagingControl.class);
-                messagingControl.addMessageHandler(PING_TOPIC, new MessageHandler() {
-                    @Override
-                    public void onActive(String topic, RegisteredHandler handler) {
-                        controlClient.initialised();
-                    }
-                    @Override
-                    public void onClose(String topic) {
-                    }
-                    @Override
-                    public void onMessage(SessionId id, String topic, Content content, ReceiveContext context) {
-                        messagingControl.send(id, PING_TOPIC, content, new SendCallback() {
-                            @Override
-                            public void onDiscard() {
-                            }
-                            @Override
-                            public void onComplete() {
-                            }
-                        });
-                    }
-                });
-            }
-        };
+        controlClient = new ControlClient(settings);
         loop = new ExperimentControlLoop(settings) {
             @Override
             protected void postInitialLoadCreated() {
@@ -170,6 +105,85 @@ public class ControlClientPingLatencyExperiment implements Runnable {
     @Override
     public void run() {
         loop.run();
+    }
+
+    public static final class ControlClient extends BaseControlClient {
+        private ControlClient(Settings settings) {
+            super(settings.getControlClientURL(), BUFFER_SIZE, 2);
+        }
+
+        @Override
+        public void initialise(final Session session) {
+            final TopicUpdateControl updateControl = session.feature(TopicUpdateControl.class);
+
+            updateControl.addTopicSource(PING_TOPIC, new TopicSource() {
+                @Override
+                public void onActive(String topicPath, RegisteredHandler handler, final Updater updater) {
+                    final TopicControl topicControl = session.feature(TopicControl.class);
+                    createInitalTopic(topicControl, updater);
+                }
+                @Override
+                public void onClosed(String topicPath) {
+                }
+                @Override
+                public void onStandBy(String topicPath) {
+                }
+            });
+
+            final MessagingControl messagingControl = session.feature(MessagingControl.class);
+            messagingControl.addMessageHandler(PING_TOPIC, new EchoHandler(messagingControl));
+        }
+
+        private void createInitalTopic(TopicControl topicControl, final Updater updater) {
+            topicControl.addTopic(PING_TOPIC, TopicType.STATELESS, new AddCallback() {
+                @Override
+                public void onDiscard() {
+                }
+                @Override
+                public void onTopicAddFailed(String topic, TopicAddFailReason failure) {
+                }
+                @Override
+                public void onTopicAdded(String topic) {
+                    updater.update(PING_TOPIC, Diffusion.content().newContent("INIT"), new UpdateCallback() {
+                        @Override
+                        public void onError(String topic, UpdateError error) {
+                        }
+                        @Override
+                        public void onSuccess(String topic) {
+                            initialised();
+                        }
+                    });
+                }
+            });
+        }
+
+        /**
+         * Echo any messages received on a topic.
+         */
+        private final class EchoHandler implements MessageHandler {
+            private final MessagingControl messagingControl;
+            public EchoHandler(MessagingControl messagingControl) {
+                this.messagingControl = messagingControl;
+            }
+            @Override
+            public void onActive(String topicPath, RegisteredHandler handler) {
+                initialised();
+            }
+            @Override
+            public void onClose(String topicPath) {
+            }
+            @Override
+            public void onMessage(SessionId session, String topic, Content message, ReceiveContext context) {
+                messagingControl.send(session, PING_TOPIC, message, new SendCallback() {
+                    @Override
+                    public void onDiscard() {
+                    }
+                    @Override
+                    public void onComplete() {
+                    }
+                });
+            }
+        }
     }
 
     public final static class Settings extends CommonExperimentSettings {
