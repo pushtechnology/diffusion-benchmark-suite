@@ -151,7 +151,7 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
                         final Updater updater) {
                     final TopicControl topicControl =
                         session.feature(TopicControl.class);
-                    createInitalTopic(topicControl, updater);
+                    createInitialTopic(topicControl, updater);
                 }
                 @Override
                 public void onClosed(String topicPath) {
@@ -173,7 +173,7 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
          * @param topicControl ..
          * @param updater ..
          */
-        private void createInitalTopic(TopicControl topicControl,
+        private void createInitialTopic(TopicControl topicControl,
                 final Updater updater) {
             topicControl.addTopic(PING_TOPIC, TopicType.STATELESS,
                     new AddCallback() {
