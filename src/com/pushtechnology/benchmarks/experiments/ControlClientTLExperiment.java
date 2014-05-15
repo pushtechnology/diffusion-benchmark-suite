@@ -24,6 +24,7 @@ import com.pushtechnology.diffusion.client.features.control.topics.TopicAddFailR
 import com.pushtechnology.diffusion.client.features.control.topics.TopicControl;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource;
+import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater.UpdateCallback;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater.UpdateError;
 import com.pushtechnology.diffusion.client.session.Session;
@@ -48,112 +49,7 @@ public class ControlClientTLExperiment implements Runnable {
         loop = new ExperimentControlLoop(settings) {
             @Override
             protected void postInitialLoadCreated() {
-                final BaseControlClient controlClient = new BaseControlClient(settings.getControlClientUrl(), BUFFER_SIZE, 1) {
-                    @Override
-                    public void initialise(final Session session) {
-                        final TopicUpdateControl updateControl = session.feature(TopicUpdateControl.class);
-                        updateControl.addTopicSource("DOMAIN", new TopicSource() {
-                            @Override
-                            public void onActive(String arg0, RegisteredHandler arg1, final Updater updater) {
-                                final TopicControl topicControl = session.feature(TopicControl.class);
-                                for (int i = 0; i < settings.getInitialTopics(); i++) {
-                                    addTopic(topicControl, updater, i);
-                                }
-                                Runnable publishCommand = new Runnable() {
-                                    private final boolean shouldIncTopics =
-                                            settings.getTopicIncrementIntervalInPauses() != 0;
-                                    private final boolean shouldIncMessages =
-                                            settings.getMessageIncrementIntervalInPauses() != 0;
-                                    private int topics = settings.getInitialTopics();
-                                    private int messages = settings.getInitialMessages();
-                                    private int pubPauseCounter = 0;
-
-                                    @Override
-                                    public void run() {
-                                        pubPauseCounter++;
-                                        for (int j = 0; j < messages; j++) {
-                                            for (int i = 0; i < topics; i++) {
-                                                publishToTopic(i);
-                                            }
-                                        }
-                                        if (shouldIncTopics && getTopInc() == 0) {
-                                            incTopics();
-                                        }
-                                        if (shouldIncMessages && getMessInc() == 0) {
-                                            messages += settings.getMessageIncrement();
-                                        }
-                                    }
-
-                                    public int getTopInc() {
-                                        return pubPauseCounter
-                                                % settings.getTopicIncrementIntervalInPauses();
-                                    }
-
-                                    public int getMessInc() {
-                                        return pubPauseCounter
-                                                % settings.getMessageIncrementIntervalInPauses();
-                                    }
-
-                                    public void incTopics() {
-                                        int targetTopics = topics + settings.getTopicIncrement();
-                                        for (int i = topics; i < targetTopics; i++) {
-                                            addTopic(topicControl, updater, i);
-                                        }
-                                        topics = targetTopics;
-                                    }
-
-                                    public void publishToTopic(int i) {
-                                        final byte[] bytes = new byte[settings.getMessageSize()];
-                                        final ByteBuffer buffer = ByteBuffer.wrap(bytes);
-                                        buffer.putLong(System.nanoTime());
-                                        final Content content = Diffusion.content().newContent(bytes);
-                                        updater.update("DOMAIN/"+i, content, new UpdateCallback() {
-                                            @Override
-                                            public void onError(String arg0, UpdateError arg1) {
-                                            }
-                                            @Override
-                                            public void onSuccess(String arg0) {
-                                            }
-                                        });
-                                    }
-                                };
-                                Executors.newSingleThreadScheduledExecutor().
-                                        scheduleAtFixedRate(publishCommand, 0L,
-                                                settings.intervalPauseNanos, TimeUnit.NANOSECONDS);
-                                initialised();
-                            }
-
-                            private void addTopic(TopicControl topicControl, final Updater updater, int i) {
-                                final Content content = Diffusion.content().newContent("INIT");
-                                topicControl.addTopic("DOMAIN/" + i, TopicType.STATELESS, new TopicControl.AddCallback() {
-                                    @Override
-                                    public void onDiscard() {
-                                    }
-                                    @Override
-                                    public void onTopicAddFailed(String topic, TopicAddFailReason reason) {
-                                    }
-                                    @Override
-                                    public void onTopicAdded(String topic) {
-                                        updater.update(topic, content, new UpdateCallback() {
-                                            @Override
-                                            public void onError(String arg0, UpdateError arg1) {
-                                            }
-                                            @Override
-                                            public void onSuccess(String arg0) {
-                                            }
-                                        });
-                                    }
-                                });
-                            }
-                            @Override
-                            public void onClosed(String arg0) {
-                            }
-                            @Override
-                            public void onStandBy(String arg0) {
-                            }
-                        });
-                    }
-                };
+                final ControlClient controlClient = new ControlClient(settings);
                 try {
                     controlClient.start();
                 }
@@ -206,6 +102,132 @@ public class ControlClientTLExperiment implements Runnable {
         loop.run();
     }
 
+    /**
+     * The Control Client used by the experiment.
+     */
+    private static final class ControlClient extends BaseControlClient {
+        private static final Content initialContent = Diffusion.content().newContent("INIT");
+        private final Settings settings;
+        private TopicControl topicControl;
+        private TopicUpdateControl updateControl;
+        private Updater updater;
+
+        private ControlClient(Settings settings) {
+            super(settings.getControlClientUrl(), BUFFER_SIZE, 1);
+            this.settings = settings;
+        }
+
+        @Override
+        public void initialise(final Session session) {
+            updateControl = session.feature(TopicUpdateControl.class);
+            updateControl.addTopicSource("DOMAIN", new TopicSource() {
+                @Override
+                public void onActive(String topicPath, RegisteredHandler handler, final Updater updater) {
+                    ControlClient.this.updater = updater;
+                    topicControl = session.feature(TopicControl.class);
+                    for (int i = 0; i < settings.getInitialTopics(); i++) {
+                        addTopic(i);
+                    }
+
+                    Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(new LoadTask(),
+                        0L, settings.intervalPauseNanos, TimeUnit.NANOSECONDS);
+                    initialised();
+                }
+
+                @Override
+                public void onClosed(String topicPath) {
+                }
+                @Override
+                public void onStandBy(String topicPath) {
+                }
+            });
+        }
+
+        private void addTopic(int i) {
+            topicControl.addTopic("DOMAIN/" + i, TopicType.STATELESS, new TopicControl.AddCallback() {
+                @Override
+                public void onDiscard() {
+                }
+                @Override
+                public void onTopicAddFailed(String topic, TopicAddFailReason reason) {
+                }
+                @Override
+                public void onTopicAdded(String topic) {
+                    updater.update(topic, initialContent, new UpdateCallback() {
+                        @Override
+                        public void onError(String topic, UpdateError error) {
+                        }
+                        @Override
+                        public void onSuccess(String topic) {
+                        }
+                    });
+                }
+            });
+        }
+
+        public void publishToTopic(int i) {
+            final byte[] bytes = new byte[settings.getMessageSize()];
+            final ByteBuffer buffer = ByteBuffer.wrap(bytes);
+            buffer.putLong(System.nanoTime());
+            final Content content = Diffusion.content().newContent(bytes);
+            updater.update("DOMAIN/"+i, content, new UpdateCallback() {
+                @Override
+                public void onError(String topic, UpdateError error) {
+                }
+                @Override
+                public void onSuccess(String topic) {
+                }
+            });
+        }
+
+        /**
+         * Runnable to publish messages and increase number of topics.
+         */
+        private final class LoadTask implements Runnable {
+            private final boolean shouldIncTopics =
+                settings.getTopicIncrementIntervalInPauses() != 0;
+            private final boolean shouldIncMessages =
+                settings.getMessageIncrementIntervalInPauses() != 0;
+            private int topics = settings.getInitialTopics();
+            private int messages = settings.getInitialMessages();
+            private int pubPauseCounter = 0;
+
+            @Override
+            public void run() {
+                pubPauseCounter++;
+                for (int j = 0; j < messages; j++) {
+                    for (int i = 0; i < topics; i++) {
+                        publishToTopic(i);
+                    }
+                }
+                if (shouldIncTopics && getTopInc() == 0) {
+                    incTopics();
+                }
+                if (shouldIncMessages && getMessInc() == 0) {
+                    messages += settings.getMessageIncrement();
+                }
+            }
+
+            public int getTopInc() {
+                return pubPauseCounter
+                    % settings.getTopicIncrementIntervalInPauses();
+            }
+
+            public int getMessInc() {
+                return pubPauseCounter
+                    % settings.getMessageIncrementIntervalInPauses();
+            }
+
+            public void incTopics() {
+                int targetTopics = topics + settings.getTopicIncrement();
+                for (int i = topics; i < targetTopics; i++) {
+                    addTopic(i);
+                }
+                topics = targetTopics;
+            }
+        }
+    }
+
     /** Experiment specialized settings. */
     public static class Settings extends CommonExperimentSettings {
         // CHECKSTYLE:OFF
@@ -219,7 +241,7 @@ public class ControlClientTLExperiment implements Runnable {
         private final int topicIncrementIntervalInPauses;
         private final int topicIncrement;
 
-        private final String rcUrl;
+        private final String ccUrl;
 
         public Settings(Properties settings) {
             super(settings);
@@ -238,7 +260,7 @@ public class ControlClientTLExperiment implements Runnable {
                 getProperty(settings, "publish.topics.increment.pauses", 1);
             topicIncrement =
                 getProperty(settings, "publish.topics.increment", 1);
-            rcUrl =
+            ccUrl =
                 getProperty(settings, "cc.host", "dpt://localhost:8081");
         }
 
@@ -278,7 +300,7 @@ public class ControlClientTLExperiment implements Runnable {
          * @return The URL for the control client.
          */
         public final String getControlClientUrl() {
-            return rcUrl;
+            return ccUrl;
         }
     }
 }
