@@ -14,21 +14,44 @@ Currently implemented experiments are:
 
 #### Throughput
 
-A broadcasting publisher is set up, publishing at a uniform rate across a set number of topics. A population of clients subscribes to all topics.
+A broadcasting publisher is set up, publishing at a uniform rate across a set
+number of topics. A population of clients subscribes to all topics.
     
-The experiment can be set up to examine server behavior for different types of load resulting from a growing client population / increase of topics / increase of messages / message size. The experiment reports throughput from the clients' perspective.
+The experiment can be set up to examine server behavior for different types of
+load resulting from a growing client population / increase of topics /
+increase of messages / message size. The experiment reports throughput from the clients' perspective.
     
 #### Latency
 
-A pong/echo publisher is set up which "echo"s clients messages back to them. The experiment allows the number concurrently pinging clients to be controlled. Clients ping as fast as they can. The ping service can either respond to the particular client or broadcast on the ping topic.
+A pong/echo publisher is set up which "echo"s clients messages back to them.
+The experiment allows the number concurrently pinging clients to be
+controlled. Clients ping as fast as they can. The ping service can either
+respond to the particular client or broadcast on the ping topic.
     
 #### Control Client Latency
 
-A client is connected and uses Control features to set up an Echo topic as described above. We connect clients to the server and measure response time (Client <-> Server <-> Control Client). The Control Client must connect to a Connector that supports the client type UCI. It does not require a publisher to be configured.
+A client is connected and uses Control features to set up an Echo topic as
+described above. We connect clients to the server and measure response time
+(Client <-> Server <-> Control Client). The Control Client must connect to a
+Connector that supports the client type UCI. It does not require a publisher
+to be configured.
+
+This experiment uses the MessagingControl feature in the
+control client to listen for and send messages. The MessagingControl feature
+will respond to the control client with a callback to indicate the success or
+failure of the message. To do this a finite amount of space is allocated to
+track the outstanding messages. To prevent this space being completely
+consumed you need to configure an additional setting on the server
+`diffusion.timeout.tick=-1`. This can be done by adding it as a `-D` flag in
+the diffusion.sh file of the server you are running the test against.
 
 #### Control Client Throughput + Latency
 
-A client is connected and uses Control features to set up a topic tree similar to the one used in the throughput experiment. Latency is measured from Control Client client to clients (Control Client -> Server -> Client). The Control Client must connect to a Connector that supports the client type UCI. It does not require a publisher to be configured.
+A client is connected and uses Control features to set up a topic tree
+similar to the one used in the throughput experiment. Latency is measured
+from Control Client client to clients (Control Client -> Server -> Client). The
+Control Client must connect to a Connector that supports the client type UCI.
+It does not require a publisher to be configured.
 
 ##Building the benchmarks distributable
 To build and run the benchmarks it is assumed that you have the following installed:
@@ -37,7 +60,10 @@ To build and run the benchmarks it is assumed that you have the following instal
 * Java JDK (>1.7)
 * Diffusion (>5)
 
-You will need to add the JDK and Ant `bin` folders to your `PATH`. You will also need to define `DIFFUSION_HOME` to point to the Diffusion installation. On Unix-like systems it is possible to use the `env` command to setup a temporary environment.
+You will need to add the JDK and Ant `bin` folders to your `PATH`. You will
+also need to define `DIFFUSION_HOME` to point to the Diffusion installation.
+On Unix-like systems it is possible to use the `env` command to setup a
+temporary environment.
 
 At this point you can use the `build.xml` in the project directory to build the
 benchmarks distributable. Invoking `ant` or `ant dist` should result
