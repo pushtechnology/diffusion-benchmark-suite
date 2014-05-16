@@ -43,7 +43,7 @@ failure of the message. To do this a finite amount of space is allocated to
 track the outstanding messages. To prevent this space being completely
 consumed you need to configure an additional setting on the server
 `diffusion.timeout.tick=-1`. This can be done by adding it as a `-D` flag in
-the diffusion.sh file of the server you are running the test against.
+the `diffusion.sh` file of the server you are running the experiment against.
 
 #### Control Client Throughput + Latency
 
