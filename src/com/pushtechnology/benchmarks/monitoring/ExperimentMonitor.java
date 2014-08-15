@@ -70,7 +70,7 @@ public class ExperimentMonitor implements Runnable {
         RemoteCpuMonitor c = null;
         try {
             final JMXConnector connect =
-                    JmxHelper.getJmxConnector(host, "Diffusion", "guest",
+                    JmxHelper.getJmxConnector(host, "jmxrmi", "guest",
                             "Guest");
             final MBeanServerConnection mBeanServerConnection =
                     connect.getMBeanServerConnection();
