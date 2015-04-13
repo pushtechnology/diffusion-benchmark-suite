@@ -29,21 +29,6 @@
 			initial.topic.num="50"
 			topic.increment="0" />
 	</target>
-	 <publisher name="InjectionPublisher">
-	                <class>com.pushtechnology.benchmarks.publishers.BroadcastPublisher
-	                </class>
-	                <enabled>true</enabled>
-	                <start>true</start>
-	        <property name="intervalPauseSeconds">0.25</property>
-	        <property name="conflationMode">NONE</property>
-	                <property name="messageSize">125</property>
-	                <property name="initialMessages">1</property>
-	                <property name="messageIncrementIntervalInPauses">10</property>
-	                <property name="messageIncrement">0</property>
-	                <property name="initialTopicNum">50</property>
-	                <property name="topicIncrementIntervalInPauses">10</property>
-	                <property name="topicIncrement">0</property>
-	        </publisher>
 
 	<target name="perfTest-1000b-50t">
 		<run-ramping-throughput-test test.name="1000b-xC-4M-50T"
