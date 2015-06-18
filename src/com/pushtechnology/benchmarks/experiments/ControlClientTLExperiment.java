@@ -10,14 +10,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.HdrHistogram.Histogram;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pushtechnology.benchmarks.clients.ExperimentClient;
 import com.pushtechnology.benchmarks.clients.LatencyMonitoringClient;
-import com.pushtechnology.benchmarks.clients.UnsafeLatencyMonitoringClient;
+import com.pushtechnology.benchmarks.clients.SafeLatencyMonitoringClient;
 import com.pushtechnology.benchmarks.control.clients.BaseControlClient;
+import com.pushtechnology.benchmarks.control.clients.ControlClientSettings;
 import com.pushtechnology.benchmarks.util.Factory;
 import com.pushtechnology.diffusion.client.Diffusion;
 import com.pushtechnology.diffusion.client.content.Content;
@@ -25,14 +25,14 @@ import com.pushtechnology.diffusion.client.features.RegisteredHandler;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicControl;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicControl.AddCallback;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater.UpdateCallback;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater.UpdateError;
+import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.UpdateSource;
+import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.Updater;
+import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.Updater.UpdateCallback;
 import com.pushtechnology.diffusion.client.session.Session;
 import com.pushtechnology.diffusion.client.topics.details.TopicType;
 
 /**
+ * Control Client Throughput Latency Experiment.
  * Experiment to measure throughput from control client.
  */
 public final class ControlClientTLExperiment implements Runnable {
@@ -42,14 +42,10 @@ public final class ControlClientTLExperiment implements Runnable {
     private static final Logger LOG =
         LoggerFactory.getLogger(ControlClientTLExperiment.class);
     /**
-     * The ratio used by the histogram to scale its output.
-     */
-    private static final double HISTOGRAM_SCALING_RATIO = 1000.0;
-    /**
      * The size of the input and output buffers.
      */
     private static final int BUFFER_SIZE = 64 * 1024;
-
+    
     /**
      * The clients.
      */
@@ -65,10 +61,10 @@ public final class ControlClientTLExperiment implements Runnable {
      * @param settings ...
      */
     public ControlClientTLExperiment(final Settings settings) {
+        final ControlClient controlClient = new ControlClient(settings);
         loop = new ExperimentControlLoop(settings) {
             @Override
             protected void postInitialLoadCreated() {
-                final ControlClient controlClient = new ControlClient(settings);
                 try {
                     controlClient.start();
                 } catch (InterruptedException e) {
@@ -77,27 +73,19 @@ public final class ControlClientTLExperiment implements Runnable {
             }
             @Override
             protected void wrapupAndReport() {
-                // CHECKSTYLE:OFF
-                Histogram histogramSummary =
-                        new Histogram(TimeUnit.SECONDS.toNanos(10), 3);
-                // CHECKSTYLE:ON
-                for (LatencyMonitoringClient connection : clients) {
-                    histogramSummary.add(connection.getHistogram());
-                }
-                histogramSummary.getHistogramData().
-                    outputPercentileDistribution(
-                        getOutput(),
-                        1,
-                        HISTOGRAM_SCALING_RATIO);
+                controlClient.stop();
+            	this.getExperimentCounters().reportLatency(getOutput());
             }
         };
         loop.setClientFactory(new Factory<ExperimentClient>() {
             @Override
             public ExperimentClient create() {
                 LatencyMonitoringClient pingClient =
-                        new UnsafeLatencyMonitoringClient(loop
+                        new SafeLatencyMonitoringClient(loop
                                 .getExperimentCounters(),
-                                false, "DOMAIN//");
+                                false, 
+                        		loop.getClientSettings(),
+                        		"DOMAIN//");
                 clients.add(pingClient);
                 return pingClient;
             }
@@ -150,17 +138,22 @@ public final class ControlClientTLExperiment implements Runnable {
          * @param settingsP ..
          */
         private ControlClient(Settings settingsP) {
-            super(settingsP.getControlClientUrl(), BUFFER_SIZE, 1);
+            super(settingsP.getControlClientUrl(), BUFFER_SIZE, 1, settingsP.getPrincipal(), settingsP.getPassword());
             settings = settingsP;
         }
-
+        
         @Override
         public void initialise(final Session session) {
             updateControl = session.feature(TopicUpdateControl.class);
-            updateControl.addTopicSource("DOMAIN", new TopicSource() {
+            updateControl.registerUpdateSource("DOMAIN", new UpdateSource.Default() {
+            	private RegisteredHandler handler;
+
+              	public void onRegistered(RegisteredHandler handler) {
+              		this.handler = handler;
+              	}
+            
                 @Override
-                public void onActive(String topicPath,
-                        RegisteredHandler handler, final Updater updaterP) {
+                public void onActive(String topicPath, final Updater updaterP) {
                     updater = updaterP;
                     final Content initialContent = Diffusion.content()
                         .newContent("INIT");
@@ -175,18 +168,10 @@ public final class ControlClientTLExperiment implements Runnable {
                     Executors.newSingleThreadScheduledExecutor()
                         .scheduleAtFixedRate(
                             new LoadTask(),
-                            0L,
+                            settings.intervalPauseNanos /5,
                             settings.intervalPauseNanos,
                             TimeUnit.NANOSECONDS);
                     initialised();
-                }
-
-                @Override
-                public void onClosed(String topicPath) {
-                }
-                @Override
-                public void onStandBy(String topicPath) {
-                    LOG.warn("Failed to become source for {}", topicPath);
                 }
             });
         }
@@ -201,14 +186,10 @@ public final class ControlClientTLExperiment implements Runnable {
             final ByteBuffer buffer = ByteBuffer.wrap(bytes);
             buffer.putLong(System.nanoTime());
             final Content content = Diffusion.content().newContent(bytes);
-            updater.update("DOMAIN/" + i, content, new UpdateCallback() {
-                @Override
-                public void onError(String topic, UpdateError error) {
-                    LOG.debug("Failed to update topic {}", topic);
-                }
-                @Override
-                public void onSuccess(String topic) {
-                }
+            updater.update("DOMAIN/" + i, content, new UpdateCallback.Default() {
+				@Override
+				public void onSuccess() {
+				}
             });
         }
 
@@ -286,7 +267,7 @@ public final class ControlClientTLExperiment implements Runnable {
     }
 
     /** Experiment specialized settings. */
-    public static class Settings extends CommonExperimentSettings {
+    public static class Settings extends ControlClientSettings {
         // CHECKSTYLE:OFF
         private final long intervalPauseNanos;
 

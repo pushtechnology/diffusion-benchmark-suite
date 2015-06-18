@@ -15,6 +15,10 @@
  */
 package com.pushtechnology.benchmarks.publishers;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
+
 import com.pushtechnology.diffusion.api.APIException;
 import com.pushtechnology.diffusion.api.data.TopicDataFactory;
 import com.pushtechnology.diffusion.api.data.metadata.MDataType;
@@ -33,22 +37,45 @@ public final class PingClientSendPublisher extends Publisher {
     /** the ping topic. Messages sent here will be sent back. */
     public static final String ROOT_TOPIC = "PING";
 
+    Topic rootTopic;
+
+	private int size;
+	private byte[] bytes=null;
+
+	private long lastDumpTimestamp;
+    
     @Override
     protected void initialLoad() throws APIException {
         SingleValueTopicData pingTopicData = 
                 TopicDataFactory.newSingleValueData(MDataType.STRING);
         pingTopicData.initialise("Welcome");
-        Topic rootTopic = addTopic(ROOT_TOPIC,
+         rootTopic = addTopic(ROOT_TOPIC,
                 pingTopicData);
         rootTopic.setAutoSubscribe(true);
+
     }
 
     @SuppressWarnings("deprecation")
     @Override
     protected void messageFromClient(TopicMessage message, Client client) {
         try {
+
+        	// let the client set the message size
+        	if(bytes == null)
+        		bytes =new byte[message.size()];
+            
+            TopicMessage m=null;
+                m = rootTopic.createDeltaMessage();
+                
+            	// get the queueing information:
+            	int currentQueueSize = client.getCurrentQueueSize();
+            	int largestQueueSize = client.getLargestQueueSize();
+            	int maximumQueueSize = client.getMaximumQueueSize();
+        	m.setHeaders("currentQueueSize:"+currentQueueSize,"largestQueueSize:"+largestQueueSize,"maximumQueueSize:"+maximumQueueSize);
+            m.put(bytes);
+
             // Echo to the client
-            client.send(message);
+        	client.send(m);
         } catch (APIException ex) {
             logWarning("Unable to process message from client", ex);
         }
@@ -58,4 +85,5 @@ public final class PingClientSendPublisher extends Publisher {
     protected boolean isStoppable() {
         return true;
     }
+    
 }

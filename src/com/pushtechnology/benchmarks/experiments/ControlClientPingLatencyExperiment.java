@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import com.pushtechnology.benchmarks.clients.ExperimentClient;
 import com.pushtechnology.benchmarks.clients.PingClient;
 import com.pushtechnology.benchmarks.control.clients.BaseControlClient;
+import com.pushtechnology.benchmarks.control.clients.ControlClientSettings;
 import com.pushtechnology.benchmarks.util.Factory;
 import com.pushtechnology.benchmarks.util.PropertiesUtil;
 import com.pushtechnology.diffusion.client.Diffusion;
@@ -23,10 +24,9 @@ import com.pushtechnology.diffusion.client.features.control.topics.MessagingCont
 import com.pushtechnology.diffusion.client.features.control.topics.MessagingControl.SendCallback;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicControl;
 import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater.UpdateCallback;
-import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.TopicSource.Updater.UpdateError;
+import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.Updater.UpdateCallback;
+import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.Updater;
+import com.pushtechnology.diffusion.client.features.control.topics.TopicUpdateControl.UpdateSource;
 import com.pushtechnology.diffusion.client.session.Session;
 import com.pushtechnology.diffusion.client.session.SessionClosedException;
 import com.pushtechnology.diffusion.client.session.SessionId;
@@ -84,16 +84,16 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
             @Override
             protected void wrapupAndReport() {
                 controlClient.stop();
-                // CHECKSTYLE:OFF
-                Histogram histogramSummary =
-                        new Histogram(TimeUnit.SECONDS.toNanos(10), 3);
-
-                for (PingClient connection : clients) {
-                    histogramSummary.add(connection.getHistogram());
-                }
-                histogramSummary.getHistogramData().
-                        outputPercentileDistribution(getOutput(), 1, HISTOGRAM_SCALING_RATIO);
-                // CHECKSTYLE:ON
+            	this.getExperimentCounters().reportLatency(getOutput());
+//                // CHECKSTYLE:OFF
+//                Histogram histogramSummary =
+//                        new Histogram(TimeUnit.SECONDS.toNanos(10), 3);
+//
+//                for (PingClient connection : clients) {
+//                    histogramSummary.add(connection.getHistogram());
+//                }
+//                histogramSummary.outputPercentileDistribution(getOutput(), 1, HISTOGRAM_SCALING_RATIO);
+//                // CHECKSTYLE:ON
             }
         };
         loop.setClientFactory(new Factory<ExperimentClient>() {
@@ -102,7 +102,8 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
                 PingClient pingClient =
                         new PingClient(loop.getExperimentCounters(),
                                 loop.getClientSettings().getMessageSize(),
-                                PING_TOPIC);
+                        		loop.getClientSettings(),
+                                PING_TOPIC,null);
                 clients.add(pingClient);
                 return pingClient;
             }
@@ -134,7 +135,7 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
          * @param settings ..
          */
         private ControlClient(Settings settings) {
-            super(settings.getControlClientURL(), BUFFER_SIZE, 2);
+            super(settings.getControlClientURL(), BUFFER_SIZE, 2, settings.getPrincipal(), settings.getPassword());
         }
 
         @Override
@@ -142,23 +143,13 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
             final TopicUpdateControl updateControl =
                 session.feature(TopicUpdateControl.class);
 
-            updateControl.addTopicSource(PING_TOPIC, new TopicSource() {
-                @Override
-                public void onActive(String topicPath,
-                        RegisteredHandler handler,
-                        final Updater updater) {
-                    final TopicControl topicControl =
-                        session.feature(TopicControl.class);
-                    createInitialTopic(topicControl, updater);
+            updateControl.registerUpdateSource(PING_TOPIC, new UpdateSource.Default() {
+                public void onActive(String topicPath, Updater updater) {
+                  final TopicControl topicControl =
+                  session.feature(TopicControl.class);
+                  createInitialTopic(topicControl, updater);
                 }
-                @Override
-                public void onClosed(String topicPath) {
-                }
-                @Override
-                public void onStandBy(String topicPath) {
-                    LOG.warn("Failed to become source for {}", topicPath);
-                }
-            });
+           });
 
             final MessagingControl messagingControl =
                 session.feature(MessagingControl.class);
@@ -180,7 +171,7 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
                 public UpdateCallback getUpdateCallback() {
                     return new UCallback() {
                         public void onSuccess(String topic) {
-                            super.onSuccess(topic);
+                            super.onSuccess();
                             initialised();
                         }
                     };
@@ -233,7 +224,7 @@ public final class ControlClientPingLatencyExperiment implements Runnable {
     /**
      * Experiment specific settings.
      */
-    public static final class Settings extends CommonExperimentSettings {
+    public static final class Settings extends ControlClientSettings {
         /**
          * Control client URL.
          */

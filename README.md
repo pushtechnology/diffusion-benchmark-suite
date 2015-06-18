@@ -10,6 +10,11 @@ Our framework consists of:
 the deploy folder of the server)
 * Soft cushions!  
 
+### Minimum Diffusion version
+
+This version of the benchmark suite supports Diffusion 5.1.0 and higher only.
+
+
 Currently implemented experiments are:
 
 #### Throughput
@@ -208,29 +213,6 @@ selected experiment.
 
 Note that this is intended mostly as a means to validate your code, not as a
 benchmarking environment for best results. 
-
-### Notes for IBM JDK
-### Notes for Zing
-### Notes for Waratek
-As Waratek deviates from standard JVM environments at this time with respect to usage of `jps` to orchestrate killing running JVM instances in a standard way within Ant, some manual intervention is required before a test
-run at this time. The default `diffusion.sh` file should be changed to something like:
-
-```
-#!/bin/sh
-DIR=`dirname $0`
-cd $DIR
-CP=../lib/diffusion.jar
-CP=${CP}:../etc
-CP=${CP}:../data
-```
-
-    $ /root/waratek-package/target/open/jdk/jre/bin/javad -Xdaemon -Dcom.waratek.javaagent=-javaagent:../lib/licenceagent.jar=../etc/licence.lic,../etc/publicKeys.store -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=../logs -cp ${CP} com.pushtechnology.diffusion.Diffusion $1<br>
-
-Unless cleanly shutdown Waratek JVM instances leaves behind detritus in `/var/lib/javad`. So if you start
-a cloud VM named 'jvm-1' you should recursively delete any artefacts created by Waratek so you can clean
-start:
-
-    $ rm -rf /var/lib/javad/jvm-1
 
 ##Working with the code
 ###Checkstyle

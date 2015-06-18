@@ -16,6 +16,7 @@
 package com.pushtechnology.benchmarks.clients;
 
 
+import com.pushtechnology.benchmarks.experiments.CommonExperimentSettings;
 import com.pushtechnology.benchmarks.monitoring.ExperimentCounters;
 import com.pushtechnology.diffusion.api.Credentials;
 import com.pushtechnology.diffusion.api.Logs;
@@ -35,6 +36,7 @@ public class MessageCountingClient implements ExperimentClient {
     protected final ExperimentCounters experimentCounters;
     private final String[] initialTopics;
     private volatile boolean reconnect;
+    private final CommonExperimentSettings clientSettings;
     // CHECKSTYLE:ON
 
     /**
@@ -43,10 +45,11 @@ public class MessageCountingClient implements ExperimentClient {
      * @param initialTopicsP initial topics to subscribe to on connection
      */
     public MessageCountingClient(ExperimentCounters experimentCountersP,
-            boolean reconnectP, String... initialTopicsP) {
+            boolean reconnectP, CommonExperimentSettings clientSettings, String... initialTopicsP) {
         this.experimentCounters = experimentCountersP;
         this.reconnect = reconnectP;
         initialTopics = initialTopicsP;
+        this.clientSettings  = clientSettings;
     }
 
     @Override
@@ -103,6 +106,7 @@ public class MessageCountingClient implements ExperimentClient {
     @Override
     public void serverRejectedCredentials(ServerConnection serverConnection,
             Credentials credentials) {
+    	int i=0;
     }
 
     @SuppressWarnings("deprecation")
@@ -127,11 +131,16 @@ public class MessageCountingClient implements ExperimentClient {
      * @param serverConnection ...
      */
     protected void onServerDisconnect(ServerConnection serverConnection) {
+    	int i=0;
     }
 
     @Override
     public final String[] getInitialTopics() {
         return initialTopics;
+    }
+
+    public final CommonExperimentSettings getClientSettings() {
+        return clientSettings;
     }
 
     /**

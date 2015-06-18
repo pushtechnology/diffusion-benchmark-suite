@@ -51,6 +51,8 @@ public final class ExperimentRunner {
      */
     @SuppressWarnings("deprecation")
     public static void main(final String[] args) {
+
+        Runnable experiment =null;
         try {
             // This depends on the system properties not on the settings file
             // Try putting this in the client.vm.args
@@ -63,16 +65,19 @@ public final class ExperimentRunner {
             final CommonExperimentSettings settings =
                     getSettingsObject(args[0], args[1]);
 
-            final Runnable experiment = getExperimentObject(args[0], settings);
+            experiment = getExperimentObject(args[0], settings);
             experiment.run();
+            
         } catch (final Throwable t) {
             // Could be a problem with logging
             // Do not log this error, print it
-            System.err.println("An exception has been caught at the top"
-                    + " level. Unable to complete experiment.");
+            System.err.println(System.currentTimeMillis()+" ERROR An exception has been caught at the top"
+                    + " level. Unable to complete experiment "+ args[0]);
             t.printStackTrace();
-        } finally {
-            System.exit(0);
+            // we exit normally here,
+            // otherwise post tasks like shutting down the server
+            // will not be run, causing other issues.
+            // monitoring for failure needs to monitor StdErr or Error messages
         }
     }
 

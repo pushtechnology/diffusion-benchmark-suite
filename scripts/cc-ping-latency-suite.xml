@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="cc-latency-suite" default="perf-suite" basedir=".">
+	<property environment="env" />
+	<property name="suite.ant.file" value="cc-latency-suite.xml" />
+	<property name="client.jvm.args" value="-server -Xms2g -Xmx2g" />
+	<property name="client.threads" value="1" />
+	<property name="max.time" value="5.0" />
+	<property name="max.messages" value="100000" />
+	<property name="cc.host" value="dpt://localhost:8081" />
+	<!-- Further common settings are available in the test-suite-common file
+	-->
+	<import file="cc-test-suite-common.xml" />
+
+	<target name="perfTest-1000b-cc-ping-latency">
+		<run-cc-ping-test test.name="cc-ping-latency-1000b" message.size="1000" />
+	</target>
+	<target name="perfTest-2000b-cc-ping-latency">
+		<run-cc-ping-test test.name="cc-ping-latency-2000b" message.size="2000" />
+	</target>
+	<target name="perfTest-500b-cc-ping-latency">
+		<run-cc-ping-test test.name="cc-ping-latency-500b" message.size="500" />
+	</target>
+	<target name="perfTest-250b-cc-ping-latency">
+		<run-cc-ping-test test.name="cc-ping-latency-250b" message.size="250" />
+	</target>
+	<target name="perfTest-250b-cc-ping-throughput">
+		<run-cc-ping-test test.name="cc-ping-latency-250b" message.size="250" />
+	</target>
+	<target name="perfTest-125b-cc-ping-latency">
+		<run-cc-ping-test test.name="cc-ping-latency-125b" message.size="125" />
+	</target>
+
+	<macrodef name="run-cc-ping-test">
+		<!-- Client attributes -->
+		<attribute name="initial.clients" default="0" />
+		<attribute name="max.clients" default="1" />
+		<attribute name="message.size" default="10" />
+		<attribute name="test.name" />
+		<sequential>
+			<!-- Start Client -->
+			<var name="full-test-name" value="@{test.name}-${diffusion.protocol}" />
+			<if>
+				<equals arg1="${skip.client}" arg2="true" />
+				<then>
+					<input>Press Return key to continue...</input>
+				</then>
+				<else>
+					<if>
+						<available file="${full-test-name}.settings" />
+						<then>
+							<echo message="Using existing settings file: ${full-test-name}.settings" />
+						</then>
+						<else>
+							<echo file="${full-test-name}.settings">
+#Client settings:
+initial.clients=@{initial.clients}
+max.clients=@{max.clients}
+clients.increment=@{clients.increment}
+client.create.pause.seconds=@{client.create.pause.seconds}
+inbound.threadpool.size=${client.threads}
+client.jvm.args=${client.jvm.args}
+diffusion.url=${diffusion.url}
+diffusion.host=${diffusion.host}
+local.interfaces=${diffusion.client.nics}
+experiment.output=${full-test-name}.csv
+clients.output=${full-test-name}-clients.log
+max.test.time.minutes=${max.time}
+max.test.messages=${max.messages}
+</echo>
+						</else>
+					</if>
+					<echo message="...Starting test client..." />
+					<pathconvert property="classpathProp" refid="test.runtime.classpath"/>
+					<echo>Classpath is ${classpathProp}</echo>
+					<java classname="com.pushtechnology.benchmarks.experiments.ExperimentRunner"
+						fork="true" failonerror="true" jvmargs="${client.jvm.args}">
+						<sysproperty key="verbose" value="${verbose}" />
+						<sysproperty key="log.connection.exception" value="false" />
+						<arg value="com.pushtechnology.benchmarks.experiments.ControlClientPingLatencyExperiment" />
+						<arg value="${full-test-name}.settings" />
+						<classpath refid="test.runtime.classpath" />
+					</java>
+					<echo message="...Test client finished..." />
+				</else>
+			</if>
+		</sequential>
+	</macrodef>
+</project>

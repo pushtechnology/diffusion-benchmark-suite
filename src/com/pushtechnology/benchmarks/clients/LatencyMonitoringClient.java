@@ -15,98 +15,102 @@
  */
 package com.pushtechnology.benchmarks.clients;
 
-import java.util.concurrent.TimeUnit;
-
-import org.HdrHistogram.Histogram;
-
+import com.pushtechnology.benchmarks.experiments.CommonExperimentSettings;
 import com.pushtechnology.benchmarks.monitoring.ExperimentCounters;
+import com.pushtechnology.benchmarks.publishers.PingClientSendPublisher;
 import com.pushtechnology.diffusion.api.Logs;
 import com.pushtechnology.diffusion.api.ServerConnection;
 import com.pushtechnology.diffusion.api.message.TopicMessage;
 
-
 /**
  * This client will track message latency by reading the first 8 bytes of any
- * message received and adding to it's latency histogram. The timestamp is
- * in nano seconds.
+ * message received and adding to it's latency histogram. The timestamp is in
+ * nano seconds.
  * 
  * @author nitsanw
  *
  */
 public abstract class LatencyMonitoringClient extends MessageCountingClient {
-    // CHECKSTYLE:OFF
-    private static final int WARMUP_MESSAGES = 20000;
-    private final Histogram histogram = 
-            new Histogram(TimeUnit.SECONDS.toNanos(10), 3);
-    protected ServerConnection connection;
-    private Object connectionLock = new Object();
+	// CHECKSTYLE:OFF
+	protected ServerConnection connection;
+	private Object connectionLock = new Object();
 
-    public LatencyMonitoringClient(ExperimentCounters experimentCountersP,
-            boolean reconnectP, String... initialTopicsP) {
-        super(experimentCountersP, reconnectP, initialTopicsP);
-    }
-    // CHECKSTYLE:ON
-    @Override
-    public final void onServerConnect(ServerConnection serverConnection) {
-        synchronized (connectionLock) {
-            this.connection = serverConnection;
-        }
-    }
+	public LatencyMonitoringClient(ExperimentCounters experimentCountersP,
+			boolean reconnectP, CommonExperimentSettings clientSettings,
+			String... initialTopicsP) {
+		super(experimentCountersP, reconnectP, clientSettings, initialTopicsP);
+	}
+
+	// CHECKSTYLE:ON
+	@Override
+	/**
+	 * @param serverConnection The client connection
+	 */
+	public final void onServerConnect(ServerConnection serverConnection) {
+		synchronized (connectionLock) {
+			this.connection = serverConnection;
+		}
+	}
+
+	/**
+	 * Measures and records latency. See also ControlClientTLExperiment
+	 * HISTOGRAM_SCALING_RATIO
+	 * 
+	 * @param serverConnection
+	 *            The client connection
+	 * @param topicMessage
+	 *            The incoming message
+	 */
+	@SuppressWarnings("deprecation")
+	@Override
+	public final void onMessage(ServerConnection serverConnection,
+			TopicMessage topicMessage) {
 
 
-    @SuppressWarnings("deprecation")
-    @Override
-    public final void onMessage(ServerConnection serverConnection,
-            TopicMessage topicMessage) {
-        // CHECKSTYLE:ON
-        long arrived = getArrivedTimestamp();
+    	if (topicMessage.isDelta() && topicMessage.getTopicName().equals(PingClientSendPublisher.ROOT_TOPIC)) {
+    		long arrived = getArrivedTimestamp();
+		//if (topicMessage.isDelta()) {
+			try {
+				recordLatency(getSentTimestamp(topicMessage), arrived);
+			} catch (Exception e) {
+				Logs.severe("Failed to capture latency", e);
+				return;
+			}
+		}
+	}
 
-        if (experimentCounters.getMessageCounter() > WARMUP_MESSAGES
-                && topicMessage.isDelta()) {
-            try {
-                long sent = getSentTimestamp(topicMessage);
-                long rtt = arrived - sent;
-                getHistogram().recordValue(rtt);
-            } catch (Exception e) {
-                Logs.severe("Failed to capture rtt:", e);
-                return;
-            }
-        }
-    }
+	private void recordLatency(long sent, long arrived) {
+		long rtt = arrived - sent;
+		experimentCounters.recordLatencyValue(rtt);
+	}
 
-    /**
-     * @return ...
-     */
-    protected abstract long getArrivedTimestamp();
+	/**
+	 * @return ...
+	 */
+	protected abstract long getArrivedTimestamp();
 
-    /**
-     * @param topicMessage ...
-     * @return ...
-     */
-    protected abstract long getSentTimestamp(TopicMessage topicMessage);
+	/**
+	 * @param topicMessage
+	 *            ...
+	 * @return ...
+	 */
+	protected abstract long getSentTimestamp(TopicMessage topicMessage);
 
-    @Override
-    public final void onServerDisconnect(ServerConnection serverConnection) {
-        synchronized (connectionLock) {
-            this.connection = null;
-        }
-    }
+	@Override
+	public final void onServerDisconnect(ServerConnection serverConnection) {
+		synchronized (connectionLock) {
+			this.connection = null;
+		}
+	}
 
-    /**
-     * will disconnect if connected.
-     */
-    public final void disconnect() {
-        synchronized (connectionLock) {
-            if (connection != null) {
-                connection.close();
-            }
-        }
-    }
-
-    /**
-     * @return my histogram.
-     */
-    public final Histogram getHistogram() {
-        return histogram;
-    }
+	/**
+	 * will disconnect if connected.
+	 */
+	public final void disconnect() {
+		synchronized (connectionLock) {
+			if (connection != null) {
+				connection.close();
+			}
+		}
+	}
 }

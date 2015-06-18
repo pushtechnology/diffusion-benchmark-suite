@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="churn-suite" default="perf-suite" basedir=".">
+
+	<property name="client.jvm.args" value="-server -Xms4g -Xmx4g" />
+
+	<import file="perf-test-suite-common.xml" />
+
+	<target name="churn">
+		<run-client test.name="churn1" />
+	</target>
+
+	<macrodef name="run-client">
+		<attribute name="testname" />
+		<sequential>
+			<echo message="...Starting test client..." />
+			<java classname="com.pushtechnology.benchmarks.experiments.ExperimentRunner"
+					fork="true" failonerror="true" jvmargs="${client.jvm.args}">
+				<sysproperty key="log.connection.exception" value="false" />
+				<arg value="com.pushtechnology.benchmarks.experiments.ConnectAndSubscribeChurnExperiment" />
+				<arg value="@{testname}.settings" />
+				<classpath refid="test.runtime.classpath" />
+			</java>
+			<echo message="...Test client finished..." />
+		</sequential>
+	</macrodef>
+
+
+
+
+
+
+		<macrodef name="configure-injector">
+			<!-- 10 times a second -->
+			<attribute name="publish.pause.seconds" default="0.1" />
+			<attribute name="message.size" default="100" />
+			<attribute name="initial.messages" default="10" />
+			<attribute name="message.increment.interval" default="10" />
+			<attribute name="message.increment" default="10" />
+			<attribute name="initial.topic.num" default="100" />
+			<attribute name="topic.increment.interval" default="10" />
+			<attribute name="topic.increment" default="10" />
+			<attribute name="output" />
+			<sequential>
+				<copy file="etc/Injector.xml" tofile="etc/@{output}" overwrite="true">
+					<filterset begintoken="@" endtoken="@">
+						<filter token="conflationMode" value="NONE" />
+						<filter token="pauseSeconds" value="@{publish.pause.seconds}" />
+						<filter token="messageSize" value="@{message.size}" />
+						<filter token="initialMessages" value="@{initial.messages}" />
+						<filter token="messageIncrementIntervalInPauses" value="@{message.increment.interval}" />
+						<filter token="messageIncrement" value="@{message.increment}" />
+						<filter token="initialTopicNum" value="@{initial.topic.num}" />
+						<filter token="topicIncrementIntervalInPauses" value="@{topic.increment.interval}" />
+						<filter token="topicIncrement" value="@{topic.increment}" />
+					</filterset>
+				</copy>
+			</sequential>
+		</macrodef>
+	<target name="start-injector">
+		<configure-injector output="${test.name}.xml"
+			publish.pause.seconds="${publish.pause.seconds}"
+			message.size="${message.size}"
+			initial.messages="${initial.messages}"
+			message.increment.interval="${message.increment.interval}"
+			message.increment="${message.increment}"
+			initial.topic.num="${initial.topic.num}"
+			topic.increment.interval="${topic.increment.interval}"
+			topic.increment="${topic.increment}" />
+		<dar publisher.name="${test.name}" />
+		<deploy-dar dar.name="${test.name}.dar" />
+	</target>
+	<target name="stop-injector">
+		<undeploy-dar dar.name="${test.name}.dar" />
+		<delete file="${test.name}.dar" />
+	</target>
+
+</project>

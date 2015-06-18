@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<project name="cc-throughtput-suite" default="perf-suite" basedir=".">
+<project name="cc-throughput-suite" default="perf-suite" basedir=".">
 	<property environment="env" />
 	<property name="suite.ant.file" value="cc-throughput-suite.xml" />
 	<property name="client.jvm.args" value="-server -Xms4g -Xmx4g" />
 	<property name="client.threads" value="10" />
 	<property name="max.time" value="5.0" />
 	<property name="cc.host" value="dpt://localhost:8081" />
-	<!-- Further common settings are available in the test-suite-common file
+	<!-- Further common settings are available in the cc-test-suite-common file
 	-->
 	<import file="cc-test-suite-common.xml" />
 	
 	<target name="perfTest-2000b-50t">
-		<run-cc-test test.name="2000b-CC-2M-50T"
+		<run-cc-test test.name="cc-throughput-2000b-CC-2M-50T"
 			message.size="2000"
 			publish.pause.seconds="0.5"
 			initial.clients="0"
@@ -23,7 +23,7 @@
 			topic.increment="0" />
 	</target>
 	<target name="perfTest-1000b-50t">
-		<run-cc-test test.name="1000b-CC-2M-50T"
+		<run-cc-test test.name="cc-throughput-1000b-CC-2M-50T"
 			message.size="1000"
 			publish.pause.seconds="0.5"
 			initial.clients="0"
@@ -35,7 +35,7 @@
 			topic.increment="0" />
 	</target>
 	<target name="perfTest-500b-50t">
-		<run-cc-test test.name="500b-CC-2M-50T"
+		<run-cc-test test.name="cc-throughput-500b-CC-2M-50T"
 			message.size="500"
 			publish.pause.seconds="0.5"
 			initial.clients="0"
@@ -47,7 +47,7 @@
 			topic.increment="0" />
 	</target>
 	<target name="perfTest-250b-50t">
-		<run-cc-test test.name="250b-CC-2M-50T"
+		<run-cc-test test.name="cc-throughput-250b-CC-2M-50T"
 			message.size="250"
 			publish.pause.seconds="0.5"
 			initial.clients="0"
@@ -59,7 +59,7 @@
 			topic.increment="0" />
 	</target>
 	<target name="perfTest-125b-50t">
-		<run-cc-test test.name="125b-CC-2M-50T"
+		<run-cc-test test.name="cc-throughput-125b-CC-2M-50T"
 			message.size="125"
 			publish.pause.seconds="0.5"
 			initial.clients="0"
@@ -70,6 +70,19 @@
 			initial.topic.num="50"
 			topic.increment="0" />
 	</target>
+        <target name="perfTest-10b-50t">
+                <run-cc-test test.name="cc-throughput-10b-CC-2M-50T"
+                        message.size="10"
+                        publish.pause.seconds="0.5"
+                        initial.clients="0"
+                        max.clients="100000"
+                        clients.increment="50"
+                        initial.messages="1"
+                        message.increment="0"
+                        initial.topic.num="50"
+                        topic.increment="0" />
+        </target>
+
 
 	<macrodef name="run-cc-test">
 		<!-- Client attributes -->
