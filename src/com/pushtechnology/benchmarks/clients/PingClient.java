@@ -1,9 +1,11 @@
 package com.pushtechnology.benchmarks.clients;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.pushtechnology.benchmarks.monitoring.ExperimentCounters;
 import com.pushtechnology.diffusion.api.APIException;
-import com.pushtechnology.diffusion.api.Logs;
 import com.pushtechnology.diffusion.api.ServerConnection;
 import com.pushtechnology.diffusion.api.message.MessageException;
 import com.pushtechnology.diffusion.api.message.TopicMessage;
@@ -21,6 +23,7 @@ public final class PingClient extends LatencyMonitoringClient {
     private final String pingTopic;
     /** sent time. */
     private long sentTimeNanos;
+    private static final Logger LOG = LoggerFactory.getLogger(PingClient.class);
 
     /**
      * @param experimentCountersP ...
@@ -44,7 +47,6 @@ public final class PingClient extends LatencyMonitoringClient {
         }
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public void afterServerConnect(ServerConnection serverConnection) {
         TopicMessage m;
@@ -53,8 +55,8 @@ public final class PingClient extends LatencyMonitoringClient {
             m.put(new byte[size]);
             ping(m);
         } catch (MessageException e) {
-            if (Logs.isFinestLogging()) {
-                Logs.finest("Error on trying to send a ping to server", e);
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("Error on trying to send a ping to server", e);
             }
         }
     }
@@ -63,14 +65,13 @@ public final class PingClient extends LatencyMonitoringClient {
      * send a ping to server.
      * @param topicMessage 
      */
-    @SuppressWarnings("deprecation")
     void ping(TopicMessage topicMessage) {
         try {
             sentTimeNanos = System.nanoTime();
             connection.send(topicMessage);
         } catch (APIException e) {
-            if (Logs.isFinestLogging()) {
-                Logs.finest("Error on trying to send a ping to server", e);
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("Error on trying to send a ping to server", e);
             }
         }
     }

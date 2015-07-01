@@ -26,10 +26,11 @@ import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnector;
 
 import org.HdrHistogram.Histogram;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pushtechnology.benchmarks.util.JmxHelper;
 import com.pushtechnology.benchmarks.util.Memory;
-import com.pushtechnology.diffusion.api.Logs;
 
 /**
  * This is a background thread for monitoring an experiment and output the
@@ -55,6 +56,8 @@ public class ExperimentMonitor implements Runnable {
     private Thread monitorThread;
     private volatile long deadline;
 
+    private static final Logger LOG = LoggerFactory.getLogger(ExperimentMonitor.class);
+
     /**
      * Create monitor for experiment.
      * 
@@ -77,7 +80,7 @@ public class ExperimentMonitor implements Runnable {
             m = new RemoteMemoryMonitor(mBeanServerConnection);
             c = new RemoteCpuMonitor(mBeanServerConnection);
         } catch (Exception e) {
-            Logs.warning("Unable to create JMX connection to server", e);
+            LOG.warn("Unable to create JMX connection to server", e);
         }
         rMemoryMonitor = m;
         rCpuMonitor = c;
@@ -88,7 +91,7 @@ public class ExperimentMonitor implements Runnable {
             try {
                 o = new PrintStream(outputFilename);
             } catch (FileNotFoundException e) {
-                Logs.warning("failed to create output file: "
+                LOG.warn("failed to create output file: "
                         + outputFilename + " will use sysout instead.");
                 o = System.out;
             }
@@ -316,7 +319,7 @@ public class ExperimentMonitor implements Runnable {
         try {
             monitorThread.join();
         } catch (InterruptedException e) {
-            Logs.severe("Interrupted while joining monitor thread", e);
+            LOG.error("Interrupted while joining monitor thread", e);
         } finally {
             monitorThread = null;
         }

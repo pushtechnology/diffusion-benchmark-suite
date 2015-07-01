@@ -23,7 +23,8 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
-import com.pushtechnology.diffusion.api.Logs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Some JMX connection creation utility methods.
@@ -39,7 +40,7 @@ public final class JmxHelper {
     private static final String JMX_CREDENTIALS_KEY = "jmx.remote.credentials";
     private static final int DEFAULT_JNDI_PORT = 1100;
     private static final int DEFAULT_JMX_RMI_PORT = 1099;
-
+    private static final Logger LOG = LoggerFactory.getLogger(JmxHelper.class);
     private JmxHelper() {
     }
 
@@ -57,13 +58,12 @@ public final class JmxHelper {
      * @return a JMX connector to specified host
      * @throws IOException if connection fails/if resulting URL is malformed
      */
-    @SuppressWarnings("deprecation")
     public static JMXConnector getJmxConnector(final String host,
             final String service, final String user, final String pass,
             final int jmxRmiPort, final int jmxJndiPort)
             throws IOException {
         final String jmxUrl = getJmxUrl(host, service, jmxRmiPort, jmxJndiPort);
-        Logs.advice("Using JMX URL: " + jmxUrl);
+        LOG.warn("Using JMX URL: " + jmxUrl);
         final JMXServiceURL serviceUrl = new JMXServiceURL(jmxUrl);
         return getJmxConnector(user, pass, serviceUrl);
     }

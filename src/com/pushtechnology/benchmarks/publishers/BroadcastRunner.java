@@ -18,12 +18,15 @@ package com.pushtechnology.benchmarks.publishers;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
 
-import com.pushtechnology.diffusion.api.Logs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.pushtechnology.diffusion.api.topic.Topic;
 
 public class BroadcastRunner implements Runnable {
     public static final long PARK_NANOS_OVERHEAD = 55000;
     public static final long PARK_NANOS_THRESHOLD = 100000;
+    private static final Logger LOG = LoggerFactory.getLogger(BroadcastRunner.class);
 
     private volatile boolean running = true;
     private final MessagePublisher messagePublisher;
@@ -40,7 +43,6 @@ public class BroadcastRunner implements Runnable {
         this.config = config;
     }
 
-    @SuppressWarnings("deprecation")
     public void run() {
         running = true;
         
@@ -66,7 +68,7 @@ public class BroadcastRunner implements Runnable {
 
                             messageCounter.lazySet(messageCounter.get() + 1);
                         } catch (Exception e) {
-                            Logs.severe("Runtime exception while publishing:",
+                            LOG.error("Runtime exception while publishing:",
                                     e);
                         } finally {
                             topic.unlock();

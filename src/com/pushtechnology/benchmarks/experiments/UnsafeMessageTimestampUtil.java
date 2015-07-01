@@ -17,10 +17,8 @@ package com.pushtechnology.benchmarks.experiments;
 
 import java.nio.ByteBuffer;
 
-
 import com.pushtechnology.benchmarks.util.UnsafeAccess;
 import com.pushtechnology.diffusion.api.message.TopicMessage;
-import com.pushtechnology.diffusion.message.DataMessageImpl;
 import com.pushtechnology.diffusion.message.MessageImpl;
 
 /**
@@ -29,19 +27,19 @@ import com.pushtechnology.diffusion.message.MessageImpl;
  * @author nitsanw
  *
  */
-public final class UnsafeMessageTimetampUtil {
+public final class UnsafeMessageTimestampUtil {
     /** memory offset to support unsafe access to message BB. */
     private static final long BB_OFFSET;
     /** memory offset to support unsafe access to message header length. */
     private static final long HEADER_LEN_OFFSET;
 
     /** Can't touch this. */
-    private UnsafeMessageTimetampUtil() {
+    private UnsafeMessageTimestampUtil() {
     }
     static {
         try {
             BB_OFFSET = UnsafeAccess.UNSAFE
-                    .objectFieldOffset(DataMessageImpl.class
+                    .objectFieldOffset(MessageImpl.class
                             .getDeclaredField("theByteBuffer"));
             HEADER_LEN_OFFSET = UnsafeAccess.UNSAFE
                     .objectFieldOffset(MessageImpl.class

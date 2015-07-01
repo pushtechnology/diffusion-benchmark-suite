@@ -22,6 +22,7 @@ import com.pushtechnology.diffusion.api.APIException;
 import com.pushtechnology.diffusion.api.config.ConfigManager;
 import com.pushtechnology.diffusion.api.config.ConflationPolicyConfig;
 import com.pushtechnology.diffusion.api.config.ConflationPolicyConfig.Mode;
+import com.pushtechnology.diffusion.api.config.ServerConfig;
 import com.pushtechnology.diffusion.api.conflation.MessageMerger;
 import com.pushtechnology.diffusion.api.data.TopicDataFactory;
 import com.pushtechnology.diffusion.api.data.metadata.MDataType;
@@ -88,7 +89,7 @@ public final class BroadcastPublisher extends Publisher implements
     }
 
     protected static void setupMergePolicy() throws APIException {
-        ConflationPolicyConfig policy = ConfigManager.getConfig()
+        ConflationPolicyConfig policy = ((ServerConfig)ConfigManager.getConfig())
                 .getConflation().addPolicy("XXX", Mode.REPLACE,
                         new MessageMerger() {
                             @Override
@@ -100,14 +101,14 @@ public final class BroadcastPublisher extends Publisher implements
                                 return arg0.duplicate();
                             }
                         });
-        ConfigManager.getConfig().getConflation()
+        ((ServerConfig)ConfigManager.getConfig()).getConflation()
                 .setDefaultPolicy(policy.getName());
     }
 
     protected static void setupDefaultPolicy(Mode mode) throws APIException {
-        ConflationPolicyConfig policy = ConfigManager.getConfig()
+        ConflationPolicyConfig policy = ((ServerConfig)ConfigManager.getConfig())
                 .getConflation().addPolicy("XXX", mode);
-        ConfigManager.getConfig().getConflation()
+        ((ServerConfig)ConfigManager.getConfig()).getConflation()
                 .setDefaultPolicy(policy.getName());
     }
 

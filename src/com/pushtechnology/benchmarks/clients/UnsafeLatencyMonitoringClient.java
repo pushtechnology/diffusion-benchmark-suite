@@ -18,7 +18,7 @@ package com.pushtechnology.benchmarks.clients;
 import java.nio.ByteBuffer;
 
 
-import com.pushtechnology.benchmarks.experiments.UnsafeMessageTimetampUtil;
+import com.pushtechnology.benchmarks.experiments.UnsafeMessageTimestampUtil;
 import com.pushtechnology.benchmarks.monitoring.ExperimentCounters;
 import com.pushtechnology.diffusion.api.message.TopicMessage;
 
@@ -51,8 +51,8 @@ public final class UnsafeLatencyMonitoringClient
 
     @Override
     protected long getSentTimestamp(TopicMessage topicMessage) {
-        int headerLen = UnsafeMessageTimetampUtil.getHeaderLength(topicMessage);
-        ByteBuffer buffy = UnsafeMessageTimetampUtil.getBuffer(topicMessage);
+        int headerLen = UnsafeMessageTimestampUtil.getHeaderLength(topicMessage);
+        ByteBuffer buffy = UnsafeMessageTimestampUtil.getBuffer(topicMessage);
         return buffy.getLong(headerLen);
     }
 }

@@ -20,7 +20,8 @@ import static com.pushtechnology.benchmarks.util.PropertiesUtil.getProperty;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import com.pushtechnology.diffusion.api.Logs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A common set of settings for the client side of experiments. To be extended
@@ -42,6 +43,7 @@ public class CommonExperimentSettings {
     private static final int DEFAULT_MESSAGE_SIZE = 128;
     private static final String DEFAULT_CONNECT_TOPIC_SELECTOR = "ROOT//";
     private static final double DEFAULT_MAX_TEST_TIME_MINUTES = 5.0;
+    private static final Logger LOG = LoggerFactory.getLogger(CommonExperimentSettings.class);
 
     private final String[] diffusionUrls;
     private final int maxClients;
@@ -220,10 +222,9 @@ public class CommonExperimentSettings {
         return builder.toString();
     }
 
-    @SuppressWarnings("deprecation")
     public final void logSettings() {
-        if (Logs.isFinestLogging()) {
-            Logs.finest(settingsAsString());
+        if (LOG.isTraceEnabled()) {
+            LOG.trace(settingsAsString());
         }
     }
 }

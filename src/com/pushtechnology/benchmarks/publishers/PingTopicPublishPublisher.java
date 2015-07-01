@@ -15,6 +15,9 @@
  */
 package com.pushtechnology.benchmarks.publishers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.pushtechnology.diffusion.api.APIException;
 import com.pushtechnology.diffusion.api.data.TopicDataFactory;
 import com.pushtechnology.diffusion.api.data.metadata.MDataType;
@@ -32,6 +35,7 @@ import com.pushtechnology.diffusion.api.topic.Topic;
 public final class PingTopicPublishPublisher extends Publisher {
     /** the ping topic. Messages sent here will be sent back. */
     public static final String ROOT_TOPIC = "PING";
+    private static final Logger LOG = LoggerFactory.getLogger(PingTopicPublishPublisher.class);
     /** the ping topic, messages will be re-broadcasted on this one.*/
     private Topic rootTopic;
 
@@ -52,7 +56,7 @@ public final class PingTopicPublishPublisher extends Publisher {
             // Echo to the topic
             rootTopic.publishMessage(message);
         } catch (APIException ex) {
-            logWarning("Unable to process message from client", ex);
+            LOG.warn("Unable to process message from client", ex);
         }
     }
 

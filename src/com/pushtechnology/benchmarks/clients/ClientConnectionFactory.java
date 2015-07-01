@@ -24,6 +24,9 @@ import java.security.cert.Certificate;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.pushtechnology.benchmarks.experiments.CommonExperimentSettings;
 import com.pushtechnology.benchmarks.monitoring.ExperimentCounters;
 import com.pushtechnology.benchmarks.util.Factory;
@@ -50,6 +53,7 @@ public class ClientConnectionFactory implements
     private final ExperimentCounters experimentCounters;
     private final CommonExperimentSettings clientSettings;
     private SSLContext cachedSslContext;
+    private static final Logger LOG = LoggerFactory.getLogger(ClientConnectionFactory.class);
 
     private Factory<ExperimentClient> clientFactory;
 
@@ -95,8 +99,8 @@ public class ClientConnectionFactory implements
             }
             return connection;
         } catch (Exception e) {
-            if (Logs.isFinestLogging()) {
-                Logs.finest("Error on connection attempt", e);
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("Error on connection attempt", e);
             }
             experimentCounters.incConnectionRefusedCounter();
             return null;

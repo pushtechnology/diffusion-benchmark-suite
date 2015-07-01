@@ -23,13 +23,15 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.pushtechnology.benchmarks.clients.ClientConnectionFactory;
 import com.pushtechnology.benchmarks.clients.ExperimentClient;
 import com.pushtechnology.benchmarks.monitoring.ExperimentCounters;
 import com.pushtechnology.benchmarks.monitoring.ExperimentMonitor;
 import com.pushtechnology.benchmarks.util.Factory;
 import com.pushtechnology.diffusion.api.APIException;
-import com.pushtechnology.diffusion.api.Logs;
 import com.pushtechnology.diffusion.api.client.ExternalClientConnection;
 import com.pushtechnology.diffusion.api.config.ConfigManager;
 import com.pushtechnology.diffusion.api.config.ThreadPoolConfig;
@@ -45,6 +47,7 @@ import com.pushtechnology.diffusion.api.threads.ThreadService;
  */
 public class ExperimentControlLoop implements Runnable {
     /** async connect client task. */
+    private static final Logger LOG = LoggerFactory.getLogger(ExperimentControlLoop.class);
     private final Runnable createClientTask = new Runnable() {
         @Override
         public void run() {
@@ -103,13 +106,12 @@ public class ExperimentControlLoop implements Runnable {
         this.loadStrategy = strategy;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public final void run() {
         try {
             // GO!
             final long testStartTime = System.currentTimeMillis();
-            Logs.info("Starting experiment");
+            LOG.info("Starting experiment");
             final int connectQCapacity =
                     getClientSettings().getInitialClients()
                             + 2 * getClientSettings().getClientIncrement();
@@ -131,7 +133,7 @@ public class ExperimentControlLoop implements Runnable {
             for (int i = 0; i < getClientSettings().getInitialClients(); i++) {
                 connectThread.execute(createClientTask);
             }
-            Logs.info("Initial load created");
+            LOG.info("Initial load created");
             postInitialLoadCreated();
             experimentMonitor.startSampling();
             long lastIncrementTime = System.currentTimeMillis();
@@ -145,7 +147,7 @@ public class ExperimentControlLoop implements Runnable {
                     int incBy = getClientSettings().getClientIncrement();
                     incBy = (int) Math.min(incBy, maxConns - currConns);
                     if (incBy > 0) {
-                        Logs.info("increasing load by:" + incBy);
+                        LOG.info("increasing load by:" + incBy);
                     }
                     for (int i = 0; i < incBy; i++) {
                         connectThread.execute(createClientTask);
@@ -155,13 +157,13 @@ public class ExperimentControlLoop implements Runnable {
             }
             connectThread.shutdownNow();
         } catch (final Exception e) {
-            Logs.severe("Error during experiment loop", e);
+            LOG.error("Error during experiment loop", e);
         }
-        Logs.info("time is up, wrapping up");
+        LOG.info("time is up, wrapping up");
         experimentMonitor.stop();
         connector.close();
         wrapupAndReport();
-        Logs.info("experiment finished");
+        LOG.info("experiment finished");
     }
 
     /**
@@ -198,7 +200,6 @@ public class ExperimentControlLoop implements Runnable {
      * @param coreSize ...
      * @throws APIException ...
      */
-    @SuppressWarnings("deprecation")
     private void setupThreadPool(final int qSize, final int coreSize)
             throws APIException {
     	ThreadsConfig threadsConfig = ConfigManager.getConfig().getThreads();

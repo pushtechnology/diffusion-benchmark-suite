@@ -16,9 +16,11 @@
 package com.pushtechnology.benchmarks.clients;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.pushtechnology.benchmarks.monitoring.ExperimentCounters;
 import com.pushtechnology.diffusion.api.Credentials;
-import com.pushtechnology.diffusion.api.Logs;
 import com.pushtechnology.diffusion.api.ServerConnection;
 import com.pushtechnology.diffusion.api.message.TopicMessage;
 import com.pushtechnology.diffusion.api.topic.TopicStatus;
@@ -36,6 +38,7 @@ public class MessageCountingClient implements ExperimentClient {
     private final String[] initialTopics;
     private volatile boolean reconnect;
     // CHECKSTYLE:ON
+    private static final Logger LOG = LoggerFactory.getLogger(MessageCountingClient.class);
 
     /**
      * @param experimentCountersP shared counters for experiment
@@ -105,7 +108,6 @@ public class MessageCountingClient implements ExperimentClient {
             Credentials credentials) {
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public final void serverDisconnected(ServerConnection serverConnection) {
         experimentCounters.incClientDisconnectCounter();
@@ -114,8 +116,8 @@ public class MessageCountingClient implements ExperimentClient {
             try {
                 serverConnection.connect(initialTopics);
             } catch (Exception e) {
-                if (Logs.isFinestLogging()) {
-                    Logs.finest("Error on connection attempt", e);
+                if (LOG.isTraceEnabled()) {
+                    LOG.trace("Error on connection attempt", e);
                 }
                 experimentCounters.incConnectionRefusedCounter();
             }

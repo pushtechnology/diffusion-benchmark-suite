@@ -21,6 +21,9 @@ import java.lang.reflect.Constructor;
 import java.util.Properties;
 import java.util.logging.Level;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.pushtechnology.benchmarks.util.PropertiesUtil;
 import com.pushtechnology.diffusion.api.Logs;
 
@@ -38,6 +41,7 @@ import com.pushtechnology.diffusion.api.Logs;
  * 
  */
 public final class ExperimentRunner {
+    private static final Logger LOG = LoggerFactory.getLogger(ExperimentRunner.class);
     /**
      * Never create me...
      */
@@ -98,10 +102,10 @@ public final class ExperimentRunner {
             // Use an experiment specific settings class
             final String settingsClassName = experimentClassName + "$Settings";
             settingsClass = Class.forName(settingsClassName);
-            Logs.info("Using " + settingsClassName + " settings class...");
+            LOG.info("Using " + settingsClassName + " settings class...");
         } catch (final ClassNotFoundException e) {
             // Use the default settings class
-            Logs.info("Using default settings class...");
+            LOG.info("Using default settings class...");
             settingsClass = CommonExperimentSettings.class;
         }
 

@@ -22,11 +22,13 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.pushtechnology.benchmarks.clients.ExperimentClient;
 import com.pushtechnology.benchmarks.clients.MessageCountingClient;
 import com.pushtechnology.benchmarks.util.Factory;
 import com.pushtechnology.diffusion.api.APIException;
-import com.pushtechnology.diffusion.api.Logs;
 import com.pushtechnology.diffusion.api.ServerConnection;
 
 /**
@@ -36,6 +38,7 @@ import com.pushtechnology.diffusion.api.ServerConnection;
  *
  */
 public final class ConnectAndSubscribeChurnExperiment implements Runnable {
+    private static final Logger LOG = LoggerFactory.getLogger(ConnectAndSubscribeChurnExperiment.class);
     /**
      * Probability that a subscription event will be a subscribe not an
      * unsubscribe.
@@ -108,7 +111,6 @@ public final class ConnectAndSubscribeChurnExperiment implements Runnable {
                     public void afterServerConnect(
                             final ServerConnection serverConnection) {
                         final TimerTask subscribeTask = new TimerTask() {
-                            @SuppressWarnings("deprecation")
                             @Override
                             public void run() {
                                 if (nextDouble() < settings
@@ -125,7 +127,7 @@ public final class ConnectAndSubscribeChurnExperiment implements Runnable {
                                                         settings.topicCount)]);
                                         }
                                     } catch (final APIException e) {
-                                        Logs.finest(
+                                        LOG.trace(
                                             "Exception performing"
                                             + "subscription event",
                                             e);

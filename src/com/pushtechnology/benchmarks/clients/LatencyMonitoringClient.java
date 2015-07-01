@@ -18,9 +18,10 @@ package com.pushtechnology.benchmarks.clients;
 import java.util.concurrent.TimeUnit;
 
 import org.HdrHistogram.Histogram;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pushtechnology.benchmarks.monitoring.ExperimentCounters;
-import com.pushtechnology.diffusion.api.Logs;
 import com.pushtechnology.diffusion.api.ServerConnection;
 import com.pushtechnology.diffusion.api.message.TopicMessage;
 
@@ -40,6 +41,7 @@ public abstract class LatencyMonitoringClient extends MessageCountingClient {
             new Histogram(TimeUnit.SECONDS.toNanos(10), 3);
     protected ServerConnection connection;
     private Object connectionLock = new Object();
+    private static final Logger LOG = LoggerFactory.getLogger(LatencyMonitoringClient.class);
 
     public LatencyMonitoringClient(ExperimentCounters experimentCountersP,
             boolean reconnectP, String... initialTopicsP) {
@@ -54,7 +56,6 @@ public abstract class LatencyMonitoringClient extends MessageCountingClient {
     }
 
 
-    @SuppressWarnings("deprecation")
     @Override
     public final void onMessage(ServerConnection serverConnection,
             TopicMessage topicMessage) {
@@ -68,7 +69,7 @@ public abstract class LatencyMonitoringClient extends MessageCountingClient {
                 long rtt = arrived - sent;
                 getHistogram().recordValue(rtt);
             } catch (Exception e) {
-                Logs.severe("Failed to capture rtt:", e);
+                LOG.error("Failed to capture rtt:", e);
                 return;
             }
         }
