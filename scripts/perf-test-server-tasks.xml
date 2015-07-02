@@ -12,6 +12,7 @@
 		<filelist>
 			<file name="${dir.main.lib}/diffusionbenchmark.jar" />
 			<file name="${dir.main.lib}/HdrHistogram.jar" />
+			<file name="${dir.main.lib}/slf4j-api-1.7.12.jar" />
 			<file name="${diffusion.dir}/lib/diffusionremote.jar" />
 			<file name="${diffusion.dir}/lib/diffusionclient.jar" />
 		</filelist>

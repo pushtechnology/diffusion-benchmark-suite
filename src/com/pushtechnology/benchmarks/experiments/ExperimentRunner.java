@@ -19,13 +19,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.Properties;
-import java.util.logging.Level;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pushtechnology.benchmarks.util.PropertiesUtil;
-import com.pushtechnology.diffusion.api.Logs;
 
 /**
  * A main class for all experiments.
@@ -56,14 +54,6 @@ public final class ExperimentRunner {
     @SuppressWarnings("deprecation")
     public static void main(final String[] args) {
         try {
-            // This depends on the system properties not on the settings file
-            // Try putting this in the client.vm.args
-            if (Boolean.getBoolean("verbose")) {
-                Logs.setLevel(Level.FINEST);
-            } else {
-                Logs.setLevel(Level.INFO);
-            }
-
             final CommonExperimentSettings settings =
                     getSettingsObject(args[0], args[1]);
 
