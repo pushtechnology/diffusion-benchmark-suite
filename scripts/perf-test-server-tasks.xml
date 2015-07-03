@@ -16,6 +16,10 @@
 			<file name="${diffusion.dir}/lib/diffusionremote.jar" />
 			<file name="${diffusion.dir}/lib/diffusionclient.jar" />
 		</filelist>
+                <fileset dir="${diffusion.dir}/clients/java/">
+                        <exclude name="diffusion-event-publisher-5.0.1.jar"/>
+                        <include name="**/*" />
+                </fileset>
 	</path>
 	<macrodef name="assert-no-diffusion-running">
 		<sequential>
@@ -70,6 +74,7 @@
 			<waitfor>
 				<socket server="localhost" port="8080" />
 			</waitfor>
+                        <sleep seconds="5"/>
 		</sequential>
 	</macrodef>
 	<macrodef name="clean-diffusion">

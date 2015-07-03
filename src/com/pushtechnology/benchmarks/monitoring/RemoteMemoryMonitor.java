@@ -33,6 +33,8 @@ public final class RemoteMemoryMonitor implements MemoryMonitor {
     private CompositeDataSupport currentMemoryUsage;
     private CompositeDataSupport currentOffHeapMemoryUsage;
 
+    private boolean circuitBroken = false;
+    
     /**
      * Constructor for remote memory monitor.
      * 
@@ -116,8 +118,17 @@ public final class RemoteMemoryMonitor implements MemoryMonitor {
         }
     }
 
+    /**
+     * If the jmx sampling takes too long, or if there is
+     * an error, then disable/ break the circuit on this
+     * remote call.
+     */
     @Override
     public void sample() {
+    	
+    	if(!circuitBroken){
+    		long start = System.currentTimeMillis();
+    		long end=-1;
         try {
             currentMemoryUsage =
                     (CompositeDataSupport) connection.getAttribute(osBeanName,
@@ -127,6 +138,19 @@ public final class RemoteMemoryMonitor implements MemoryMonitor {
                             "NonHeapMemoryUsage");
         } catch (Exception e) {
             currentMemoryUsage = null;
+            currentOffHeapMemoryUsage = null;
+        } finally {
+    		end = System.currentTimeMillis();
         }
+        if(end-start > 400){
+            currentMemoryUsage = null;
+            currentOffHeapMemoryUsage = null;
+            breakCircuit();
+        }
+    	}
+    }
+    
+    public void breakCircuit(){
+    	circuitBroken=true;
     }
 }

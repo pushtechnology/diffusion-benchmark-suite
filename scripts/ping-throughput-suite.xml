@@ -24,6 +24,19 @@
 					<assert-no-diffusion-running />
 					<clean-diffusion />
 					<antcall target="start-echo" />
+						<!-- Create publisher configuration -->
+						<configure-injector output="125b-xC-4M-50T.xml"
+							publish.pause.seconds="0.5"
+							message.size="128"
+							initial.messages="1"
+							message.increment.interval="1"
+							message.increment="1"
+							initial.topic.num="50"
+							topic.increment.interval="1"
+							topic.increment="1" />
+						<!-- package and deliver to diffusion server to be auto-deployed -->
+						<dar publisher.name="125b-xC-4M-50T" />
+						<deploy-dar dar.name="125b-xC-4M-50T.dar" />
 					<start-diffusion />
 				</then>
 			</elseif>
@@ -110,7 +123,7 @@ max.test.messages=${max.messages}
 						fork="true" failonerror="true" jvmargs="${client.jvm.args}">
 						<sysproperty key="verbose" value="${verbose}" />
 						<sysproperty key="log.connection.exception" value="false" />
-						<arg value="com.pushtechnology.benchmarks.experiments.PingLatencyExperiment" />
+						<arg value="com.pushtechnology.benchmarks.experiments.PingAndThroughputExperiment" />
 						<arg value="${full-test-name}.settings" />
 						<classpath refid="test.runtime.classpath" />
 					</java>
@@ -127,4 +140,40 @@ max.test.messages=${max.messages}
 		<undeploy-dar dar.name="Ping${ping.type}Publisher.dar" />
 		<delete file="Ping${ping.type}Publisher.dar" />
 	</target>
+	
+	<!-- Use this property to control the conflation mode:
+	   REPLACE - conflate in place(like normal people do)
+	   APPEND - conflate and re-order to end of queue(default old behaviour, daft)
+	   NONE - no conflation
+	   COMPARE - conflation using the now deprecated comparator facility
+	-->
+	<property name="conflation.mode" value="NONE" />
+	
+	<macrodef name="configure-injector">
+		<!-- 10 times a second -->
+		<attribute name="publish.pause.seconds" default="0.1" />
+		<attribute name="message.size" default="100" />
+		<attribute name="initial.messages" default="10" />
+		<attribute name="message.increment.interval" default="10" />
+		<attribute name="message.increment" default="10" />
+		<attribute name="initial.topic.num" default="100" />
+		<attribute name="topic.increment.interval" default="10" />
+		<attribute name="topic.increment" default="10" />
+		<attribute name="output" />
+		<sequential>
+			<copy file="etc/Injector.xml" tofile="etc/@{output}" overwrite="true">
+				<filterset begintoken="@" endtoken="@">
+					<filter token="conflationMode" value="${conflation.mode}" />
+					<filter token="pauseSeconds" value="0.25" />
+					<filter token="messageSize" value="125" />
+					<filter token="initialMessages" value="1" />
+					<filter token="messageIncrementIntervalInPauses" value="0" />
+					<filter token="messageIncrement" value="0" />
+					<filter token="initialTopicNum" value="50" />
+					<filter token="topicIncrementIntervalInPauses" value="0" />
+					<filter token="topicIncrement" value="0" />
+				</filterset>
+			</copy>
+		</sequential>
+	</macrodef>
 </project>

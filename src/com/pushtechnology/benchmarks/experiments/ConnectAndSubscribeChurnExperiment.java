@@ -106,6 +106,7 @@ public final class ConnectAndSubscribeChurnExperiment implements Runnable {
                 MessageCountingClient client = new MessageCountingClient(
                         loop.getExperimentCounters(),
                         false,
+                        loop.getClientSettings(),
                         settings.getRootTopic()) {
                     @Override
                     public void afterServerConnect(

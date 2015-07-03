@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<launchConfiguration type="com.pushtechnology.diffusion.launch.DiffusionConfiguration">
-<stringAttribute key="com.pushtechnology.diffusion.development.aliases" value=""/>
-<stringAttribute key="com.pushtechnology.diffusion.development.configDir" value="${workspace_loc:/diffusion-benchmark-suite/etc/eclipse}"/>
-<booleanAttribute key="com.pushtechnology.diffusion.development.noautodeploy" value="true"/>
-<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="com.pushtechnology.diffusion.Diffusion"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="diffusion-benchmark-suite"/>
-<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xms1g -Xmx1g -XX:MaxPermSize=64m -XX:PermSize=64m -XX:NewRatio=20"/>
-</launchConfiguration>

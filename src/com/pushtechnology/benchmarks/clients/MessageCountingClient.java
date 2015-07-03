@@ -18,6 +18,7 @@ package com.pushtechnology.benchmarks.clients;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.pushtechnology.benchmarks.experiments.CommonExperimentSettings;
 
 import com.pushtechnology.benchmarks.monitoring.ExperimentCounters;
 import com.pushtechnology.diffusion.api.Credentials;
@@ -37,6 +38,7 @@ public class MessageCountingClient implements ExperimentClient {
     protected final ExperimentCounters experimentCounters;
     private final String[] initialTopics;
     private volatile boolean reconnect;
+    private final CommonExperimentSettings clientSettings;
     // CHECKSTYLE:ON
     private static final Logger LOG = LoggerFactory.getLogger(MessageCountingClient.class);
 
@@ -46,10 +48,11 @@ public class MessageCountingClient implements ExperimentClient {
      * @param initialTopicsP initial topics to subscribe to on connection
      */
     public MessageCountingClient(ExperimentCounters experimentCountersP,
-            boolean reconnectP, String... initialTopicsP) {
+            boolean reconnectP, CommonExperimentSettings clientSettings, String... initialTopicsP) {
         this.experimentCounters = experimentCountersP;
         this.reconnect = reconnectP;
         initialTopics = initialTopicsP;
+        this.clientSettings  = clientSettings;
     }
 
     @Override
@@ -106,6 +109,7 @@ public class MessageCountingClient implements ExperimentClient {
     @Override
     public void serverRejectedCredentials(ServerConnection serverConnection,
             Credentials credentials) {
+    	int i=0;
     }
 
     @Override
@@ -129,11 +133,16 @@ public class MessageCountingClient implements ExperimentClient {
      * @param serverConnection ...
      */
     protected void onServerDisconnect(ServerConnection serverConnection) {
+    	int i=0;
     }
 
     @Override
     public final String[] getInitialTopics() {
         return initialTopics;
+    }
+
+    public final CommonExperimentSettings getClientSettings() {
+        return clientSettings;
     }
 
     /**

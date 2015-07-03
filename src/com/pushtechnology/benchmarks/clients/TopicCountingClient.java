@@ -18,6 +18,7 @@ package com.pushtechnology.benchmarks.clients;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.pushtechnology.benchmarks.experiments.CommonExperimentSettings;
 import com.pushtechnology.benchmarks.monitoring.ExperimentCounters;
 import com.pushtechnology.diffusion.api.ServerConnection;
 import com.pushtechnology.diffusion.api.message.TopicMessage;
@@ -39,8 +40,9 @@ public class TopicCountingClient extends MessageCountingClient {
      * @param initialTopicsP ...
      */
     public TopicCountingClient(ExperimentCounters experimentCountersP,
+    		 CommonExperimentSettings clientSettings,
             String... initialTopicsP) {
-        super(experimentCountersP, true, initialTopicsP);
+        super(experimentCountersP, true, clientSettings, initialTopicsP);
     }
 
     @Override

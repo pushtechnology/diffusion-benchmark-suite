@@ -1,36 +1,36 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<project name="rc-latency-suite" default="perf-suite" basedir=".">
+<project name="cc-latency-suite" default="perf-suite" basedir=".">
 	<property environment="env" />
-	<property name="suite.ant.file" value="rc-latency-suite.xml" />
+	<property name="suite.ant.file" value="cc-latency-suite.xml" />
 	<property name="client.jvm.args" value="-server -Xms2g -Xmx2g" />
 	<property name="client.threads" value="1" />
 	<property name="max.time" value="5.0" />
 	<property name="max.messages" value="100000" />
-	<property name="rc.host" value="dpt://localhost:8080" />
+	<property name="cc.host" value="dpt://localhost:8081" />
 	<!-- Further common settings are available in the test-suite-common file
 	-->
-	<import file="rc-test-suite-common.xml" />
+	<import file="cc-test-suite-common.xml" />
 
-	<target name="perfTest-1000b-rc-ping-latency">
-		<run-rc-ping-test test.name="1000b-rc-ping-latency" message.size="1000" />
+	<target name="perfTest-1000b-cc-ping-latency">
+		<run-cc-ping-test test.name="1000b-cc-ping-latency" message.size="1000" />
 	</target>
-	<target name="perfTest-2000b-rc-ping-latency">
-		<run-rc-ping-test test.name="2000b-rc-ping-latency" message.size="2000" />
+	<target name="perfTest-2000b-cc-ping-latency">
+		<run-cc-ping-test test.name="2000b-cc-ping-latency" message.size="2000" />
 	</target>
-	<target name="perfTest-500b-rc-ping-latency">
-		<run-rc-ping-test test.name="500b-rc-ping-latency" message.size="500" />
+	<target name="perfTest-500b-cc-ping-latency">
+		<run-cc-ping-test test.name="500b-cc-ping-latency" message.size="500" />
 	</target>
-	<target name="perfTest-250b-rc-ping-latency">
-		<run-rc-ping-test test.name="250b-rc-ping-latency" message.size="250" />
+	<target name="perfTest-250b-cc-ping-latency">
+		<run-cc-ping-test test.name="250b-cc-ping-latency" message.size="250" />
 	</target>
-	<target name="perfTest-250b-rc-ping-throughput">
-		<run-rc-ping-test test.name="250b-rc-ping-latency" message.size="250" />
+	<target name="perfTest-250b-cc-ping-throughput">
+		<run-cc-ping-test test.name="250b-cc-ping-latency" message.size="250" />
 	</target>
-	<target name="perfTest-125b-rc-ping-latency">
-		<run-rc-ping-test test.name="125b-rc-ping-latency" message.size="125" />
+	<target name="perfTest-125b-cc-ping-latency">
+		<run-cc-ping-test test.name="125b-cc-ping-latency" message.size="125" />
 	</target>
 
-	<macrodef name="run-rc-ping-test">
+	<macrodef name="run-cc-ping-test">
 		<!-- Client attributes -->
 		<attribute name="initial.clients" default="0" />
 		<attribute name="max.clients" default="1" />
@@ -70,11 +70,13 @@ max.test.messages=${max.messages}
 						</else>
 					</if>
 					<echo message="...Starting test client..." />
+					<pathconvert property="classpathProp" refid="test.runtime.classpath"/>
+					<echo>Classpath is ${classpathProp}</echo>
 					<java classname="com.pushtechnology.benchmarks.experiments.ExperimentRunner"
 						fork="true" failonerror="true" jvmargs="${client.jvm.args}">
 						<sysproperty key="verbose" value="${verbose}" />
 						<sysproperty key="log.connection.exception" value="false" />
-						<arg value="com.pushtechnology.benchmarks.experiments.RemoteControlPingLatencyExperiment" />
+						<arg value="com.pushtechnology.benchmarks.experiments.ControlClientPingLatencyExperiment" />
 						<arg value="${full-test-name}.settings" />
 						<classpath refid="test.runtime.classpath" />
 					</java>

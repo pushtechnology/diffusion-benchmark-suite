@@ -22,8 +22,8 @@
 
 	<!-- SSH user/pass to login to the host. Required if host is not
 	   localhost. -->
-	<property name="ssh.username" value="root" />
-	<property name="ssh.password" value="ds10hd" />
+	<property name="ssh.username" value="${env.SSH_USERNAME}" />
+	<property name="ssh.password" value="${env.SSH_PASSWORD}" />
 	<!-- This property allows filtering tests from test suites-->
 	<property name="test.name.contains" value="perfTest" />
 

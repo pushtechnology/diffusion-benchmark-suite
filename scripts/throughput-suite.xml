@@ -18,7 +18,7 @@
 	<import file="perf-test-suite-common.xml" />
 
 	<target name="perfTest-2000b-50t">
-		<run-ramping-throughput-test test.name="2000b-xC-4M-50T"
+		<run-ramping-throughput-test test.name="throughput-2000b-xC-4M-50T"
 			message.size="2000"
 			publish.pause.seconds="0.25"
 			initial.clients="0"
@@ -29,9 +29,8 @@
 			initial.topic.num="50"
 			topic.increment="0" />
 	</target>
-
 	<target name="perfTest-1000b-50t">
-		<run-ramping-throughput-test test.name="1000b-xC-4M-50T"
+		<run-ramping-throughput-test test.name="throughput-1000b-xC-4M-50T"
 			message.size="1000"
 			publish.pause.seconds="0.25"
 			initial.clients="0"
@@ -43,7 +42,7 @@
 			topic.increment="0" />
 	</target>
 	<target name="perfTest-500b-50t">
-		<run-ramping-throughput-test test.name="500b-xC-4M-50T"
+		<run-ramping-throughput-test test.name="throughput-500b-xC-4M-50T"
 			message.size="500"
 			publish.pause.seconds="0.25"
 			initial.clients="0"
@@ -55,7 +54,7 @@
 			topic.increment="0" />
 	</target>
 	<target name="perfTest-250b-50t">
-		<run-ramping-throughput-test test.name="250b-xC-4M-50T"
+		<run-ramping-throughput-test test.name="throughput-250b-xC-4M-50T"
 			message.size="250"
 			publish.pause.seconds="0.25"
 			initial.clients="0"
@@ -67,7 +66,7 @@
 			topic.increment="0" />
 	</target>
 	<target name="perfTest-125b-50t">
-		<run-ramping-throughput-test test.name="125b-xC-4M-50T"
+		<run-ramping-throughput-test test.name="throughput-125b-xC-4M-50T"
 			message.size="125"
 			publish.pause.seconds="0.25"
 			initial.clients="0"
@@ -81,7 +80,7 @@
 	</target>
 	<!-- added very small message benchmark to push server harder before sturation-->
 	<target name="perfTest-10b-50t">
-		<run-ramping-throughput-test test.name="10b-xC-4M-50T"
+		<run-ramping-throughput-test test.name="throughput-10b-xC-4M-50T"
 			message.size="10"
 			publish.pause.seconds="0.25"
 			initial.clients="0"

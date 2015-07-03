@@ -34,25 +34,46 @@ import com.pushtechnology.diffusion.api.topic.Topic;
  */
 public final class PingTopicPublishPublisher extends Publisher {
     /** the ping topic. Messages sent here will be sent back. */
-    public static final String ROOT_TOPIC = "PING";
-    private static final Logger LOG = LoggerFactory.getLogger(PingTopicPublishPublisher.class);
-    /** the ping topic, messages will be re-broadcasted on this one.*/
+    public static final String ROOT_TOPIC = "PING_TOPIC_PUBLISH";
+    private static final Logger LOG = LoggerFactory.getLogger(PingTopicPublishPublisher.class);    /** the ping topic, messages will be re-broadcasted on this one.*/
     private Topic rootTopic;
+    private Topic[] topics;
 
     @Override
     protected void initialLoad() throws APIException {
         SingleValueTopicData pingTopicData = 
                 TopicDataFactory.newSingleValueData(MDataType.STRING);
+        
+        String configClients = this.getConfig().getPropertyValue("NumberOfClients");
+        int numClients=0;
+        if(configClients != null){
+        	try{
+        		numClients = Integer.parseInt(configClients);
+        		topics = new Topic[numClients];
+        	} catch(NumberFormatException ignore){}
+        }
+        
         pingTopicData.initialise("Welcome");
+        
+        if(topics == null){
         rootTopic = addTopic(ROOT_TOPIC,
                 pingTopicData);
         rootTopic.setAutoSubscribe(true);
+        } else {
+        	for(int i=0;i<numClients;i++){
+                topics[i] = addTopic(ROOT_TOPIC+"_"+i,
+                        pingTopicData);
+                topics[i].setAutoSubscribe(true);
+        	}
+        }
     }
 
     @SuppressWarnings("deprecation")
     @Override
     protected void messageFromClient(TopicMessage message, Client client) {
         try {
+        	//TODO : determine which topic to respond on
+        	
             // Echo to the topic
             rootTopic.publishMessage(message);
         } catch (APIException ex) {

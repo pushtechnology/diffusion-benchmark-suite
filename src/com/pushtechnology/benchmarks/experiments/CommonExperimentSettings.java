@@ -44,7 +44,7 @@ public class CommonExperimentSettings {
     private static final String DEFAULT_CONNECT_TOPIC_SELECTOR = "ROOT//";
     private static final double DEFAULT_MAX_TEST_TIME_MINUTES = 5.0;
     private static final Logger LOG = LoggerFactory.getLogger(CommonExperimentSettings.class);
-
+    private static final long DEFAULT_WARMUP_MESSAGES = 20000;
     private final String[] diffusionUrls;
     private final int maxClients;
     private final long clientCreatePauseNanos;
@@ -60,6 +60,7 @@ public class CommonExperimentSettings {
     private final long maxTestConnections;
     private final String outputFileName;
     private final String diffusionHost;
+	private final long warmupMessages;
     // CHECKSTYLE:ON
     /**
      * Load the experiment settings from properties. Will modify the settings
@@ -109,6 +110,8 @@ public class CommonExperimentSettings {
                 "max.test.connections", 0L);
         outputFileName = getProperty(settings, "experiment.output", "");
 
+        warmupMessages = getProperty(settings, "warmup.messages", DEFAULT_WARMUP_MESSAGES);
+        
         logSettings();
     }
 
@@ -219,6 +222,10 @@ public class CommonExperimentSettings {
         builder.append("Diffusion host:                 ");
         builder.append(this.getDiffusionHost());
         builder.append('\n');
+        builder.append("Warmup Messages:                 ");
+        builder.append(this.getWarmupMessages());
+        builder.append('\n');
+        
         return builder.toString();
     }
 
@@ -227,4 +234,13 @@ public class CommonExperimentSettings {
             LOG.trace(settingsAsString());
         }
     }
+
+	public long getWarmupMessages() {
+		return this.warmupMessages;
+	}
+
+	public boolean isPingTopicSend() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

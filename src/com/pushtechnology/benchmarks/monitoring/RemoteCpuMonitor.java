@@ -31,6 +31,7 @@ public class RemoteCpuMonitor extends CpuMonitor {
     // CHECKSTYLE:OFF
     private final MBeanServerConnection connection;
     private final ObjectName osBeanName;
+	private boolean circuitBroken=false;
     /**
      * @param connection to remote process
      * @throws MalformedObjectNameException if bean is not found
@@ -42,13 +43,35 @@ public class RemoteCpuMonitor extends CpuMonitor {
         this.osBeanName = new ObjectName("java.lang:type=OperatingSystem");
     }
 
+    /**
+     * If the jmx sampling takes too long, or if there is
+     * an error, then disable/ break the circuit on this
+     * remote call.
+     */
     @Override
     protected final long getProcessCpuTime() {
+
+    	if(!circuitBroken){
+    		long start = System.currentTimeMillis();
+    		long end=-1;
         try {
             return (Long) connection.getAttribute(osBeanName, "ProcessCpuTime");
         } catch (Exception e) {
+        	//circuitBroken=true;
             return 0;
+        } finally {
+    		end = System.currentTimeMillis();
+        if(end-start > 900){
+            breakCircuit();
         }
+        }
+    	} else {
+    		return 0;
+    	}
+    }
+
+    public void breakCircuit(){
+    	circuitBroken=true;
     }
 
 }

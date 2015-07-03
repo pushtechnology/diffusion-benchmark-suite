@@ -63,8 +63,7 @@ public class ExperimentControlLoop implements Runnable {
         }
     };
     /** experiment counters used for reporting and load management. */
-    private final ExperimentCounters experimentCounters =
-            new ExperimentCounters();
+    private final ExperimentCounters experimentCounters;
     /** the monitor runs in the background and prints experiment output. */
     private final ExperimentMonitor experimentMonitor;
     /** common settings for control. */
@@ -81,9 +80,11 @@ public class ExperimentControlLoop implements Runnable {
     public ExperimentControlLoop(final CommonExperimentSettings settings) {
         clientSettings = settings;
 
+        experimentCounters =
+                new ExperimentCounters(settings);
+        
         experimentMonitor =
-                new ExperimentMonitor(getExperimentCounters(),
-                        settings.getOutputFile(), settings.getDiffusionHost());
+                new ExperimentMonitor(getExperimentCounters(), settings);
         setUp();
 
     }
@@ -135,6 +136,7 @@ public class ExperimentControlLoop implements Runnable {
             }
             LOG.info("Initial load created");
             postInitialLoadCreated();
+            experimentMonitor.start();
             experimentMonitor.startSampling();
             long lastIncrementTime = System.currentTimeMillis();
             while (loadStrategy.testNotOver(testStartTime)) {
@@ -148,6 +150,8 @@ public class ExperimentControlLoop implements Runnable {
                     incBy = (int) Math.min(incBy, maxConns - currConns);
                     if (incBy > 0) {
                         LOG.info("increasing load by:" + incBy);
+                    } else {
+                    	experimentCounters.warmupComplete();
                     }
                     for (int i = 0; i < incBy; i++) {
                         connectThread.execute(createClientTask);
@@ -179,7 +183,7 @@ public class ExperimentControlLoop implements Runnable {
     }
 
     /**
-     * Setup some Diffusion properties and start monitoring.
+     * Setup some Diffusion properties
      */
     private void setUp() {
         // configure
@@ -190,7 +194,6 @@ public class ExperimentControlLoop implements Runnable {
         } catch (final APIException e) {
             throw new RuntimeException(e);
         }
-        experimentMonitor.start();
     }
 
     /**

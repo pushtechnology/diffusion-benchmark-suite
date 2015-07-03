@@ -47,11 +47,12 @@ public class DefaultClientFactory implements
     @Override
     public final ExperimentClient create() {
         if (experimentCounters.getConnectionAttemptsCounter() == 0) {
-            return new TopicCountingClient(experimentCounters,
+            return new TopicCountingClient(experimentCounters, clientSettings,
                     clientSettings.getRootTopic());
         } else {
             return new MessageCountingClient(experimentCounters,
                     false,
+                    clientSettings,
                     clientSettings.getRootTopic());
         }
     }

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<project name="rc-throughtput-suite" default="perf-suite" basedir=".">
+<project name="cc-throughput-suite" default="perf-suite" basedir=".">
 	<property environment="env" />
-	<property name="suite.ant.file" value="rc-throughput-suite.xml" />
-	<property name="client.jvm.args" value="-server -Xms2g -Xmx2g" />
+	<property name="suite.ant.file" value="cc-throughput-suite.xml" />
+	<property name="client.jvm.args" value="-server -Xms4g -Xmx4g" />
 	<property name="client.threads" value="10" />
 	<property name="max.time" value="5.0" />
-	<property name="rc.host" value="dpt://localhost:8080" />
-	<!-- Further common settings are available in the test-suite-common file
+	<property name="cc.host" value="dpt://localhost:8081" />
+	<!-- Further common settings are available in the cc-test-suite-common file
 	-->
-	<import file="rc-test-suite-common.xml" />
+	<import file="cc-test-suite-common.xml" />
 	
 	<target name="perfTest-2000b-50t">
-		<run-rc-test test.name="2000b-RC-2M-50T"
+		<run-cc-test test.name="cc-throughput-2000b-CC-2M-50T"
 			message.size="2000"
 			publish.pause.seconds="0.5"
 			initial.clients="0"
@@ -23,7 +23,7 @@
 			topic.increment="0" />
 	</target>
 	<target name="perfTest-1000b-50t">
-		<run-rc-test test.name="1000b-RC-2M-50T"
+		<run-cc-test test.name="cc-throughput-1000b-CC-2M-50T"
 			message.size="1000"
 			publish.pause.seconds="0.5"
 			initial.clients="0"
@@ -35,7 +35,7 @@
 			topic.increment="0" />
 	</target>
 	<target name="perfTest-500b-50t">
-		<run-rc-test test.name="500b-RC-2M-50T"
+		<run-cc-test test.name="cc-throughput-500b-CC-2M-50T"
 			message.size="500"
 			publish.pause.seconds="0.5"
 			initial.clients="0"
@@ -47,7 +47,7 @@
 			topic.increment="0" />
 	</target>
 	<target name="perfTest-250b-50t">
-		<run-rc-test test.name="250b-RC-2M-50T"
+		<run-cc-test test.name="cc-throughput-250b-CC-2M-50T"
 			message.size="250"
 			publish.pause.seconds="0.5"
 			initial.clients="0"
@@ -59,7 +59,7 @@
 			topic.increment="0" />
 	</target>
 	<target name="perfTest-125b-50t">
-		<run-rc-test test.name="125b-RC-2M-50T"
+		<run-cc-test test.name="cc-throughput-125b-CC-2M-50T"
 			message.size="125"
 			publish.pause.seconds="0.5"
 			initial.clients="0"
@@ -70,8 +70,21 @@
 			initial.topic.num="50"
 			topic.increment="0" />
 	</target>
+        <target name="perfTest-10b-50t">
+                <run-cc-test test.name="cc-throughput-10b-CC-2M-50T"
+                        message.size="10"
+                        publish.pause.seconds="0.5"
+                        initial.clients="0"
+                        max.clients="100000"
+                        clients.increment="50"
+                        initial.messages="1"
+                        message.increment="0"
+                        initial.topic.num="50"
+                        topic.increment="0" />
+        </target>
 
-	<macrodef name="run-rc-test">
+
+	<macrodef name="run-cc-test">
 		<!-- Client attributes -->
 		<attribute name="initial.clients" default="1" />
 		<attribute name="max.clients" default="2000" />
@@ -115,7 +128,7 @@ publish.topics.increment.pauses=@{topic.increment.interval}
 publish.topics.increment=@{topic.increment}
 
 #Client settings:
-rc.host=${rc.host}
+cc.host=${cc.host}
 message.size=@{message.size}
 initial.clients=@{initial.clients}
 max.clients=@{max.clients}
@@ -152,7 +165,7 @@ max.test.time.minutes=${max.time}
 			<java classname="com.pushtechnology.benchmarks.experiments.ExperimentRunner"
 				fork="true" failonerror="true" jvmargs="${client.jvm.args}">
 				<sysproperty key="verbose" value="${verbose}" />
-				<arg value="com.pushtechnology.benchmarks.experiments.RemoteControlTLExperiment" />
+				<arg value="com.pushtechnology.benchmarks.experiments.ControlClientTLExperiment" />
 				<arg value="@{testname}.settings" />
 				<classpath refid="test.runtime.classpath" />
 			</java>
