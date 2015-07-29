@@ -1,29 +1,114 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <project name="churn-suite" default="perf-suite" basedir=".">
+	<property environment="env" />
+	<property name="client.jvm.args" value="-server -Xms2g -Xmx2g" />
+	<property name="client.threads" value="1" />
+	<property name="max.messages" value="1000000" />
+	<property name="max.time" value="0.2" />
 
-	<property name="client.jvm.args" value="-server -Xms4g -Xmx4g" />
+	<property name="suite.ant.file" value="churn-suite.xml" />
 
 	<import file="perf-test-suite-common.xml" />
+	<!-- before/after are empty as we want the server up for duration of suite -->
+	<target name="before" />
+	<target name="after" />
 
-	<target name="churn">
+	<target name="before-suite">
+		<if>
+			<equals arg1="${skip.server}" arg2="true" />
+			<then />
+			<elseif>
+				<equals arg1="${diffusion.host}" arg2="localhost" />
+				<then>
+					<kill-diffusion />
+					<assert-no-diffusion-running />
+					<clean-diffusion />
+					<antcall target="start-echo" />
+					<start-diffusion />
+				</then>
+			</elseif>
+			<else>
+				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}"
+					command="cd ${benchmark-server.dir};ant -f churn-suite.xml before-suite" />
+			</else>
+		</if>
+	</target>
+	<target name="after-suite">
+		<if>
+			<equals arg1="${skip.server}" arg2="true" />
+			<then />
+			<elseif>
+				<equals arg1="${diffusion.host}" arg2="localhost" />
+				<then>
+					<kill-diffusion />
+				</then>
+			</elseif>
+			<else>
+				<sshexec host="${diffusion.host}" username="${ssh.username}" password="${ssh.password}"
+					command="cd ${benchmark-server.dir};ant -f churn-suite.xml after-suite" />
+			</else>
+		</if>
+	</target>
+	<target name="perfTest-churn">
 		<run-client test.name="churn1" />
 	</target>
 
 	<macrodef name="run-client">
-		<attribute name="testname" />
+		<!-- Client attributes -->
+		<attribute name="client.jvm.memory" default="8g" />
+		<attribute name="initial.clients" default="1000" />
+		<attribute name="max.clients" default="1000000" />
+		<attribute name="client.create.pause.seconds" default="1" />
+		<attribute name="message.size" default="125" />
+		<attribute name="clients.increment" default="25" /> 
+		<attribute name="test.name" />
 		<sequential>
-			<echo message="...Starting test client..." />
-			<java classname="com.pushtechnology.benchmarks.experiments.ExperimentRunner"
-					fork="true" failonerror="true" jvmargs="${client.jvm.args}">
-				<sysproperty key="log.connection.exception" value="false" />
-				<arg value="com.pushtechnology.benchmarks.experiments.ConnectAndSubscribeChurnExperiment" />
-				<arg value="@{testname}.settings" />
-				<classpath refid="test.runtime.classpath" />
-			</java>
-			<echo message="...Test client finished..." />
+			<!-- Start Client -->
+			<var name="full-test-name" value="@{test.name}-${diffusion.protocol}" />
+			<if>
+				<equals arg1="${skip.client}" arg2="true" />
+				<then>
+					<input>Press Return key to continue...</input>
+				</then>
+				<else>
+					<if>
+						<available file="${full-test-name}.settings" />
+						<then>
+							<echo message="Using existing settings file: ${full-test-name}.settings" />
+						</then>
+						<else>
+							<echo file="${full-test-name}.settings">
+#Client settings:
+initial.clients=@{initial.clients}
+max.clients=@{max.clients}
+clients.increment=@{clients.increment}
+client.create.pause.seconds=@{client.create.pause.seconds}
+inbound.threadpool.size=${client.threads}
+client.jvm.args=${client.jvm.args}
+diffusion.url=${diffusion.url}
+diffusion.host=${diffusion.host}
+local.interfaces=${diffusion.client.nics}
+experiment.output=${full-test-name}.csv
+clients.output=${full-test-name}-clients.log
+max.test.time.minutes=${max.time}
+max.test.messages=${max.messages}
+</echo>
+						</else>
+					</if>
+					<echo message="...Starting test client..." />
+					<java classname="com.pushtechnology.benchmarks.experiments.ExperimentRunner"
+						fork="true" failonerror="true" jvmargs="${client.jvm.args}">
+						<sysproperty key="verbose" value="${verbose}" />
+						<sysproperty key="log.connection.exception" value="false" />
+						<arg value="com.pushtechnology.benchmarks.experiments.ConnectAndSubscribeChurnExperiment" />
+						<arg value="${full-test-name}.settings" />
+						<classpath refid="test.runtime.classpath" />
+					</java>
+					<echo message="...Test client finished..." />
+				</else>
+			</if>
 		</sequential>
 	</macrodef>
-
 
 
 
@@ -73,5 +158,12 @@
 		<undeploy-dar dar.name="${test.name}.dar" />
 		<delete file="${test.name}.dar" />
 	</target>
-
+	<target name="start-echo">
+		<dar-generic publisher.name="ChurnPublisher" />
+		<deploy-dar dar.name="ChurnPublisher.dar" />
+	</target>
+	<target name="stop-echo">
+		<undeploy-dar dar.name="ChurnPublisher.dar" />
+		<delete file="ChurnPublisher.dar" />
+	</target>
 </project>
