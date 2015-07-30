@@ -1,0 +1,24 @@
+#
+#Thu Jul 30 10:01:21 BST 2015
+clients.increment=100
+client.increment.pause.seconds=1
+inbound.threadpool.size=1
+max.test.connections=0
+diffusion.url=ws\://localhost\:8080
+initial.clients=0
+subscriptions.root=ROOT
+subscribeEventProbability=0.9
+diffusion.host=localhost
+subscribeCheckInterval=0.1
+max.test.time.minutes=5.0
+message.size=128
+topic=
+topic.count=100
+local.interfaces=
+warmup.messages=20000
+disconnect.probability=0.2
+max.test.messages=0
+max.clients=30000
+disconnect.check.interval=5.0
+client.create.pause.seconds=0.0
+experiment.output=churn1.csv

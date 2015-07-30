@@ -394,6 +394,7 @@ public class ExperimentMonitor implements Runnable {
         }
         isRunning = false;
         try {
+            LockSupport.unpark(monitorThread);
             monitorThread.join();
         } catch (InterruptedException e) {
             LOG.error("Interrupted while joining monitor thread", e);

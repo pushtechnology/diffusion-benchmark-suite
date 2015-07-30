@@ -49,10 +49,15 @@
 			</else>
 		</if>
 	</target>
-	<target name="perfTest-churn">
+	<target name="perfTest-churn1">
 		<run-client test.name="churn1" />
 	</target>
-
+	<target name="perfTest-churn2">
+		<run-client test.name="churn2" />
+	</target>
+	<target name="perfTest-churn3">
+		<run-client test.name="churn3" />
+	</target>
 	<macrodef name="run-client">
 		<!-- Client attributes -->
 		<attribute name="client.jvm.memory" default="8g" />
@@ -64,7 +69,7 @@
 		<attribute name="test.name" />
 		<sequential>
 			<!-- Start Client -->
-			<var name="full-test-name" value="@{test.name}-${diffusion.protocol}" />
+			<var name="full-test-name" value="@{test.name}" />
 			<if>
 				<equals arg1="${skip.client}" arg2="true" />
 				<then>
